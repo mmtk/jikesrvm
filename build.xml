@@ -20,11 +20,13 @@
   <import file="build/tasks.xml"/>
   <import file="build/checkstyle-plugins.xml"/>
 
-  <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
+  <property name="config.file" location="${jikesrvm.dir}/build/configs${gc.name}/${config.name}.properties"/>
+	<property name="gc.file" location="${jikesrvm.dir}/build/gcs/${gc.name}.properties"/>
 
   <!-- configuration data -->
   <property file="${config.file}"/>
   <property file="${target.file}"/>
+  <property file="${gc.file}"/>
 
   <!-- default configuration values. May have already been set by above tasks -->
   <property file="${jikesrvm.dir}/build/configs/config.properties.defaults"/>
@@ -35,11 +37,20 @@
   <property name="primordials.dir" location="build/primordials"/>
   <property name="main.java" location="rvm/src"/>
   <property name="test.java" location="rvm/test-src/"/>
+<!--
   <property name="mmtk.java" location="MMTk/src"/>
   <property name="mmtk-harness.java" location="MMTk/harness/src"/>
   <property name="mmtk-harness-vmmagic.java" location="MMTk/harness/vmmagic"/>
   <property name="mmtk-vm-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
   <property name="mmtk-vm-harness.java" location="MMTk/ext/vm/harness"/>
+
+  <property name="mmtk2.java" location="MMTk2/src"/>
+  <property name="mmtk2-harness.java" location="MMTk2/harness/src"/>
+  <property name="mmtk2-harness-vmmagic.java" location="MMTk2/harness/vmmagic"/>
+  <property name="mmtk2-vm-rvm.java" location="MMTk2/ext/vm/jikesrvm"/>
+  <property name="mmtk2-vm-harness.java" location="MMTk2/ext/vm/harness"/>
+-->
+
   <property name="vmmagic-stub.java" location="common/vmmagic/src"/>
   <property name="options.java" location="common/options/src"/>
   <property name="tuningforklib.java" location="external/tuningforklib/src"/>	
@@ -120,6 +131,12 @@
   <!-- *             Property initialization section of the build                 * -->
   <!-- *                                                                          * -->
   <!-- **************************************************************************** -->
+
+	<target name="check-gc-version">
+		<fail unless="gc.name">
+			gc.name property not specified. Please specify property on commandline using -Dgc.name = 1, -Dgc.name = 2.
+		</fail>
+	</target>
 
   <target name="check-config-properties">
     <fail unless="config.name">
@@ -461,7 +478,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <!-- we are compiling mmtk independently to ensure that it can build independent of the rvm -->
-  <target name="compile-mmtk" depends="compile-vmmagic-stub,compile-options" description="Compile MMTk toolkit.">
+  <target name="compile-mmtk" depends="compile-vmmagic-stub,compile-options, check-gc-version" description="Compile MMTk toolkit.">
     <property name="build.mmtk.classes" location="${build.dir}/mmtk/classes"/>
     <mkdir dir="${build.mmtk.classes}"/>
     <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source"
@@ -1929,6 +1946,9 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/sysMath.c"
                    objfile="${build.base}/${target.obj-prefix}sysMath${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
+<!--    <CompileCtoObj cfile="${bl.dir}/sysMMTk.c"
+                   objfile="${build.base}/${target.obj-prefix}sysMMTk${target.obj-ext}"
+                   cargs="${rvm.c.args}"/> -->
     <CompileCtoObj cfile="${bl.dir}/sysMemory.c"
                    objfile="${build.base}/${target.obj-prefix}sysMemory${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
@@ -1965,6 +1985,7 @@ const char *rvm_target_configuration = "${target.file}";
         <arg value="${build.base}/${target.obj-prefix}sysGCSpy${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysIO${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysLibrary${target.obj-ext}"/>
+<!--        <arg value="${build.base}/${target.obj-prefix}sysMMTk${target.obj-ext}"/> -->
         <arg value="${build.base}/${target.obj-prefix}sysMath${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysMemory${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysMisc${target.obj-ext}"/>
@@ -2020,7 +2041,7 @@ const char *rvm_target_configuration = "${target.file}";
         <arg value="${build.base}/${target.obj-prefix}sysIO${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysLibrary${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysMath${target.obj-ext}"/>
-        <arg value="${build.base}/${target.obj-prefix}sysMemory${target.obj-ext}"/>
+<!--        <arg value="${build.base}/${target.obj-prefix}sysMMTk${target.obj-ext}"/> -->
         <arg value="${build.base}/${target.obj-prefix}sysMisc${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysPerfEvent${target.obj-ext}"/>
         <arg value="${build.base}/${target.obj-prefix}sysSignal${target.obj-ext}"/>
@@ -2404,7 +2425,7 @@ target.jni-suffix=${target.jni-suffix}
       <fileset dir="rvm/src-generated" includes="**/*.java"/>
       <fileset dir="${test.java}" includes="**/*.java"/>
       <fileset dir="testing" includes="**/*.java"/>
-      <fileset dir="MMTk" includes="**/*.java" excludes="harness/src-generated/**/*.java"/>
+      <fileset dir="MMTk${gc.name}" includes="**/*.java" excludes="harness/src-generated/**/*.java"/>
       <fileset dir="common/vmmagic" includes="**/*.java"/>
       <fileset dir="common/options" includes="**/*.java"/>
       <fileset dir="libraryInterface/Common" includes="**/*.java"/>
