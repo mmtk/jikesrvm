@@ -265,12 +265,14 @@ EXTERNAL void sysCopy(void *dst, const void *src, Extent cnt)
 }
 
 /** Memory to memory copy. Memory regions may overlap. */
+/**
 EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt)
 {
+  printf("test1\n");
   TRACE_PRINTF("%s: sysMemmove %p %p %zu\n", Me, dst, src, cnt);
   memmove(dst, src, cnt);
 }
-
+*/
 
 
 

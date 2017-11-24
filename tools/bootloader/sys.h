@@ -234,8 +234,12 @@ EXTERNAL void * sysMMapErrno(char *start , size_t length ,
                              int fd , Offset offset);
 EXTERNAL int sysMProtect(char *start, size_t length, int prot);
 EXTERNAL void sysCopy(void *dst, const void *src, Extent cnt);
-EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
+//EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysSyncCache(void *address, size_t size);
+//sysMMTk
+EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
+EXTERNAL void sysHelloWorld();
+
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);
 EXTERNAL int sysGetenv(const char *varName, char *buf, int limit);

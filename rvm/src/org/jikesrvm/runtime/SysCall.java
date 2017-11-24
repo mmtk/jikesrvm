@@ -112,6 +112,9 @@ public abstract class SysCall {
   public abstract void sysMemmove(Address dst, Address src, Extent cnt);
 
   @SysCallTemplate
+  public abstract void sysHelloWorld();
+
+  @SysCallTemplate
   public abstract Address sysMalloc(int length);
 
   @SysCallTemplate

@@ -72,6 +72,10 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
+import org.jikesrvm.runtime.SysCall;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+
+
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
@@ -127,7 +131,7 @@ public final class MemoryManager {
     DebugUtil.boot(theBootRecord);
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
-
+    sysCall.sysHelloWorld();
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
       @Override
       public void notifyExit(int value) {
