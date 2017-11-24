@@ -232,7 +232,12 @@ public class BootRecord {
   public Address sysConsoleWriteLongIP;
   public Address sysConsoleWriteDoubleIP;
   public Address sysConsoleFlushErrorAndTraceIP;
+
   public Address sysHelloWorldIP;
+
+  // garbage collector
+  public Address sysGCInitIP;
+  public Address sysAllocIP;
 
   // startup/shutdown
   public Address sysExitIP;

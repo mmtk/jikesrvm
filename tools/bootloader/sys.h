@@ -239,6 +239,8 @@ EXTERNAL void sysSyncCache(void *address, size_t size);
 //sysMMTk
 EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysHelloWorld();
+EXTERNAL void sysGCInit(int size);
+EXTERNAL void* sysAlloc(int size, int align, int offset);
 
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);
