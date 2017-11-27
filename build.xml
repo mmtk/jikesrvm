@@ -1280,7 +1280,10 @@ Check to make sure all required properties are specified. This includes properti
         <arg line="${c.args} -o @{outdir}/@{exename}"/>
         <arg value="-L@{outdir}"/>
         <ObjectFiles/>
-        <arg line="@{lib} -lm -lc /home/admin-u6374399/Documents/test/JikesRVM/mmtk/target/i586-unknown-linux-gnu/release/libmmtk.a"/>
+        <!--<arg line="@{lib} -lm -lc /home/admin-u6374399/Documents/test/JikesRVM/mmtk/target/i586-unknown-linux-gnu/release/libmmtk.a"/>
+        -->
+        <arg line="@{lib} -lmmtk -L/home/admin-u6374399/Documents/test/JikesRVM/mmtk/bench/libmmtk.so"/>
+
         <arg line="${classlib.libraries} ${perfevent.libraries} ${bootloader.libraries}"/>
       </exec>
     </sequential>
@@ -1957,13 +1960,13 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/sysMath.c"
                    objfile="${build.base}/${target.obj-prefix}sysMath${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
-    <CompileCtoObj cfile="${bl.dir}/sysMMTk.c "
+<!--    <CompileCtoObj cfile="${bl.dir}/sysMMTk.c "
                    objfile="${build.base}/${target.obj-prefix}sysMMTk${target.obj-ext}"
                    cargs="${rvm.c.args} /home/admin-u6374399/Documents/test/JikesRVM/mmtk/target/i586-unknown-linux-gnu/release/libmmtk.a"/>
-    <!-- /home/...../libmmtk.a -->
-<!--    <CompileCtoObj cfile="${bl.dir}/sysMMTk.c"
+-->
+    <CompileCtoObj cfile="${bl.dir}/sysMMTk.c "
                    objfile="${build.base}/${target.obj-prefix}sysMMTk${target.obj-ext}"
-                   cargs="${rvm.c.args} -L/home/admin-u6374399/Documents/test/JikesRVM/mmtk/target/release"/> -->
+                   cargs="${rvm.c.args} -lmmtk -L/home/admin-u6374399/Documents/test/JikesRVM/mmtk/bench/libmmtk.so"/>
     <CompileCtoObj cfile="${bl.dir}/sysMemory.c"
                    objfile="${build.base}/${target.obj-prefix}sysMemory${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
