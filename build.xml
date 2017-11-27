@@ -1282,7 +1282,7 @@ Check to make sure all required properties are specified. This includes properti
         <ObjectFiles/>
         <!--<arg line="@{lib} -lm -lc /home/admin-u6374399/Documents/test/JikesRVM/mmtk/target/i586-unknown-linux-gnu/release/libmmtk.a"/>
         -->
-        <arg line="@{lib} -lmmtk -L/home/admin-u6374399/Documents/test/JikesRVM/mmtk/bench/libmmtk.so"/>
+        <arg line="@{lib} -lm -lc /home/admin-u6374399/Documents/test/JikesRVM/mmtk/bench/libmmtk.a"/>
 
         <arg line="${classlib.libraries} ${perfevent.libraries} ${bootloader.libraries}"/>
       </exec>
@@ -1966,7 +1966,7 @@ const char *rvm_target_configuration = "${target.file}";
 -->
     <CompileCtoObj cfile="${bl.dir}/sysMMTk.c "
                    objfile="${build.base}/${target.obj-prefix}sysMMTk${target.obj-ext}"
-                   cargs="${rvm.c.args} -lmmtk -L/home/admin-u6374399/Documents/test/JikesRVM/mmtk/bench/libmmtk.so"/>
+                   cargs="${rvm.c.args} /home/admin-u6374399/Documents/test/JikesRVM/mmtk/bench/libmmtk.a"/>
     <CompileCtoObj cfile="${bl.dir}/sysMemory.c"
                    objfile="${build.base}/${target.obj-prefix}sysMemory${target.obj-ext}"
                    cargs="${rvm.c.args}"/>

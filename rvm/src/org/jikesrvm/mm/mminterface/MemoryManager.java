@@ -506,7 +506,7 @@ public final class MemoryManager {
     //System.out.println(size + " "+  align + " " + offset);
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
-    Address region = sysCall.sysAlloc(size, align, offset);// allocateSpace(mutator, size, align, offset, allocator, site);
+    Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = ObjectModel.initializeScalar(region, tib, size);
     mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
@@ -598,7 +598,7 @@ public final class MemoryManager {
 
     /* Now make the request */
     Address region;
-    region = mutator.alloc(bytes, align, offset, allocator, site);
+    region = sysCall.sysAlloc(bytes, align, offset); //mutator.alloc(bytes, align, offset, allocator, site);
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
@@ -625,7 +625,7 @@ public final class MemoryManager {
 
     /* Now make the request */
     Address region;
-    region = context.allocCopy(from, bytes, align, offset, allocator);
+    region = sysCall.sysAlloc(bytes, align, offset);
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
