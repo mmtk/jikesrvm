@@ -1205,6 +1205,17 @@ Check to make sure all required properties are specified. This includes properti
     </sequential>
   </macrodef>
 
+  <macrodef name="CompileCtoObj2">
+    <attribute name="cfile2"/>
+    <attribute name="objfile2"/>
+    <attribute name="cargs2"/>
+    <sequential>
+      <exec executable="${c.exe}" failonerror="true">
+        <arg line="@{cargs2} -c -o @{objfile} @{cfile}"/>
+      </exec>
+    </sequential>
+  </macrodef>
+
   <!-- Macro to link object files into a library -->
   <macrodef name="CreateLibrary">
     <attribute name="dllname"/>
@@ -1269,7 +1280,7 @@ Check to make sure all required properties are specified. This includes properti
         <arg line="${c.args} -o @{outdir}/@{exename}"/>
         <arg value="-L@{outdir}"/>
         <ObjectFiles/>
-        <arg line="@{lib} -lm -lc"/>
+        <arg line="@{lib} -lm -lc /home/admin-u6374399/Documents/test/JikesRVM/mmtk/target/i586-unknown-linux-gnu/release/libmmtk.a"/>
         <arg line="${classlib.libraries} ${perfevent.libraries} ${bootloader.libraries}"/>
       </exec>
     </sequential>
@@ -1946,9 +1957,13 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/sysMath.c"
                    objfile="${build.base}/${target.obj-prefix}sysMath${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
-    <CompileCtoObj cfile="${bl.dir}/sysMMTk.c"
+    <CompileCtoObj cfile="${bl.dir}/sysMMTk.c "
                    objfile="${build.base}/${target.obj-prefix}sysMMTk${target.obj-ext}"
-                   cargs="${rvm.c.args} -lmmtk -L/home/admin-u6374399/Documents/test/JikesRVM/mmtk/target/release"/>
+                   cargs="${rvm.c.args} /home/admin-u6374399/Documents/test/JikesRVM/mmtk/target/i586-unknown-linux-gnu/release/libmmtk.a"/>
+    <!-- /home/...../libmmtk.a -->
+<!--    <CompileCtoObj cfile="${bl.dir}/sysMMTk.c"
+                   objfile="${build.base}/${target.obj-prefix}sysMMTk${target.obj-ext}"
+                   cargs="${rvm.c.args} -L/home/admin-u6374399/Documents/test/JikesRVM/mmtk/target/release"/> -->
     <CompileCtoObj cfile="${bl.dir}/sysMemory.c"
                    objfile="${build.base}/${target.obj-prefix}sysMemory${target.obj-ext}"
                    cargs="${rvm.c.args}"/>

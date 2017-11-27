@@ -133,6 +133,7 @@ public final class MemoryManager {
     DebugUtil.boot(theBootRecord);
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
+    sysCall.sysGCInit(theBootRecord.maximumHeapSize.toInt());
     sysCall.sysHelloWorld(); // calls Hello World at beginning
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
       @Override
@@ -502,12 +503,14 @@ public final class MemoryManager {
    */
   @Inline
   public static Object allocateScalar(int size, TIB tib, int allocator, int align, int offset, int site) {
+    //System.out.println(size + " "+  align + " " + offset);
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
-    Address region = allocateSpace(mutator, size, align, offset, allocator, site);
+    Address region = sysCall.sysAlloc(size, align, offset);// allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = ObjectModel.initializeScalar(region, tib, size);
     mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
+    // return sysCall.sysAlloc(size, align, offset);
   }
 
   /**
