@@ -1,0 +1,4 @@
+[submodule "mmtk"]
+	path = mmtk
+	url = git@gitlab.anu.edu.au:mmtk/mmtk.git
+	branch = master
