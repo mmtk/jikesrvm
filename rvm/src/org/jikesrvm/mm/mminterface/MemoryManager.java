@@ -134,7 +134,6 @@ public final class MemoryManager {
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
     sysCall.sysGCInit(theBootRecord.maximumHeapSize.toInt());
-    sysCall.sysHelloWorld(); // calls Hello World at beginning
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
       @Override
       public void notifyExit(int value) {
@@ -143,6 +142,7 @@ public final class MemoryManager {
     });
 
     booted = true;
+    sysCall.sysHelloWorld(); // calls Hello World to notify boot has finished
   }
 
   /**
@@ -595,10 +595,10 @@ public final class MemoryManager {
                                        int site) {
     /* MMTk requests must be in multiples of MIN_ALIGNMENT */
     bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
-
+    //System.out.println("Error");
     /* Now make the request */
     Address region;
-    region = sysCall.sysAlloc(bytes, align, offset); //mutator.alloc(bytes, align, offset, allocator, site);
+    region = mutator.alloc(bytes, align, offset, allocator, site); //sysCall.sysAlloc(bytes, align, offset); //
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
@@ -623,9 +623,11 @@ public final class MemoryManager {
     /* MMTk requests must be in multiples of MIN_ALIGNMENT */
     bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
 
+    VM.sysWrite("ERROR");
+    VM.sysExit(50);
     /* Now make the request */
     Address region;
-    region = sysCall.sysAlloc(bytes, align, offset);
+    region = context.allocCopy(from, bytes, align, offset, allocator); // sysCall.sysAlloc(bytes, align, offset);
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);

@@ -17,7 +17,7 @@ EXTERNAL void sysHelloWorld()
   printf("Hello, World!\n");
 }
 
-/*
+
 EXTERNAL void sysGCInit(int size){
   printf("Initiated\n");
   gc_init ((size_t) size);
@@ -25,20 +25,10 @@ EXTERNAL void sysGCInit(int size){
 
 EXTERNAL void* sysAlloc(int size, int align, int offset){
   printf("%d, %d, %d", size, align, offset);
+  printf("Allocating\n");
+	void* temp = alloc ((size_t) size, (size_t) align, (ssize_t) offset);
   printf("Allocated\n");
-  return alloc ((size_t) size, (size_t) align, (ssize_t) offset);
-}
-*/
-
-EXTERNAL void sysGCInit(int size){
-  printf("InitiatedC\n");
-  gc_init ((size_t) size);
-}
-
-EXTERNAL void* sysAlloc(int size, int align, int offset){
-  printf("%d, %d, %d", size, align, offset);
-  printf("AllocatedC\n");
-  return alloc ((size_t) size, (size_t) align, (ssize_t) offset);
+	return temp;
 }
 
 
