@@ -20,7 +20,7 @@
   <import file="build/tasks.xml"/>
   <import file="build/checkstyle-plugins.xml"/>
 
-  <property name="config.file" location="${jikesrvm.dir}/build/configs${gc.name}/${config.name}.properties"/>
+  <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
 	<property name="gc.file" location="${jikesrvm.dir}/build/gcs/${gc.name}.properties"/>
 
   <!-- configuration data -->
