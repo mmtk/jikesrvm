@@ -97,13 +97,15 @@ public class DebugUtil {
   public static boolean validRef(ObjectReference ref) {
 
     if (ref.isNull()) return true;
+    /*
     if (!Space.isMappedObject(ref)) {
       VM.sysWrite("validRef: REF outside heap, ref = ");
       VM.sysWrite(ref);
       VM.sysWriteln();
       Space.printVMMap();
       return false;
-    }
+    } TODO
+     */
     if (MOVES_OBJECTS) {
       /*
       TODO: Work out how to check if forwarded
@@ -117,7 +119,7 @@ public class DebugUtil {
 
     TIB tib = ObjectModel.getTIB(ref);
     Address tibAddr = Magic.objectAsAddress(tib);
-    if (!Space.isMappedObject(ObjectReference.fromObject(tib))) {
+    /*if (!Space.isMappedObject(ObjectReference.fromObject(tib))) {
       VM.sysWrite("validRef: TIB outside heap, ref = ");
       VM.sysWrite(ref);
       VM.sysWrite(" tib = ");
@@ -125,7 +127,7 @@ public class DebugUtil {
       VM.sysWriteln();
       ObjectModel.dumpHeader(ref);
       return false;
-    }
+    } TODO*/
     if (tibAddr.isZero()) {
       VM.sysWrite("validRef: TIB is Zero! ");
       VM.sysWrite(ref);

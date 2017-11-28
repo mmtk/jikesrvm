@@ -24,10 +24,10 @@ EXTERNAL void sysGCInit(int size){
 }
 
 EXTERNAL void* sysAlloc(int size, int align, int offset){
-  printf("%d, %d, %d", size, align, offset);
-  printf("Allocating\n");
+  //printf("%d, %d, %d", size, align, offset);
+  //printf("Allocating\n");
 	void* temp = alloc ((size_t) size, (size_t) align, (ssize_t) offset);
-  printf("Allocated\n");
+  //printf("Allocated\n");
 	return temp;
 }
 
