@@ -158,7 +158,6 @@ use Getopt::Long qw(:config no_auto_abbrev bundling);
 my $suffix;
 my $mmtk_config;
 my $custom_host_name;
-my $custom_gc_name;
 my $custom_target_name;
 my $nuke;
 my $answeryes;
@@ -204,7 +203,6 @@ GetOptions(
   "s|suffix=s" => \$suffix,
   "m|mmtk-config=s" => \$mmtk_config,
   "host-name=s" => \$custom_host_name,
-	"gc-name=s" => \$custom_gc_name,
   "target-name=s" => \$custom_target_name,
   "nuke" => \$nuke,
   "answer-yes" => \$answeryes,
@@ -441,14 +439,6 @@ if (defined $custom_host_name) {
   }
   my ($arch, $os) = split(/-/,$hostConfig);
   $hostConfig = get_word_variant($arch)."-$os";
-}
-
-my $gcConfig;
-my @gc_info;
-if (defined $custom_gc_name) {
-  $gcConfig = $custom_gc_name;
-} else {
-  $gcConfig = 1;
 }
 
 my $targetConfig;
@@ -851,11 +841,10 @@ if ($ok) {
                "  export JAVA_HOME=$javaHome{$host} && ";
 
       if (! $quick) {
-        $build .= "  ant very-clean -Dhost.name=$hostConfig -Dgc.name=$gcConfig &&";
+        $build .= "  ant very-clean -Dhost.name=$hostConfig &&";
       }
       $build .= "  ant check-components-properties ".
                 "-Dhost.name=$hostConfig ".
-								"-Dgc.name=$gcConfig ".
                 "-Dtarget.name=$hostConfig ";
 
       if ($compcachedir ne "") {
@@ -867,13 +856,13 @@ if ($ok) {
       # Initial build
       #
       if ($eclipse) {
-        $build .= "  ant eclipse-project $hostdefs -Dgc.name=$gcConfig";
+        $build .= "  ant eclipse-project $hostdefs";
       } elsif ($mmtk_eclipse) {
-        $build .= "  ant mmtk-harness-eclipse-project $hostdefs -Dgc.name=$gcConfig";
+        $build .= "  ant mmtk-harness-eclipse-project $hostdefs";
       } elsif ($hostConfig eq $targetConfig) {
-        $build .= "  ant $hostdefs -Dgc.name=$gcConfig";
+        $build .= "  ant $hostdefs";
       } else {
-        $build .= "  ant cross-compile-host $hostdefs -Dgc.name=$gcConfig";
+        $build .= "  ant cross-compile-host $hostdefs";
       }
       $build .= "\"' ";
       if ($compcachedir ne "" && $host ne $local) {
@@ -930,7 +919,6 @@ if ($ok) {
 
         $build .= "  ant check-components-properties ".
                   "-Dhost.name=$targetConfig ".
-									"-Dgc.name=$gcConfig ".
                   "-Dtarget.name=$targetConfig ";
         if ($compcachedir ne "") {
           $build .= "-Dcomponents.cache.dir=$targetCompCache ";
