@@ -72,10 +72,6 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
-import org.jikesrvm.runtime.SysCall;
-import static org.jikesrvm.runtime.SysCall.sysCall;
-
-
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
@@ -131,7 +127,7 @@ public final class MemoryManager {
     DebugUtil.boot(theBootRecord);
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
-    sysCall.sysGCInit(theBootRecord.maximumHeapSize.toInt());
+
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
       @Override
       public void notifyExit(int value) {
@@ -140,7 +136,6 @@ public final class MemoryManager {
     });
 
     booted = true;
-    sysCall.sysHelloWorld(); // calls Hello World to notify boot has finished
   }
 
   /**
@@ -501,15 +496,12 @@ public final class MemoryManager {
    */
   @Inline
   public static Object allocateScalar(int size, TIB tib, int allocator, int align, int offset, int site) {
-    //System.out.println(size + " "+  align + " " + offset);
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
-    //Address region = sysCall.sysAlloc(size,align,offset);
     Object result = ObjectModel.initializeScalar(region, tib, size);
-    //mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
-    // return sysCall.sysAlloc(size, align, offset);
   }
 
   /**
@@ -572,10 +564,9 @@ public final class MemoryManager {
                                               int align, int offset, int site) {
     Selected.Mutator mutator = Selected.Mutator.get();
     allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
-    Address region = allocateSpace(mutator, size, align, offset, allocator, site);//sysCall.sysAlloc(size,align,offset);//allocateSpace(mutator, size, align, offset, allocator, site);
-    //Address region = sysCall.sysAlloc(size,align,offset);
+    Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = ObjectModel.initializeArray(region, tib, numElements, size);
-    //mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
 
@@ -595,11 +586,11 @@ public final class MemoryManager {
                                        int site) {
     /* MMTk requests must be in multiples of MIN_ALIGNMENT */
     bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
-    //System.out.println("Error");
+
     /* Now make the request */
     Address region;
-    //region = mutator.alloc(bytes, align, offset, allocator, site);
-    region = sysCall.sysAlloc(bytes, align, offset);
+    region = mutator.alloc(bytes, align, offset, allocator, site);
+
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
 
@@ -625,8 +616,8 @@ public final class MemoryManager {
 
     /* Now make the request */
     Address region;
-    //region = context.allocCopy(from, bytes, align, offset, allocator);
-    region = sysCall.sysAlloc(bytes, align, offset);
+    region = context.allocCopy(from, bytes, align, offset, allocator);
+
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
 

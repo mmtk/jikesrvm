@@ -26,7 +26,7 @@
   <property file="${config.file}"/>
   <property file="${target.file}"/>
 	<property name="config.library" value="${basedir}/mmtk/target/i686-unknown-linux-gnu/release/libmmtk.a"/>
-
+	<property name="gc.src" value="src"/>
 
   <!-- default configuration values. May have already been set by above tasks -->
   <property file="${jikesrvm.dir}/build/configs/config.properties.defaults"/>
@@ -35,7 +35,7 @@
 
   <!-- location of resources -->
   <property name="primordials.dir" location="build/primordials"/>
-  <property name="main.java" location="rvm/src"/>
+  <property name="main.java" location="rvm/${gc.src}"/>
   <property name="test.java" location="rvm/test-src/"/>
 
   <property name="mmtk.java" location="MMTk1/src"/>
