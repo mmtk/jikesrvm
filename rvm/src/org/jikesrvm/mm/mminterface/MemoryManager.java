@@ -72,6 +72,9 @@ import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
+import static org.jikesrvm.runtime.SysCall.sysCall;
+
+
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
@@ -127,6 +130,9 @@ public final class MemoryManager {
     DebugUtil.boot(theBootRecord);
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
+    if (VM.BuildWithRustMMTk) {
+      sysCall.sysGCInit(theBootRecord.maximumHeapSize.toInt());
+    }
 
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
       @Override
@@ -589,7 +595,11 @@ public final class MemoryManager {
 
     /* Now make the request */
     Address region;
-    region = mutator.alloc(bytes, align, offset, allocator, site);
+    if (VM.BuildWithRustMMTk) {
+      region = sysCall.sysAlloc(bytes, align, offset);
+    } else {
+      region = mutator.alloc(bytes, align, offset, allocator, site);
+    }
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
@@ -616,7 +626,11 @@ public final class MemoryManager {
 
     /* Now make the request */
     Address region;
-    region = context.allocCopy(from, bytes, align, offset, allocator);
+    if (VM.BuildWithRustMMTk) {
+      region = sysCall.sysAlloc(bytes, align, offset);
+    } else {
+      region = context.allocCopy(from, bytes, align, offset, allocator);
+    }
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
