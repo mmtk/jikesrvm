@@ -1239,6 +1239,9 @@ Check to make sure all required properties are specified. This includes properti
             <arg line="-Xlinker --version-script=@{srcdir}/${target.dll-prefix}@{dllname}.exp"/>
             <arg line="-o @{outdir}/${target.dll-prefix}@{dllname}@{suffix}"/>
             <ObjectFiles/>
+						<arg line="-lmmtk"/>
+						<arg line="-L${mmtk.path}"/>
+						<arg line="-Wl,-rpath,${mmtk.path}"/>
           </exec>
         </sequential>
       </if>
@@ -1257,8 +1260,6 @@ Check to make sure all required properties are specified. This includes properti
         <arg line="${c.args} -o @{outdir}/@{exename}"/>
         <arg value="-L@{outdir}"/>
         <ObjectFiles/>
-        <!--<arg line="@{lib} -lm -lc /home/admin-u6374399/Documents/test/JikesRVM/mmtk/target/i586-unknown-linux-gnu/release/libmmtk.a"/>
-        --><!---lm -lc ${basedir}/mmtk/bench/libmmtk.a-->
         <arg line="@{lib}"/>
 
         <arg line="${classlib.libraries} ${perfevent.libraries} ${bootloader.libraries}"/>
@@ -1937,13 +1938,9 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/sysMath.c"
                    objfile="${build.base}/${target.obj-prefix}sysMath${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
-<!--    <CompileCtoObj cfile="${bl.dir}/sysMMTk.c "
-                   objfile="${build.base}/${target.obj-prefix}sysMMTk${target.obj-ext}"
-                   cargs="${rvm.c.args} /home/admin-u6374399/Documents/test/JikesRVM/mmtk/target/i586-unknown-linux-gnu/release/libmmtk.a"/>
--->
     <CompileCtoObj cfile="${bl.dir}/sysMMTk.c "
                    objfile="${build.base}/${target.obj-prefix}sysMMTk${target.obj-ext}"
-                   cargs="${rvm.c.args} ${config.library}"/>
+                   cargs="${rvm.c.args}"/>
     <CompileCtoObj cfile="${bl.dir}/sysMemory.c"
                    objfile="${build.base}/${target.obj-prefix}sysMemory${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
@@ -2066,7 +2063,7 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/main.c"
                    objfile="${build.base}/${target.obj-prefix}main${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
-    <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext} ${jvm.vmi.lib.filter} -lm -lc ${config.library}">
+		<CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext} ${jvm.vmi.lib.filter} -lm -lc" >
       <ObjectFiles>
         <arg value="${build.base}/${target.obj-prefix}main${target.obj-ext}"/>
       </ObjectFiles>
