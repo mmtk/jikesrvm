@@ -46,6 +46,17 @@ public class Selected {
   @Uninterruptible
   public static class Mutator extends @_PLAN_@Mutator
   {
+
+@_NO_RUST_MASK_START_@
+  private int id;
+
+  public void initMutator(int id) {
+    this.id = id;
+  }
+  public int getId() { return id; }
+
+@_NO_RUST_MASK_END_@
+
     @Inline
     public final RVMThread getThread() { return (RVMThread) this; }
     @Inline
