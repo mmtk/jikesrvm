@@ -48,7 +48,7 @@ import org.vmmagic.unboxed.*;
  * low-cost at GC time.</p>
  *
  * <p>MMTk explicitly separates thread-local (this class) and global
- * operations (See {@link Plan}), so that syncrhonization is localized
+ * operations (See {@link Plan}), so that synchronization is localized
  * and explicit, and thus hopefully minimized (See {@link Plan}). Global (Plan)
  * and per-thread (this class) state are also explicitly separated.
  * Operations in this class (and its children) are therefore strictly

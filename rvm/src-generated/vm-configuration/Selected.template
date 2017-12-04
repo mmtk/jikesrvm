@@ -18,6 +18,10 @@ import org.mmtk.utility.Log;
 
 import org.vmmagic.pragma.*;
 
+import org.vmmagic.unboxed.Address;
+
+import static org.jikesrvm.runtime.SysCall.sysCall;
+
 public class Selected {
   public static final String name = "@_PLAN_@";
   @Uninterruptible
@@ -48,12 +52,13 @@ public class Selected {
   {
 
 @_NO_RUST_MASK_START_@
-  private int id;
+    Address mmtkHandle;
 
-  public void initMutator(int id) {
-    this.id = id;
-  }
-  public int getId() { return id; }
+    @Override
+    public void initMutator(int id) {
+      super.initMutator(id);
+      mmtkHandle = sysCall.sysBindAllocator(id);
+    }
 
 @_NO_RUST_MASK_END_@
 

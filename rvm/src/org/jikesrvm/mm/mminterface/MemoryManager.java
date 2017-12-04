@@ -600,7 +600,7 @@ public final class MemoryManager {
     /* Now make the request */
     Address region;
     if (VM.BuildWithRustMMTk) {
-      region = sysCall.sysAlloc(bytes, align, offset);
+      region = sysCall.sysAlloc(mutator.mmtkHandle, bytes, align, offset);
     } else {
       region = mutator.alloc(bytes, align, offset, allocator, site);
     }
@@ -631,7 +631,9 @@ public final class MemoryManager {
     /* Now make the request */
     Address region;
     if (VM.BuildWithRustMMTk) {
-      region = sysCall.sysAlloc(bytes, align, offset);
+      VM.sysFail("Tried to allocate in collector space for non-collecting plan");
+      region = null;
+      //region = sysCall.sysAlloc(context.mmtkHandle, bytes, align, offset);
     } else {
       region = context.allocCopy(from, bytes, align, offset, allocator);
     }

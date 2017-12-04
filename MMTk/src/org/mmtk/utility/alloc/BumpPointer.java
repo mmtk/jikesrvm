@@ -55,7 +55,7 @@ import org.vmmagic.unboxed.Word;
  *
  *  +-------------+-------------+-------------+---------------
  *  | Region  End | Next Region |  Data  End  | Data --&gt;
- * +-------------+-------------+-------------+---------------
+ *  +-------------+-------------+-------------+---------------
  *
  * </pre>
  *
@@ -64,7 +64,7 @@ import org.vmmagic.unboxed.Word;
  *
  * An intended enhancement is to facilitate a reallocation operation
  * where a second cursor is maintained over earlier regions (and at the
- * limit a lower location in the same region). This would be accompianied
+ * limit a lower location in the same region). This would be accompanied
  * with an alternative slow path that would allow reuse of empty regions.<p>
  *
  * This class relies on the supporting virtual machine implementing the
