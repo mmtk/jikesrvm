@@ -25,7 +25,6 @@
   <!-- configuration data -->
   <property file="${config.file}"/>
   <property file="${target.file}"/>
-  <property name="config.library" value="${basedir}/mmtk/target/i686-unknown-linux-gnu/release/libmmtk.a"/>
   <property name="rust.build" value="false"/>
 
   <!-- default configuration values. May have already been set by above tasks -->

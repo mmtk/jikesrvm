@@ -64,6 +64,8 @@
   #define GET_THREAD_LOCAL(key) pthread_getspecific(key)
 #endif
 
+typedef void* MMTk_Handle;
+
 /** Page size determined at runtime */
 extern Extent pageSize;
 /** Sink for messages relating to serious errors detected by C runtime. */
@@ -240,7 +242,8 @@ EXTERNAL void sysSyncCache(void *address, size_t size);
 EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysHelloWorld();
 EXTERNAL void sysGCInit(int size);
-EXTERNAL void* sysAlloc(int size, int align, int offset);
+EXTERNAL void* sysAlloc(MMTk_Handle handle, int size, int align, int offset);
+EXTERNAL MMTk_Handle sysBindAllocator(int thread_id);
 
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);
