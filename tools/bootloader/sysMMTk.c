@@ -32,9 +32,6 @@ EXTERNAL void* sysAlloc(MMTk_Handle handle, int size, int align, int offset) {
 }
 
 EXTERNAL MMTk_Handle sysBindAllocator(int thread_id) {
-    return bind_allocator((size_t) thread_id);
+    return bind_mutator((size_t) thread_id);
 }
 
-EXTERNAL bindAllocator (int id) {
-
-}
