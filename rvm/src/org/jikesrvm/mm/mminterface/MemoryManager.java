@@ -48,6 +48,7 @@ import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
@@ -131,6 +132,7 @@ public final class MemoryManager {
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
     if (VM.BuildWithRustMMTk) {
+      RVMThread.threadBySlot[1].setHandle(sysCall.sysBindAllocator(1));
       sysCall.sysGCInit(theBootRecord.maximumHeapSize.toInt());
     }
 
@@ -600,6 +602,7 @@ public final class MemoryManager {
     /* Now make the request */
     Address region;
     if (VM.BuildWithRustMMTk) {
+      //region = null;
       region = sysCall.sysAlloc(mutator.mmtkHandle, bytes, align, offset);
     } else {
       region = mutator.alloc(bytes, align, offset, allocator, site);

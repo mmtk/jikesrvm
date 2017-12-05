@@ -22,6 +22,9 @@ import org.vmmagic.unboxed.Address;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
+import org.jikesrvm.VM;
+
+
 public class Selected {
   public static final String name = "@_PLAN_@";
   @Uninterruptible
@@ -50,17 +53,21 @@ public class Selected {
   @Uninterruptible
   public static class Mutator extends @_PLAN_@Mutator
   {
+    Address mmtkHandle;
 
 @_NO_RUST_MASK_START_@
-    Address mmtkHandle;
 
     @Override
     public void initMutator(int id) {
-      super.initMutator(id);
-      mmtkHandle = sysCall.sysBindAllocator(id);
+      if (id != 1){
+        mmtkHandle = sysCall.sysBindAllocator(id);
+      }
     }
-
 @_NO_RUST_MASK_END_@
+
+    public void setHandle(Address handle) {
+        this.mmtkHandle = handle;
+    }
 
     @Inline
     public final RVMThread getThread() { return (RVMThread) this; }
