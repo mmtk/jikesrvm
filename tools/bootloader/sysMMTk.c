@@ -6,8 +6,6 @@
 #include <stdio.h> // to print things
 #include <sys/mman.h> // mmap
 
-typedef void* MMTk_Handle;
-
 EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt) {
   TRACE_PRINTF("%s: sysMemmove %p %p %zu\n", Me, dst, src, cnt);
   memmove(dst, src, cnt);
@@ -31,7 +29,7 @@ EXTERNAL void* sysAlloc(MMTk_Handle handle, int size, int align, int offset) {
 	return temp;
 }
 
-EXTERNAL MMTk_Handle sysBindAllocator(int thread_id) {
+EXTERNAL MMTk_Mutator sysBindAllocator(int thread_id) {
     return bind_mutator((size_t) thread_id);
 }
 
