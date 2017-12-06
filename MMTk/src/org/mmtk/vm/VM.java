@@ -90,7 +90,7 @@ public final class VM {
   public static final int EXIT_CODE_REFLECTION_FAILURE = 2;
 
   /*
-   * VM-specific functionality captured in a series of singleton classs
+   * VM-specific functionality captured in a series of singleton classes
    */
   @Untraced
   public static final ActivePlan activePlan;
