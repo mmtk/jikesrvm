@@ -57,10 +57,13 @@ public class Selected {
 
 @_NO_RUST_MASK_START_@
 
+    Address cursor;
+    Address sentinel;
+
     @Override
     public void initMutator(int id) {
       if (id != 1){
-        mmtkHandle = sysCall.sysBindAllocator(id);
+        mmtkHandle = sysCall.sysBindMutator(id);
       }
     }
 @_NO_RUST_MASK_END_@

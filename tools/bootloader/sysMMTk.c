@@ -21,12 +21,16 @@ EXTERNAL void sysGCInit(int size) {
   gc_init ((size_t) size);
 }
 
-EXTERNAL void* sysAlloc(MMTk_Handle handle, int size, int align, int offset) {
+EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset) {
   //printf("%d, %d, %d", size, align, offset);
   //printf("Allocating\n");
-	void* temp = alloc (handle, (size_t) size, (size_t) align, (ssize_t) offset);
+	void* temp = alloc(mutator, (size_t) size, (size_t) align, (ssize_t) offset);
   //printf("Allocated\n");
 	return temp;
+}
+
+EXTERNAL void* sysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset) {
+    return alloc_slow(mutator, (size_t) size, (size_t) align, (ssize_t) offset);
 }
 
 EXTERNAL MMTk_Mutator sysBindMutator(int thread_id) {

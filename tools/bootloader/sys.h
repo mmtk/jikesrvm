@@ -30,6 +30,7 @@
 #include <string.h> // for strcmp
 #include <jni.h>
 #include <signal.h> // for siginfo
+#include "../../mmtk/api/mmtk.h" // the api of the GC
 
 #ifdef __MACH__
 #include <mach/mach_time.h>
@@ -63,8 +64,6 @@
   #define TLS_KEY_TYPE pthread_key_t
   #define GET_THREAD_LOCAL(key) pthread_getspecific(key)
 #endif
-
-typedef void* MMTk_Handle;
 
 /** Page size determined at runtime */
 extern Extent pageSize;
@@ -242,8 +241,9 @@ EXTERNAL void sysSyncCache(void *address, size_t size);
 EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysHelloWorld();
 EXTERNAL void sysGCInit(int size);
-EXTERNAL void* sysAlloc(MMTk_Handle handle, int size, int align, int offset);
-EXTERNAL MMTk_Handle sysBindMutator(int thread_id);
+EXTERNAL void* sysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset);
+EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset);
+EXTERNAL MMTk_Mutator sysBindMutator(int thread_id);
 
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);

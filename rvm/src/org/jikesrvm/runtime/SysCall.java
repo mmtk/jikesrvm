@@ -121,7 +121,10 @@ public abstract class SysCall {
   public abstract Address sysBindMutator(int thread_id);
 
   @SysCallTemplate
-  public abstract Address sysAlloc(Address handle, int size, int align, int offset);
+  public abstract Address sysAlloc(Address mutator, int size, int align, int offset);
+
+  @SysCallTemplate
+  public abstract Address sysAllocSlow(Address mutator, int size, int align, int offset);
 
   @SysCallTemplate
   public abstract Address sysMalloc(int length);

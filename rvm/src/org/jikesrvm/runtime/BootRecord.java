@@ -239,6 +239,7 @@ public class BootRecord {
   public Address sysGCInitIP;
   public Address sysAllocIP;
   public Address sysBindMutatorIP;
+  public Address sysAllocSlowIP;
 
   // startup/shutdown
   public Address sysExitIP;
