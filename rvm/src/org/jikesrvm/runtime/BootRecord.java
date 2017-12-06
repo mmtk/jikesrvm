@@ -238,7 +238,7 @@ public class BootRecord {
   // garbage collector
   public Address sysGCInitIP;
   public Address sysAllocIP;
-  public Address sysBindAllocatorIP;
+  public Address sysBindMutatorIP;
 
   // startup/shutdown
   public Address sysExitIP;

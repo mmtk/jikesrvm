@@ -118,7 +118,7 @@ public abstract class SysCall {
   public abstract void sysGCInit(int size);
 
   @SysCallTemplate
-  public abstract Address sysBindAllocator(int thread_id);
+  public abstract Address sysBindMutator(int thread_id);
 
   @SysCallTemplate
   public abstract Address sysAlloc(Address handle, int size, int align, int offset);

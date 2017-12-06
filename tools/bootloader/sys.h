@@ -243,7 +243,7 @@ EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysHelloWorld();
 EXTERNAL void sysGCInit(int size);
 EXTERNAL void* sysAlloc(MMTk_Handle handle, int size, int align, int offset);
-EXTERNAL MMTk_Handle sysBindAllocator(int thread_id);
+EXTERNAL MMTk_Handle sysBindMutator(int thread_id);
 
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);

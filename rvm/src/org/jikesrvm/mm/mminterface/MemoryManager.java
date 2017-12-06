@@ -132,7 +132,7 @@ public final class MemoryManager {
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
     if (VM.BuildWithRustMMTk) {
-      RVMThread.threadBySlot[1].setHandle(sysCall.sysBindAllocator(1));
+      RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
       sysCall.sysGCInit(theBootRecord.maximumHeapSize.toInt());
     }
 
