@@ -34,6 +34,7 @@ jikesrvm.iml
 /MMTk/doc/cheatsheet/cheatsheet.aux
 /MMTk/doc/cheatsheet/cheatsheet.bbl
 /MMTk/doc/cheatsheet/cheatsheet.log
+/MMTk/MMTk.iml
 /testing/tests/gctest/cp
 /testing/tests/gctest/out.*
 /rvm/TAGS.ALL
@@ -43,3 +44,9 @@ jikesrvm.iml
 /testing/tests/jni/out.*
 /testing/tests/SPECjbb2000/results
 /test-output/
+/.idea/
+JikesRVM x86_64-linux production.iml
+/benchmarks/
+/mmtk/
+/scripts/
+/scratch/
