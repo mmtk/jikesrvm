@@ -548,13 +548,14 @@ public class Entrypoints {
       optNew2DArrayMethod = null;
       sysArrayCopy = null;
     }
-    RustJTOC.compileMMTk();
-    Runtime rt = Runtime.getRuntime();
-    try {
-      final Process process2 = Runtime.getRuntime().exec("cargo build --release --target=i686-unknown-linux-gnu --features=jikesrvm",
-              null, new File("mmtk"));
-    } catch (IOException e) {
-      e.printStackTrace();
+    if (VM.BuildWithRustMMTk) {
+      RustJTOC.compileMMTk();
+      try {
+        Runtime.getRuntime().exec("cargo build --release --target=i686-unknown-linux-gnu --features=jikesrvm",
+                null, new File("mmtk"));
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 

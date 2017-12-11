@@ -50,8 +50,6 @@ EXTERNAL void sysGCInit(void* jtocPtr, int size) {
 EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset) {
   //printf("%d, %d, %d", size, align, offset);
   //printf("Allocating\n");
-    int a = bootRecord -> testMethodRandom;
-    printf("Is this working? %d \n", a);
 	void* temp = alloc(mutator, (size_t) size, (size_t) align, (ssize_t) offset);
   //printf("Allocated\n");
 	return temp;
