@@ -145,6 +145,7 @@ public final class MemoryManager {
       sysCall.sysGCInit(theBootRecord.maximumHeapSize.toInt());
       sysCall.sysHelloWorld();
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
+      VM.sysWriteln(BootRecord.the_boot_record.tocRegister);
     }
 
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
