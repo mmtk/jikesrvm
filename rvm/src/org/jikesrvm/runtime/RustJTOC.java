@@ -15,7 +15,7 @@ public class RustJTOC {
             for (Field child : Entrypoints.class.getDeclaredFields()) {
                 if (child.get(null) instanceof NormalMethod) {
                     writer.println("pub const " + child.getName().replaceAll("([A-Z])", "_$1").toUpperCase().replaceAll("G_C", "GC")
-                        + "_JTOC_OFFSET: i32 = " + ((NormalMethod) child.get(null)).getOffset() + ";");
+                        + "_JTOC_OFFSET: isize = " + ((NormalMethod) child.get(null)).getOffset() + ";");
                 }
             }
             writer.close();
