@@ -10,7 +10,7 @@ public class RustJTOC {
     public static void compileMMTk() {
         try {
             PrintWriter writer;
-            writer = new PrintWriter("./mmtk/src/JTOC.rs");
+            writer = new PrintWriter("./mmtk/src/vm/jtoc.rs");
             writer.println("//Copyright Australian National University");
             for (Field child : Entrypoints.class.getDeclaredFields()) {
                 if (child.get(null) instanceof NormalMethod) {
