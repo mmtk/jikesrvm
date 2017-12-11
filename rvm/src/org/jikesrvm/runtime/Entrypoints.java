@@ -116,6 +116,14 @@ public class Entrypoints {
                 "unresolvedInvokeinterfaceImplementsTest",
                 "(ILjava/lang/Object;)V");
 
+  // Added method
+  public static final NormalMethod blockAllMutatorsForGCMethod =
+          getMethod(org.jikesrvm.scheduler.RVMThread.class, "blockAllMutatorsForGC", "()V");
+  public static final NormalMethod testMethod =
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test", "(I)I");
+  public static final NormalMethod test1Method =
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test1", "()V");
+
   public static final NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");
   public static final NormalMethod unlockMethod =
@@ -537,6 +545,7 @@ public class Entrypoints {
       optNew2DArrayMethod = null;
       sysArrayCopy = null;
     }
+    RustJTOC.compileMMTk();
   }
 
   public static final RVMField classLoaderDefinedPackages =
