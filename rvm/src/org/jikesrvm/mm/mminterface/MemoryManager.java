@@ -142,10 +142,9 @@ public final class MemoryManager {
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
     if (VM.BuildWithRustMMTk) {
-      sysCall.sysGCInit(theBootRecord.maximumHeapSize.toInt());
+      sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
       sysCall.sysHelloWorld();
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
-      VM.sysWriteln(BootRecord.the_boot_record.tocRegister);
     }
 
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {

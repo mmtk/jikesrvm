@@ -32,18 +32,18 @@ EXTERNAL void sysHelloWorld() {
   IA32_ESP(context) = (greg_t) sp;
 
   IA32_EIP(context) = dumpStack;
-  */
+
 
   int something = bootRecord -> testMethodOffset;
   int somethingelse = bootRecord -> test1MethodId;
   int a = bootRecord -> testMethodRandom;
-  printf("Is this working? %d %d \n", something, a);
+  printf("Is this working? %d %d \n", something, a); */
 }
 
 
-EXTERNAL void sysGCInit(int size) {
+EXTERNAL void sysGCInit(void* jtocPtr, int size) {
   printf("Initiating\n");
-  gc_init ((size_t) size);
+  jikesrvm_gc_init (jtocPtr,(size_t) size);
   printf("Initiated\n");
 }
 
