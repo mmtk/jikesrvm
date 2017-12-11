@@ -20,6 +20,10 @@ import org.vmmagic.pragma.*;
 
 import org.vmmagic.unboxed.Address;
 
+import org.vmmagic.unboxed.Offset;
+
+import org.jikesrvm.runtime.Magic;
+
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import org.jikesrvm.VM;
@@ -53,18 +57,25 @@ public class Selected {
   @Uninterruptible
   public static class Mutator extends @_PLAN_@Mutator
   {
-    Address mmtkHandle;
+    Sadface a = new Sadface();
+    Address mmtkHandle;// = Magic.setAddressAtOffset(a, Offset.fromIntSignExtend(4), Address.zero());
 
 @_NO_RUST_MASK_START_@
-
-    Address cursor;
-    Address sentinel;
 
     @Override
     public void initMutator(int id) {
       if (id != 1){
         mmtkHandle = sysCall.sysBindMutator(id);
+        Magic.setAddressAtOffset(a, Offset.fromIntSignExtend(4), Address.zero());
+        Magic.setAddressAtOffset(a, Offset.fromIntSignExtend(8), Address.max());
       }
+    }
+
+    class Sadface{
+        public Address s;
+        public Address a;
+        public Address d;
+        public Address face;
     }
 @_NO_RUST_MASK_END_@
 

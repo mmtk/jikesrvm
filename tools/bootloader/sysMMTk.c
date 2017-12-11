@@ -12,18 +12,46 @@ EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt) {
 }
 
 EXTERNAL void sysHelloWorld() {
-  printf("Hello, World!\n");
+  /*Offset testMethodAndDieOffset = bootRecord -> testMethodOffset;
+  Address localJTOC = bootRecord -> tocRegister;
+  Address testMethod = *(Address*)(localNativeThreadAddress + Thread_framePointer_offset);
+
+  Address localNativeThreadAddress = IA32_ESI(context);
+  Address localFrameAddress =  *(Address*)(localNativeThreadAddress + Thread_framePointer_offset);
+
+  Address *sp = (Address*) IA32_ESP(context);
+
+  sp -= __SIZEOF_POINTER__;
+  *sp = localFrameAddress;
+
+  IA32_EAX(context) = localFrameAddress;
+
+  sp -= __SIZEOF_POINTER__;
+  *sp = 0;
+
+  IA32_ESP(context) = (greg_t) sp;
+
+  IA32_EIP(context) = dumpStack;
+  */
+
+  int something = bootRecord -> testMethodOffset;
+  int somethingelse = bootRecord -> test1MethodId;
+  int a = bootRecord -> testMethodRandom;
+  printf("Is this working? %d %d \n", something, a);
 }
 
 
 EXTERNAL void sysGCInit(int size) {
-  printf("Initiated\n");
+  printf("Initiating\n");
   gc_init ((size_t) size);
+  printf("Initiated\n");
 }
 
 EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset) {
   //printf("%d, %d, %d", size, align, offset);
   //printf("Allocating\n");
+    int a = bootRecord -> testMethodRandom;
+    printf("Is this working? %d \n", a);
 	void* temp = alloc(mutator, (size_t) size, (size_t) align, (ssize_t) offset);
   //printf("Allocated\n");
 	return temp;

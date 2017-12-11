@@ -109,6 +109,16 @@ public final class MemoryManager {
    * Initialization
    */
 
+  @Entrypoint
+  public static void test1() {
+      VM.sysWrite("whydoesnothingwork");
+  }
+
+  @Entrypoint
+  public static int test(int a) {
+    return a + 10;
+  }
+
   /**
    * Suppress default constructor to enforce noninstantiability.
    */
@@ -133,6 +143,7 @@ public final class MemoryManager {
     SynchronizedCounter.boot();
     if (VM.BuildWithRustMMTk) {
       sysCall.sysGCInit(theBootRecord.maximumHeapSize.toInt());
+      sysCall.sysHelloWorld();
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
     }
 
@@ -602,7 +613,13 @@ public final class MemoryManager {
     /* Now make the request */
     Address region;
     if (VM.BuildWithRustMMTk) {
+      Address s = Magic.getAddressAtOffset(mutator.a, Offset.fromIntSignExtend(4));
+      Address t = Magic.getAddressAtOffset(mutator.a, Offset.fromIntSignExtend(8));
+      VM.sysWriteln(s);
+      VM.sysWriteln(t);
+      VM.sysWriteln(Magic.objectAsAddress(mutator.a));
       //region = null;
+      BootRecord.the_boot_record.testMethodRandom += 1;
       region = sysCall.sysAlloc(mutator.mmtkHandle, bytes, align, offset);
     } else {
       region = mutator.alloc(bytes, align, offset, allocator, site);
@@ -671,7 +688,7 @@ public final class MemoryManager {
    * Currently the interface is fairly primitive;
    * just the number of instructions in the code array and a boolean
    * to indicate hot or cold code.
-   * @param numInstrs number of instructions
+   * @param numInstrs nuobjecmber of instructions
    * @param isHot is this a request for hot code space allocation?
    * @return The  array
    */

@@ -240,10 +240,10 @@ EXTERNAL void sysSyncCache(void *address, size_t size);
 //sysMMTk
 EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysHelloWorld();
-EXTERNAL void sysGCInit(int size);
-EXTERNAL void* sysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset);
-EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset);
-EXTERNAL MMTk_Mutator sysBindMutator(int thread_id);
+EXTERNAL void sysGCInit(int size) __attribute__((force_align_arg_pointer));
+EXTERNAL void* sysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset) __attribute__((force_align_arg_pointer));
+EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset) __attribute__((force_align_arg_pointer));
+EXTERNAL MMTk_Mutator sysBindMutator(int thread_id) __attribute__((force_align_arg_pointer));
 
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);

@@ -3944,6 +3944,7 @@ public final class RVMThread extends ThreadContext {
    * Fixpoint until there are no threads that we haven't blocked. Fixpoint is needed to
    * catch the (unlikely) case that a thread spawns another thread while we are waiting.
    */
+  @Entrypoint
   @NoCheckStore
   @Unpreemptible
   public static void blockAllMutatorsForGC() {
