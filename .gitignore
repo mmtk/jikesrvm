@@ -47,6 +47,4 @@ jikesrvm.iml
 /.idea/
 JikesRVM x86_64-linux production.iml
 /benchmarks/
-/mmtk/
-/scripts/
 /scratch/
