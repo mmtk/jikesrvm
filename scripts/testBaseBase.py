@@ -15,7 +15,7 @@ tests = 0
 for x in range(0, 5):
     build = 0
     for y in range(0, 3):
-        if exe("bin/buildit localhost -j /usr/lib/jvm/default-java RBaseBaseNoGC --nuke".split()) == 0:
+        if exe("bin/buildit localhost -j /usr/lib/jvm/default-java --answer-yes RBaseBaseNoGC --nuke".split()) == 0:
             break
         build += 1
     if build == 3:
