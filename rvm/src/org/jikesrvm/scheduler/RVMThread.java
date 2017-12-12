@@ -3999,6 +3999,7 @@ public final class RVMThread extends ThreadContext {
   /**
    * Unblock all mutators blocked for GC.
    */
+  @Entrypoint
   @NoCheckStore
   @Unpreemptible
   public static void unblockAllMutatorsForGC() {

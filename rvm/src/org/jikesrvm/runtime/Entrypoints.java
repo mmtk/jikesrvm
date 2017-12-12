@@ -117,6 +117,8 @@ public class Entrypoints {
                 "(ILjava/lang/Object;)V");
 
   // Added method
+  public static final NormalMethod unblockAllMutatorsForGCMethod =
+          getMethod(org.jikesrvm.scheduler.RVMThread.class, "unblockAllMutatorsForGC", "()V");
   public static final NormalMethod blockAllMutatorsForGCMethod =
           getMethod(org.jikesrvm.scheduler.RVMThread.class, "blockAllMutatorsForGC", "()V");
   public static final NormalMethod testMethod =
