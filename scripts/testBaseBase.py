@@ -27,5 +27,5 @@ for x in range(0, 5):
     passes += 1
 
 print ("Score: " + str(passes) + "/" + str(tests))
-if passes != test:
+if passes != tests:
     exit(1)
