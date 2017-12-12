@@ -1,0 +1,13 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+stages:
+  - build
+  
+build:
+  stage: build
+  script:
+    - mkdir benchmarks
+    - wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -o benchmarks/dacapo-2006-10-MR2.jar
+    - python scripts/testBaseBase.py
+    - python scripts/testFastAdaptive.py
