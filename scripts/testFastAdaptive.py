@@ -19,7 +19,7 @@ for y in range(0, 2):
 if build == False:
     print ("build failure :(")
     exit(1)
-elif exe("dist/RBaseBaseNoGC_x86_64-linux/rvm -Xms500M -jar benchmarks/dacapo-2006-10-MR2.jar fop".split()) != 0:
+elif exe("dist/RBaseBaseNoGC_x86_64-linux/rvm -Xms500M -jar benchmarks/dacapo-2006-10-MR2.jar fop".split()) == 0:
     print ("Passed FastAdaptive")
 else:
     print ("Failed FastAdaptive") 
