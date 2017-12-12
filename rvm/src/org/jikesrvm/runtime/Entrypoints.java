@@ -20,9 +20,6 @@ import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 
-import java.io.File;
-import java.io.IOException;
-
 /**
  * Fields and methods of the virtual machine that are needed by
  * compiler-generated machine code or C runtime code.
@@ -550,12 +547,6 @@ public class Entrypoints {
     }
     if (VM.BuildWithRustMMTk) {
       RustJTOC.compileMMTk();
-      try {
-        Runtime.getRuntime().exec("cargo build --release --target=i686-unknown-linux-gnu --features=jikesrvm",
-                null, new File("mmtk"));
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
     }
   }
 
