@@ -20,11 +20,11 @@ public class RustJTOC {
             for (Field child : Entrypoints.class.getDeclaredFields()) {
                 if (child.get(null) instanceof NormalMethod) {
                     writer.println("pub const " + child.getName().replaceAll("(?<=[a-z])[A-Z]|[A-Z](?=[a-z])", "_$0").toUpperCase()
-                        + "_JTOC_OFFSET: isize = " + ((NormalMethod) child.get(null)).getOffset() + ";");
+                        + "_JTOC_OFFSET: isize = " + ((NormalMethod) child.get(null)).getOffset().toString() + ";");
                 }
                 if (child.get(null) instanceof RVMField) {
                     writer.println("pub const " + child.getName().replaceAll("(?<=[a-z])[A-Z]|[A-Z](?=[a-z])", "_$0").toUpperCase()
-                            + "_JTOC_OFFSET: isize = " + ((RVMField) child.get(null)).getOffset() + ";");
+                            + "_JTOC_OFFSET: isize = " + ((RVMField) child.get(null)).getOffset().toString() + ";");
                 }
             }
             writer.close();
