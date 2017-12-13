@@ -19,6 +19,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Fields and methods of the virtual machine that are needed by
@@ -121,6 +122,8 @@ public class Entrypoints {
           getMethod(org.jikesrvm.scheduler.RVMThread.class, "unblockAllMutatorsForGC", "()V");
   public static final NormalMethod blockAllMutatorsForGCMethod =
           getMethod(org.jikesrvm.scheduler.RVMThread.class, "blockAllMutatorsForGC", "()V");
+  public static final RVMField threadBySlotField =
+          getField(org.jikesrvm.scheduler.RVMThread.class, "threadBySlot", RVMThread[].class);
   public static final NormalMethod testMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test", "(I)I");
   public static final NormalMethod test1Method =

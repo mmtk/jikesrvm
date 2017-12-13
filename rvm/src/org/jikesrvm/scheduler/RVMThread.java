@@ -1203,6 +1203,7 @@ public final class RVMThread extends ThreadContext {
    * thread array - all threads are stored in this array according to their
    * threadSlot.
    */
+  @Entrypoint
   public static RVMThread[] threadBySlot = new RVMThread[MAX_THREADS];
 
   /**

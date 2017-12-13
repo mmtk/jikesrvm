@@ -1,11 +1,16 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMField;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 
+/**
+ * Creates the the list of JTOC offsets for the
+ * Rust MMTk.
+ */
 public class RustJTOC {
     public static void compileMMTk() {
         try {
@@ -16,6 +21,10 @@ public class RustJTOC {
                 if (child.get(null) instanceof NormalMethod) {
                     writer.println("pub const " + child.getName().replaceAll("(?<=[a-z])[A-Z]|[A-Z](?=[a-z])", "_$0").toUpperCase()
                         + "_JTOC_OFFSET: isize = " + ((NormalMethod) child.get(null)).getOffset() + ";");
+                }
+                if (child.get(null) instanceof RVMField) {
+                    writer.println("pub const " + child.getName().replaceAll("(?<=[a-z])[A-Z]|[A-Z](?=[a-z])", "_$0").toUpperCase()
+                            + "_JTOC_OFFSET: isize = " + ((RVMField) child.get(null)).getOffset() + ";");
                 }
             }
             writer.close();
