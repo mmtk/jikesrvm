@@ -1082,6 +1082,7 @@ foreach my $g (@gcs) {
     print " [SUCCESS ".$date{$g}."]\n";
   } else {
     print " [FAILED ".$date{$g}."]\n";
+		exit(1);
   }
   $configTitle = "          ";
 }
