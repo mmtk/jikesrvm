@@ -130,6 +130,8 @@ public class Entrypoints {
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test", "(I)I");
   public static final NormalMethod test1Method =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test1", "()V");
+  public static final NormalMethod test2Method =
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test2", "(II)I");
 
   public static final NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");

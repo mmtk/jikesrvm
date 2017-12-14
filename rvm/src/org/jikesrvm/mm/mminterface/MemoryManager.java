@@ -110,6 +110,12 @@ public final class MemoryManager {
    */
 
   @Entrypoint
+  public static int test2(int a, int b) {
+    return a + b;
+  }
+
+
+  @Entrypoint
   public static void test1() {
       VM.sysWrite("whydoesnothingwork");
   }
@@ -618,7 +624,7 @@ public final class MemoryManager {
       //VM.sysWriteln(s);
       //VM.sysWriteln(t);
       //VM.sysWriteln(Magic.objectAsAddress(mutator.a));
-      //region = null;
+      //region = null;\
       //BootRecord.the_boot_record.testMethodRandom += 1;
       region = sysCall.sysAlloc(mutator.mmtkHandle, bytes, align, offset);
     } else {
