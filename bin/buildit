@@ -1082,7 +1082,6 @@ foreach my $g (@gcs) {
     print " [SUCCESS ".$date{$g}."]\n";
   } else {
     print " [FAILED ".$date{$g}."]\n";
-		exit(1);
   }
   $configTitle = "          ";
 }
@@ -1137,6 +1136,14 @@ if ($save_space) {
   print "==== Space saving complete ====\n";
 }
 
+foreach my $g (@gcs) {
+  if ($dry_run) {
+  } elsif (! defined($retval{$g})) {
+  } elsif ($retval{$g} == 0) {
+  } else {
+    exit(1)
+  }
+}
 
 sub msg_warn {
   print(shift()."\n");
