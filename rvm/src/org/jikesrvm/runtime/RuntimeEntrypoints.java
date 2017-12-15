@@ -1221,8 +1221,8 @@ public class RuntimeEntrypoints {
 
   @Entrypoint
   @Unpreemptible
-  public static void blockForGC(int threadId) {
-    RVMThread t = RVMThread.threadBySlot[threadId];
+  public static void blockForGC() {
+    RVMThread t = RVMThread.getCurrentThread();
     t.assertAcceptableStates(RVMThread.IN_JAVA, RVMThread.IN_JAVA_TO_BLOCK);
     RVMThread.observeExecStatusAtSTW(t.getExecStatus());
     t.block(RVMThread.gcBlockAdapter);

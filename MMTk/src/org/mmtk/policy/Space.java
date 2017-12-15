@@ -420,7 +420,7 @@ public abstract class Space {
    *
    * If the check of the page budget does not lead to GC being
    * triggered, then a request is made for specific pages in virtual
-   * memory.  If the page manager cannot satisify this request, then
+   * memory.  If the page manager cannot satisfy this request, then
    * the request fails, a GC is forced, and zero is returned.
    * Otherwise the address of the first page is returned.<p>
    *
