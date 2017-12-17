@@ -114,10 +114,18 @@ public final class MemoryManager {
     return a + b;
   }
 
+  @Entrypoint
+  public static int test3(int a, int b, int c, int d) {
+    VM.sysWriteln(a);
+    VM.sysWriteln(b);
+    VM.sysWriteln(c);
+    VM.sysWriteln(d);
+    return a * b + c + d;
+  }
 
   @Entrypoint
   public static void test1() {
-      VM.sysWrite("whydoesnothingwork");
+      VM.sysWriteln("whydoesnothingwork");
   }
 
   @Entrypoint
