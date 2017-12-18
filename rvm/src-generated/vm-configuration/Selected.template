@@ -57,8 +57,7 @@ public class Selected {
   @Uninterruptible
   public static class Mutator extends @_PLAN_@Mutator
   {
-    Sadface a = new Sadface();
-    Address mmtkHandle;// = Magic.setAddressAtOffset(a, Offset.fromIntSignExtend(4), Address.zero());
+    Address mmtkHandle;
 
 @_NO_RUST_MASK_START_@
 
@@ -66,17 +65,9 @@ public class Selected {
     public void initMutator(int id) {
       if (id != 1){
         mmtkHandle = sysCall.sysBindMutator(id);
-        Magic.setAddressAtOffset(a, Offset.fromIntSignExtend(4), Address.zero());
-        Magic.setAddressAtOffset(a, Offset.fromIntSignExtend(8), Address.max());
       }
     }
 
-    class Sadface{
-        public Address s;
-        public Address a;
-        public Address d;
-        public Address face;
-    }
 @_NO_RUST_MASK_END_@
 
     public void setHandle(Address handle) {
