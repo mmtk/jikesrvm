@@ -62,8 +62,6 @@ public class Selected {
 
 @_NO_RUST_MASK_START_@
 
-    Sadface a = new Sadface();
-
     @Override
     public void initMutator(int id) {
       if (id != 1){
