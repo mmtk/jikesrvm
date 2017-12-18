@@ -6,11 +6,6 @@
 #include <stdio.h> // to print things
 #include <sys/mman.h> // mmap
 
-EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt) {
-  TRACE_PRINTF("%s: sysMemmove %p %p %zu\n", Me, dst, src, cnt);
-  memmove(dst, src, cnt);
-}
-
 EXTERNAL void sysHelloWorld() {
   printf("Hello World!");
 }
