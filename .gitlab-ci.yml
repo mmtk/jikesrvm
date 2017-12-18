@@ -11,6 +11,7 @@ build:
     - python scripts/testMMTk.py -c BaseBase
     - python scripts/testMMTk.py -c FastAdaptive
     - python scripts/testMMTk.py -c FullAdaptive
+    - python scripts/testMMTk.py -c BaseBase --java-build
   cache:
     key: rspec
     paths:
