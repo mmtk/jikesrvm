@@ -7,6 +7,7 @@ compilers = ["FastAdaptive", "BaseBase", "FullAdaptive"]
 parser = argparse.ArgumentParser(description="Runs tests to verify it compiles and builds")
 parser.add_argument("-c", dest="compiler", default="BaseBase", help="Specifies which compiler to use", type=str)
 parser.add_argument("-n", default=1, dest="tests", help="Specifies the number of times to recompile and run the file", type=int)
+parser.add_argument("-args", default="-Xms500M", help="Specifies which arguments to pass when testing MMTk", type=str)
 parser.add_argument("--build-only", dest="build_only", action="store_true", help="Only build the compiler but do not test it")
 parser.add_argument("--test-only", dest="test_only",action="store_true", help="Do not build the compiler, only test it")
 
@@ -56,7 +57,7 @@ for _ in range(0, args.tests):
             print ("Build failed.")
             exit(1)
     if not args.build_only:
-        if exe(("dist/R" + args.compiler + "NoGC_x86_64-linux/rvm -Xms500M -jar benchmarks/dacapo-2006-10-MR2.jar fop").split()) != 0:
+        if exe(("dist/R" + args.compiler + "NoGC_x86_64-linux/rvm " + args.args + " -jar benchmarks/dacapo-2006-10-MR2.jar fop").split()) != 0:
             if passes != 0:
                 print ("Test failed. Succeeded previously " + str(passes) + " times.")
             else:

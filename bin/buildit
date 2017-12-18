@@ -548,7 +548,7 @@ if ($test_set && !$checkstyle) {
   }
 }
 if ($test_set && !$test_image) {
-  $test_image = `grep ^require.rvm-unit-tests=true\$ $localRoot/build/test-runs/$test_set.properties`;
+  $test_image = `grep ^require.rvm-unit-tests=false\$ $localRoot/build/test-runs/$test_set.properties`;
   chomp($test_image);
   if ($test_image ne "") {
     $test_image = 1;
@@ -785,7 +785,7 @@ if ($ok) {
       $defs .= "-Drequire.checkstyle=true ";
     }
     if (defined $test_image && $test_image ne "") {
-      $defs .= "-Drequire.rvm-unit-tests=true ";
+      $defs .= "-Drequire.rvm-unit-tests=false ";
     }
     if (defined $x87) {
       $defs .= "-Dtarget.arch.sse2=none ";
