@@ -1434,7 +1434,7 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
   </target>
 
-  <target name="compile-unit-tests" depends="compile">
+  <target name="compile-unit-tests" depends="compile" if="${require.rvm-unit-tests}">
 
     <delete dir="${build.test-classes}"/>
     <mkdir dir="${build.test-classes}"/>
@@ -1458,7 +1458,7 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
   </target>
 
-  <target name="bootstrap-unit-tests" description="Run unit tests on the boostrap VM" depends="compile-unit-tests">
+  <target name="bootstrap-unit-tests" description="Run unit tests on the boostrap VM" depends="compile-unit-tests" if="${require.rvm-unit-tests}">
 
     <delete dir="${junit.reports.bootstrap}"/>
     <mkdir dir="${junit.reports.bootstrap}"/>
@@ -1509,7 +1509,7 @@ Check to make sure all required properties are specified. This includes properti
     <runUnitTests/>
   </target>
 
-  <target name="unit-tests-on-existing-image" description="Execute the unit tests on an existing image" depends="compile-unit-tests">
+  <target name="unit-tests-on-existing-image" description="Execute the unit tests on an existing image" depends="compile-unit-tests"  if="${require.rvm-unit-tests}">
     <available file="${dist.base}/rvm" property="image.exists"/>
     <fail unless="image.exists" message="Could not find an image at ${dist.base}/rvm to run unit tests."/>
     <runUnitTests/>
