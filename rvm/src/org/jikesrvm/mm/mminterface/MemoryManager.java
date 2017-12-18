@@ -701,7 +701,7 @@ public final class MemoryManager {
    * Currently the interface is fairly primitive;
    * just the number of instructions in the code array and a boolean
    * to indicate hot or cold code.
-   * @param numInstrs nuobjecmber of instructions
+   * @param numInstrs number of instructions
    * @param isHot is this a request for hot code space allocation?
    * @return The  array
    */
