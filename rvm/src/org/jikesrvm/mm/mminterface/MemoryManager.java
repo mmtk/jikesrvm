@@ -125,7 +125,7 @@ public final class MemoryManager {
 
   @Entrypoint
   public static void test1() {
-      VM.sysWriteln("whydoesnothingwork");
+      VM.sysWriteln("testprint");
   }
 
   @Entrypoint
@@ -634,13 +634,6 @@ public final class MemoryManager {
     /* Now make the request */
     Address region;
     if (VM.BuildWithRustMMTk) {
-      //Address s = Magic.getAddressAtOffset(mutator.a, Offset.fromIntSignExtend(4));
-      //Address t = Magic.getAddressAtOffset(mutator.a, Offset.fromIntSignExtend(8));
-      //VM.sysWriteln(s);
-      //VM.sysWriteln(t);
-      //VM.sysWriteln(Magic.objectAsAddress(mutator.a));
-      //region = null;\
-      //BootRecord.the_boot_record.testMethodRandom += 1;
       region = sysCall.sysAlloc(mutator.mmtkHandle, bytes, align, offset);
     } else {
       region = mutator.alloc(bytes, align, offset, allocator, site);
@@ -674,7 +667,6 @@ public final class MemoryManager {
     if (VM.BuildWithRustMMTk) {
       VM.sysFail("Tried to allocate in collector space for non-collecting plan");
       region = null;
-      //region = sysCall.sysAlloc(context.mmtkHandle, bytes, align, offset);
     } else {
       region = context.allocCopy(from, bytes, align, offset, allocator);
     }

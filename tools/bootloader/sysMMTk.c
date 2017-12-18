@@ -6,57 +6,16 @@
 #include <stdio.h> // to print things
 #include <sys/mman.h> // mmap
 
-EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt) {
-  TRACE_PRINTF("%s: sysMemmove %p %p %zu\n", Me, dst, src, cnt);
-  memmove(dst, src, cnt);
-}
-
 EXTERNAL void sysHelloWorld() {
-  /*Offset testMethodAndDieOffset = bootRecord -> testMethodOffset;
-  Address localJTOC = bootRecord -> tocRegister;
-  Address testMethod = *(Address*)(localNativeThreadAddress + Thread_framePointer_offset);
-
-  Address localNativeThreadAddress = IA32_ESI(context);
-  Address localFrameAddress =  *(Address*)(localNativeThreadAddress + Thread_framePointer_offset);
-
-  Address *sp = (Address*) IA32_ESP(context);
-
-  sp -= __SIZEOF_POINTER__;
-  *sp = localFrameAddress;
-
-  IA32_EAX(context) = localFrameAddress;
-
-  sp -= __SIZEOF_POINTER__;
-  *sp = 0;
-
-  IA32_ESP(context) = (greg_t) sp;
-
-  IA32_EIP(context) = dumpStack;
-
-
-  int something = bootRecord -> testMethodOffset;
-  int somethingelse = bootRecord -> test1MethodId;
-  int a = bootRecord -> testMethodRandom;
-  printf("Is this working? %d %d \n", something, a); */
+  printf("Hello World!");
 }
-
 
 EXTERNAL void sysGCInit(void* jtocPtr, int size) {
-  printf("Initiating\n");
   jikesrvm_gc_init (jtocPtr,(size_t) size);
-  printf("Initiated\n");
-}
-
-EXTERNAL void sysStartControlCollector(size_t threadId) {
-  start_control_collector(threadId);
 }
 
 EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset) {
-  //printf("%d, %d, %d", size, align, offset);
-  //printf("Allocating\n");
-	void* temp = alloc(mutator, (size_t) size, (size_t) align, (ssize_t) offset);
-  //printf("Allocated\n");
-	return temp;
+	return alloc(mutator, (size_t) size, (size_t) align, (ssize_t) offset);
 }
 
 EXTERNAL void* sysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset) {
@@ -65,5 +24,9 @@ EXTERNAL void* sysAllocSlow(MMTk_Mutator mutator, int size, int align, int offse
 
 EXTERNAL MMTk_Mutator sysBindMutator(int thread_id) {
     return bind_mutator((size_t) thread_id);
+}
+
+EXTERNAL void sysStartControlCollector(int thread_id) {
+    return start_control_collector ((size_t) thread_id);
 }
 
