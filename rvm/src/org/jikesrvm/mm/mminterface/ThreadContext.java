@@ -22,6 +22,12 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
  */
 @Uninterruptible
 public abstract class ThreadContext extends Selected.Mutator {
+  private boolean isCollector = false;
+
+  public void assertIsCollector() {
+    isCollector = true;
+  }
+
   protected CollectorContext collectorContext;
 
   public final CollectorContext getCollectorContext() {
@@ -29,7 +35,7 @@ public abstract class ThreadContext extends Selected.Mutator {
   }
 
   public final boolean isCollectorThread() {
-    return collectorContext != null;
+    return collectorContext != null || isCollector;
   }
 }
 
