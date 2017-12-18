@@ -12,7 +12,9 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.mm.mmtk.ScanThread;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.SystemThread;
 import org.mmtk.plan.CollectorContext;
 import org.vmmagic.pragma.BaselineNoRegisters;
@@ -21,6 +23,8 @@ import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
+
+import static org.jikesrvm.runtime.SysCall.sysCall;
 
 /**
  * System thread used to perform garbage collection work.
@@ -58,9 +62,11 @@ public final class CollectorThread extends SystemThread {
    *  functionality
    */
   public CollectorThread(byte[] stack, CollectorContext context) {
-    super(stack, context.getClass().getName() + " [" + nextId + "]");
-    rvmThread.collectorContext = context;
-    rvmThread.collectorContext.initCollector(nextId);
+    super(stack, (VM.BuildWithRustMMTk ? "CollectorThread" : context.getClass().getName()) + " [" + nextId + "]");
+    if (!VM.BuildWithRustMMTk) {
+      rvmThread.collectorContext = context;
+      rvmThread.collectorContext.initCollector(nextId);
+    }
     nextId++;
   }
 
@@ -79,7 +85,11 @@ public final class CollectorThread extends SystemThread {
   // and store all registers from previous method in prologue, so that we can stack access them while scanning this thread.
   @Unpreemptible
   public void run() {
-    rvmThread.collectorContext.run();
+    if (VM.BuildWithRustMMTk) {
+      sysCall.sysStartControlCollector(rvmThread.threadSlot);
+    } else {
+      rvmThread.collectorContext.run();
+    }
   }
 }
 

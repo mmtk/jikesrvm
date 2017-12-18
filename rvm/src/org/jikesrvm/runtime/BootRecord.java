@@ -248,6 +248,7 @@ public class BootRecord {
   public Address sysAllocIP;
   public Address sysBindMutatorIP;
   public Address sysAllocSlowIP;
+  public Address sysStartControlCollectorIP;
 
   // startup/shutdown
   public Address sysExitIP;

@@ -195,7 +195,13 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void enableCollection() {
-    Selected.Plan.get().enableCollection();
+    if (VM.BuildWithRustMMTk) {
+      byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
+      CollectorThread t = new CollectorThread(stack, null);
+      t.start();
+    } else {
+      Selected.Plan.get().enableCollection();
+    }
     collectionEnabled = true;
   }
 

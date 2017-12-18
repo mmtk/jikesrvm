@@ -47,6 +47,10 @@ EXTERNAL void sysGCInit(void* jtocPtr, int size) {
   printf("Initiated\n");
 }
 
+EXTERNAL void sysStartControlCollector(size_t threadId) {
+  start_control_collector(threadId);
+}
+
 EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset) {
   //printf("%d, %d, %d", size, align, offset);
   //printf("Allocating\n");

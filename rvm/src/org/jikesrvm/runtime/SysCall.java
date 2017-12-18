@@ -118,6 +118,9 @@ public abstract class SysCall {
   public abstract void sysGCInit(Address pointer, int size);
 
   @SysCallTemplate
+  public abstract void sysStartControlCollector(int threadId);
+
+  @SysCallTemplate
   public abstract Address sysBindMutator(int thread_id);
 
   @SysCallTemplate
