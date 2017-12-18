@@ -57,10 +57,11 @@ public class Selected {
   @Uninterruptible
   public static class Mutator extends @_PLAN_@Mutator
   {
-    Sadface a = new Sadface();
     Address mmtkHandle;// = Magic.setAddressAtOffset(a, Offset.fromIntSignExtend(4), Address.zero());
 
 @_NO_RUST_MASK_START_@
+
+    Sadface a = new Sadface();
 
     @Override
     public void initMutator(int id) {

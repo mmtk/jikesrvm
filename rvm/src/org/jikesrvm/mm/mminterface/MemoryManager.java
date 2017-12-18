@@ -198,6 +198,7 @@ public final class MemoryManager {
     if (VM.BuildWithRustMMTk) {
       byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
       CollectorThread t = new CollectorThread(stack, null);
+      t.getRVMThread().assertIsCollector();
       t.start();
     } else {
       Selected.Plan.get().enableCollection();
