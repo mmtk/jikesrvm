@@ -59,6 +59,10 @@ public class Selected {
   {
 
     Address mmtkHandle;
+    String addressBlock = "";
+    public final Offset handle = Offset.fromIntSignExtend(4);
+    public final Offset cursor = Offset.fromIntSignExtend(8);
+    public final Offset sentinel = Offset.fromIntSignExtend(12);
 
 @_NO_RUST_MASK_START_@
 
@@ -66,6 +70,9 @@ public class Selected {
     public void initMutator(int id) {
       if (id != 1){
         mmtkHandle = sysCall.sysBindMutator(id);
+        Magic.setAddressAtOffset(addressBlock, handle, mmtkHandle);
+        Magic.setAddressAtOffset(addressBlock, cursor, Address.fromIntSignExtend(0x12345678));
+        Magic.setAddressAtOffset(addressBlock, sentinel, Address.fromIntSignExtend(0xABCDEF12));
       }
     }
 
@@ -73,7 +80,20 @@ public class Selected {
 
     public void setHandle(Address handle) {
         this.mmtkHandle = handle;
+        //Magic.setAddressAtOffset(addressBlock, this.handle, mmtkHandle);
+        //Magic.setAddressAtOffset(addressBlock, cursor, Address.fromIntSignExtend(0x12345678));
+        //Magic.setAddressAtOffset(addressBlock, sentinel, Address.fromIntSignExtend(0xABCDEF12));
     }
+
+    //public Address getHandle() {
+    //    return mmtkHandle;
+    //}
+
+    //public Object getAddressBlock() {
+    //    return addressBlock;
+    //}
+
+
 
     @Inline
     public final RVMThread getThread() { return (RVMThread) this; }
