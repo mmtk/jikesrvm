@@ -6,10 +6,6 @@
 #include <stdio.h> // to print things
 #include <sys/mman.h> // mmap
 
-EXTERNAL void sysHelloWorld() {
-  printf("Hello World!");
-}
-
 EXTERNAL void sysGCInit(void* jtocPtr, int size) {
   jikesrvm_gc_init (jtocPtr,(size_t) size);
 }

@@ -157,7 +157,6 @@ public final class MemoryManager {
     SynchronizedCounter.boot();
     if (VM.BuildWithRustMMTk) {
       sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
-      sysCall.sysHelloWorld();
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
     }
 
@@ -635,6 +634,9 @@ public final class MemoryManager {
     Address region;
     if (VM.BuildWithRustMMTk) {
       region = sysCall.sysAlloc(mutator.mmtkHandle, bytes, align, offset);
+      //VM.sysWrite("My handle is: "); VM.sysWriteln(Magic.getAddressAtOffset(mutator.getAddressBlock(), mutator.handle));
+      //VM.sysWrite("The addressblock is at: "); VM.sysWriteln(Magic.objectAsAddress(mutator.getAddressBlock()));
+      //VM.sysWrite("Compared to the handle stored: "); VM.sysWriteln(mutator.getHandle());
     } else {
       region = mutator.alloc(bytes, align, offset, allocator, site);
     }
@@ -701,7 +703,7 @@ public final class MemoryManager {
    * Currently the interface is fairly primitive;
    * just the number of instructions in the code array and a boolean
    * to indicate hot or cold code.
-   * @param numInstrs nuobjecmber of instructions
+   * @param numInstrs number of instructions
    * @param isHot is this a request for hot code space allocation?
    * @return The  array
    */
