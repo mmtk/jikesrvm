@@ -59,7 +59,7 @@ public class Selected {
   {
 
     Address mmtkHandle;
-    String addressBlock = "";
+    Byte[] addressBlock = new Byte[32];
     public final Offset handle = Offset.fromIntSignExtend(4);
     public final Offset cursor = Offset.fromIntSignExtend(8);
     public final Offset sentinel = Offset.fromIntSignExtend(12);
@@ -80,18 +80,18 @@ public class Selected {
 
     public void setHandle(Address handle) {
         this.mmtkHandle = handle;
-        //Magic.setAddressAtOffset(addressBlock, this.handle, mmtkHandle);
-        //Magic.setAddressAtOffset(addressBlock, cursor, Address.fromIntSignExtend(0x12345678));
-        //Magic.setAddressAtOffset(addressBlock, sentinel, Address.fromIntSignExtend(0xABCDEF12));
+        Magic.setAddressAtOffset(addressBlock, this.handle, handle);
+        Magic.setAddressAtOffset(addressBlock, cursor, Address.fromIntSignExtend(0x12345678));
+        Magic.setAddressAtOffset(addressBlock, sentinel, Address.fromIntSignExtend(0xABCDEF12));
     }
 
-    //public Address getHandle() {
-    //    return mmtkHandle;
-    //}
+    public Address getHandle() {
+        return mmtkHandle;
+    }
 
-    //public Object getAddressBlock() {
-    //    return addressBlock;
-    //}
+    public Object getAddressBlock() {
+        return addressBlock;
+    }
 
 
 
