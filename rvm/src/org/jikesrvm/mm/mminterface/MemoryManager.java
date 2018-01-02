@@ -147,6 +147,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void boot(BootRecord theBootRecord) {
+    VM.sysWriteln("Start Boot");
     Extent pageSize = BootRecord.the_boot_record.bytesInPage;
     org.jikesrvm.runtime.Memory.setPageSize(pageSize);
     HeapLayout.mmapper.markAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
@@ -633,17 +634,33 @@ public final class MemoryManager {
     /* Now make the request */
     Address region;
     if (VM.BuildWithRustMMTk) {
-      region = sysCall.sysAlloc(mutator.mmtkHandle, bytes, align, offset);
-      //VM.sysWrite("My handle is: "); VM.sysWriteln(Magic.getAddressAtOffset(mutator.getAddressBlock(), mutator.handle));
-      //VM.sysWrite("The addressblock is at: "); VM.sysWriteln(Magic.objectAsAddress(mutator.getAddressBlock()));
-      //VM.sysWrite("Compared to the handle stored: "); VM.sysWriteln(mutator.getHandle());
+      Address cursor = mutator.struc.field2;
+      Address sentinel = mutator.struc.field3;
+
+      // Align allocation
+      Word mask = Word.fromIntSignExtend(align - 1);
+      Word negOff = Word.fromIntSignExtend(-offset);
+
+      Offset delta = negOff.minus(cursor.toWord()).and(mask).toOffset();
+
+      Address result = cursor.plus(delta);
+
+      Address newCursor = result.plus(bytes);
+
+      if (newCursor.GT(sentinel)) {
+        Address handle = Magic.objectAsAddress(mutator.struc);
+        region = sysCall.sysAllocSlow(handle, bytes, align, offset);
+      } else {
+        mutator.struc.field2 = newCursor;
+        region = result;
+      }
+
     } else {
       region = mutator.alloc(bytes, align, offset, allocator, site);
     }
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
-
     return region;
   }
 

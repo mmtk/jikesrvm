@@ -28,6 +28,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import org.jikesrvm.VM;
 
+import static org.jikesrvm.runtime.EntrypointHelper.getField;
 
 public class Selected {
   public static final String name = "@_PLAN_@";
@@ -59,41 +60,54 @@ public class Selected {
   {
 
     Address mmtkHandle;
-    Byte[] addressBlock = new Byte[32];
-    public final Offset handle = Offset.fromIntSignExtend(4);
-    public final Offset cursor = Offset.fromIntSignExtend(8);
-    public final Offset sentinel = Offset.fromIntSignExtend(12);
+    static final Offset field1Offset = getField(AddressInfo.class, "field1", Address.class).getOffset();
+    static final Offset field2Offset = getField(AddressInfo.class, "field2", Address.class).getOffset();
+    static final Offset field3Offset = getField(AddressInfo.class, "field3", Address.class).getOffset();
+    static final Offset field4Offset = getField(AddressInfo.class, "field4", Address.class).getOffset();
 
-@_NO_RUST_MASK_START_@
-
-    @Override
-    public void initMutator(int id) {
-      if (id != 1){
-        mmtkHandle = sysCall.sysBindMutator(id);
-        Magic.setAddressAtOffset(addressBlock, handle, mmtkHandle);
-        Magic.setAddressAtOffset(addressBlock, cursor, Address.fromIntSignExtend(0x12345678));
-        Magic.setAddressAtOffset(addressBlock, sentinel, Address.fromIntSignExtend(0xABCDEF12));
-      }
+    public class AddressInfo {
+      @Entrypoint
+      public Address field1 = Address.max();
+      @Entrypoint
+      public Address field2 = Address.fromIntSignExtend(12345678);
+      @Entrypoint
+      public Address field3;
+      @Entrypoint
+      public Address field4;
     }
 
-@_NO_RUST_MASK_END_@
+    public AddressInfo struc = new AddressInfo();
 
+@_NO_RUST_MASK_START_@
+    @Override
+    public void initMutator(int id) {
+    VM.sysWriteln("Initialising mutator");
+      if (id != 1){
+        mmtkHandle = sysCall.sysBindMutator(id);
+				struc.field1 = mmtkHandle.plus(field1Offset).loadAddress();
+        struc.field2 = mmtkHandle.plus(field2Offset).loadAddress();
+        struc.field3 = mmtkHandle.plus(field3Offset).loadAddress();
+        struc.field4 = mmtkHandle.plus(field4Offset).loadAddress();
+
+      }
+    }
+@_NO_RUST_MASK_END_@
     public void setHandle(Address handle) {
-        this.mmtkHandle = handle;
-        Magic.setAddressAtOffset(addressBlock, this.handle, handle);
-        Magic.setAddressAtOffset(addressBlock, cursor, Address.fromIntSignExtend(0x12345678));
-        Magic.setAddressAtOffset(addressBlock, sentinel, Address.fromIntSignExtend(0xABCDEF12));
+        if (VM.VerifyAssertions) {
+          VM._assert(field1Offset == Offset.fromIntSignExtend(0));
+          VM._assert(field2Offset == Offset.fromIntSignExtend(4));
+          VM._assert(field3Offset == Offset.fromIntSignExtend(8));
+          VM._assert(field4Offset == Offset.fromIntSignExtend(12));
+        }
+        struc.field1 = handle.plus(field1Offset).loadAddress();
+        struc.field2 = handle.plus(field2Offset).loadAddress();
+        struc.field3 = handle.plus(field3Offset).loadAddress();
+        struc.field4 = handle.plus(field4Offset).loadAddress();
     }
 
     public Address getHandle() {
         return mmtkHandle;
     }
-
-    public Object getAddressBlock() {
-        return addressBlock;
-    }
-
-
 
     @Inline
     public final RVMThread getThread() { return (RVMThread) this; }
