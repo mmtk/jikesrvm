@@ -134,6 +134,9 @@ public class Entrypoints {
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test2", "(II)I");
   public static final NormalMethod test3Method =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test3", "(IIII)I");
+  public static final NormalMethod getOffsetArrayMethod =
+          getMethod(org.jikesrvm.mm.mminterface.RustScanning.class, "getOffsetArray","(Ljava/lang/Object;)[I");
+
 
   public static final NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");
