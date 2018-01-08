@@ -60,7 +60,7 @@ public class ScanBootImage {
   @Inline
   @Uninterruptible
   public static void scanBootImage(TraceLocal trace) {
-    /* establish sentinals in map & image */
+    /* establish sentinels in map & image */
     Address mapStart = BootRecord.the_boot_record.bootImageRMapStart;
     Address mapEnd = BootRecord.the_boot_record.bootImageRMapEnd;
     Address imageStart = BootRecord.the_boot_record.bootImageDataStart;
