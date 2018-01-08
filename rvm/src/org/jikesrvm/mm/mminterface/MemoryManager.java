@@ -74,6 +74,7 @@ import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
+import static org.jikesrvm.runtime.EntrypointHelper.getField;
 
 
 /**
@@ -634,8 +635,12 @@ public final class MemoryManager {
     /* Now make the request */
     Address region;
     if (VM.BuildWithRustMMTk) {
-      Address cursor = mutator.struc.field2;
-      Address sentinel = mutator.struc.field3;
+
+      //VM.sysWrite("cursor: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getCursor());
+      //VM.sysWrite("sentinel: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getSentinel());
+
+      Address cursor = mutator.bp.getCursor(); // mutator.struc.field2;
+      Address sentinel = mutator.bp.getSentinel(); //mutator.struc.field3;
 
       // Align allocation
       Word mask = Word.fromIntSignExtend(align - 1);
@@ -648,10 +653,11 @@ public final class MemoryManager {
       Address newCursor = result.plus(bytes);
 
       if (newCursor.GT(sentinel)) {
-        Address handle = Magic.objectAsAddress(mutator.struc);
+        Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
         region = sysCall.sysAllocSlow(handle, bytes, align, offset);
       } else {
-        mutator.struc.field2 = newCursor;
+        //mutator.struc.field2 = newCursor;
+        mutator.bp.setCursor(newCursor);
         region = result;
       }
 
