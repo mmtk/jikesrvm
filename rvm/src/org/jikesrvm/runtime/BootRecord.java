@@ -247,6 +247,12 @@ public class BootRecord {
   public Address sysBindMutatorIP;
   public Address sysAllocSlowIP;
   public Address sysStartControlCollectorIP;
+  public Address jikesrvm_gc_initIP;
+  public Address allocIP;
+  public Address bind_mutatorIP;
+  public Address alloc_slowIP;
+  public Address start_control_collectorIP;
+
 
   // startup/shutdown
   public Address sysExitIP;

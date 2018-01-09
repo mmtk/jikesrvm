@@ -4298,6 +4298,26 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       // (3) Stack alignment
       ForwardReference dontRealignStack = null;
       int argsToPush = 0;
+
+      ///////////////////////
+      if (VM.BuildFor32Addr) {
+        for (int i = args.length - 1; i >= 1; i--) {
+          TypeReference arg = args[i];
+          if (arg.isLongType() || arg.isDoubleType()) {
+            argsToPush += 2;
+          } else {
+            argsToPush ++;
+          }
+        }
+        asm.emitTEST_Reg_Imm(SP, 0x8);
+        if ((argsToPush & 1) != 0) {
+          dontRealignStack = asm.forwardJcc(NE);
+        } else {
+          dontRealignStack = asm.forwardJcc(EQ);
+        }
+      }
+      ////////////////////
+
       if (VM.BuildFor64Addr) {
         for (int i = args.length - 1; i >= 1; i--) {
           if (!inRegister[i]) {
@@ -4317,7 +4337,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
         }
       }
 
-      // Generate argument pushing and call code upto twice, once with realignment
+
+      // Generate argument pushing and call code up to twice, once with realignment
       ForwardReference afterCalls = null;
       for (int j = VM.BuildFor32Addr ? 1 : 0;  j < 2; j++) {
         if (j == 0) {

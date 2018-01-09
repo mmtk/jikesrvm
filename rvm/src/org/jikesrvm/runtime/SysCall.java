@@ -15,6 +15,7 @@ package org.jikesrvm.runtime;
 import org.jikesrvm.annotations.GenerateImplementation;
 import org.jikesrvm.annotations.SysCallTemplate;
 import org.jikesrvm.scheduler.RVMThread;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
@@ -125,6 +126,73 @@ public abstract class SysCall {
 
   @SysCallTemplate
   public abstract Address sysAllocSlow(Address mutator, int size, int align, int offset);
+
+  /**
+   * Initialises information about the control collector
+   * @param threadId thread id of the control collector
+   */
+  @Inline
+  public void StartControlCollector(int threadId) {
+    start_control_collector(threadId);
+  }
+  @SysCallTemplate
+  public abstract void start_control_collector(int threadId);
+
+  /**
+   * Initiates the GC
+   * @param pointer the JTOC pointer
+   * @param size the maximum size of the heap
+   */
+  @Inline
+  public void GCInit(Address pointer, int size) {
+    jikesrvm_gc_init(pointer,size);
+  }
+  @SysCallTemplate
+  public abstract void jikesrvm_gc_init(Address pointer, int size);
+
+  /**
+   * Binds the thread to Rust
+   * @param id id of the thread
+   * @return Address corresponding to start of the Rust structure of the mutator
+   */
+  @Inline
+  public Address BindMutator(int id) {
+    return bind_mutator(id);
+  }
+  @SysCallTemplate
+  public abstract Address bind_mutator(int thread_id);
+
+  /**
+   * TODO REDUNDANT
+   * Allocation fast path that calls directly into Rust
+   * @param mutator The mutator instance to be used for this allocation
+   * @param size The size of the allocation in bytes
+   * @param align The alignment requested; must be a power of 2
+   * @param offset The offset at which the alignment is desired
+   * @return The first byte of a suitably sized and aligned region of memory
+   */
+  @Inline
+  public Address Alloc(Address mutator, int size, int align, int offset) {
+    return alloc(mutator, size, align, offset);
+  }
+  @SysCallTemplate
+  public abstract Address alloc(Address mutator, int size, int align, int offset);
+
+  /**
+   * Allocation slow path
+   * @param mutator The mutator instance to be used for this allocation
+   * @param size The size of the allocation in bytes
+   * @param align The alignment requested; must be a power of 2
+   * @param offset The offset at which the alignment is desired
+   * @return The first byte of a suitably sized and aligned region of memory
+   */
+  @Inline
+  public Address AllocSlow(Address mutator, int size, int align, int offset) {
+    return alloc_slow(mutator,size,align,offset);
+  }
+  @SysCallTemplate
+  public abstract Address alloc_slow(Address mutator, int size, int align, int offset);
+
 
   @SysCallTemplate
   public abstract Address sysMalloc(int length);

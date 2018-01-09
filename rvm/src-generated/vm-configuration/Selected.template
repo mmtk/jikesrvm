@@ -90,7 +90,7 @@ public class Selected {
         @Override
         public void initMutator ( int id){
             if (id != 1) {
-                mmtkHandle = sysCall.sysBindMutator(id);
+                mmtkHandle = sysCall.BindMutator(id);
                 bp.setBlock(mmtkHandle);
             }
         }
