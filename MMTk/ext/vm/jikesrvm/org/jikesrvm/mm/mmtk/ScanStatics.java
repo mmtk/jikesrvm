@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import org.jikesrvm.mm.mminterface.ScanThread;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Log;

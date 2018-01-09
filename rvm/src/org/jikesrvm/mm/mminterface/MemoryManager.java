@@ -134,6 +134,7 @@ public final class MemoryManager {
     return a + 10;
   }
 
+
   /**
    * Suppress default constructor to enforce noninstantiability.
    */
@@ -158,8 +159,11 @@ public final class MemoryManager {
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
     if (VM.BuildWithRustMMTk) {
+      VM.sysWriteln("Should not die now");
       sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
+      VM.sysWriteln("Should die here");
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
+
     }
 
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
@@ -654,7 +658,7 @@ public final class MemoryManager {
 
       if (newCursor.GT(sentinel)) {
         Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
-        region = sysCall.sysAllocSlow(handle, bytes, align, offset);
+        region = sysCall.AllocSlow(handle, bytes, align, offset);
       } else {
         //mutator.struc.field2 = newCursor;
         mutator.bp.setCursor(newCursor);
