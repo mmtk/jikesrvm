@@ -22,6 +22,8 @@ import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 
+import org.jikesrvm.mm.mminterface.ScanThread;
+
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 

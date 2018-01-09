@@ -95,7 +95,7 @@ import org.vmmagic.unboxed.Word;
    * @param object The object whose size is being queried
    * @return The size (in bytes) of the given object.
    */
-  static int getObjectSize(ObjectReference object) {
+  public static int getObjectSize(ObjectReference object) {
     TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(object);
     RVMType type = Magic.objectAsType(tib.getType());
 
