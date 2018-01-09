@@ -200,8 +200,8 @@ import org.vmmagic.unboxed.Offset;
     /* Grab the ScanThread instance associated with this thread */
     ScanThread scanner = RVMThread.getCurrentThread().getCollectorThread().getThreadScanner();
 
-    /* Expicitly establish the stopping point for this scan (not necessarily the bottom of stack) */
-    Address sentinalFp = newRootsSufficent && Options.useShortStackScans.getValue() ? thread.getNextUnencounteredFrame() : StackFrameLayout.getStackFrameSentinelFP();
+    /* Explicitly establish the stopping point for this scan (not necessarily the bottom of stack) */
+    Address sentinelFp = newRootsSufficent && Options.useShortStackScans.getValue() ? thread.getNextUnencounteredFrame() : StackFrameLayout.getStackFrameSentinelFP();
 
     /* stack trampoline will be freshly reinstalled at end of thread scan */
     if (Options.useReturnBarrier.getValue() || Options.useShortStackScans.getValue()) {
@@ -209,7 +209,7 @@ import org.vmmagic.unboxed.Offset;
     }
 
     /* scan the stack */
-    scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame, sentinalFp);
+    scanner.startScan(trace, processCodeLocations, thread, gprs, ip, fp, initialIPLoc, topFrame, sentinelFp);
   }
 
   /**
