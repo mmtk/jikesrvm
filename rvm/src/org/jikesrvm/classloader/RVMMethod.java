@@ -400,6 +400,13 @@ public abstract class RVMMethod extends RVMMember {
   }
 
   /**
+   * @return {@code true} if this is a system call that must be 16 byte stack aligned
+   */
+  public final boolean mustStackAlign() {
+    return isNative() && isStatic() && isAnnotationDeclared(TypeReference.StackAlignment);
+  }
+
+  /**
    * @return {@code true} if this is a specialized method invoke
    * @see SpecializedMethod
    * @see SpecializedMethodManager
