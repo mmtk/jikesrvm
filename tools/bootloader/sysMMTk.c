@@ -26,3 +26,14 @@ EXTERNAL void sysStartControlCollector(int thread_id) {
     return start_control_collector ((size_t) thread_id);
 }
 
+EXTERNAL void sysReportDelayedRootEdge(MMTk_TraceLocal trace_local, void* addr) {
+    report_delayed_root_edge(trace_local, addr);
+}
+
+EXTERNAL bool sysWillNotMoveInCurrentCollection(MMTk_TraceLocal trace_local, void* obj) {
+    will_not_move_in_current_collection(trace_local, obj);
+}
+
+EXTERNAL void sysProcessInteriorEdge(MMTk_TraceLocal trace_local, void* target, void* slot, bool root) {
+    process_interior_edge(trace_local, target, slot, root);
+}
