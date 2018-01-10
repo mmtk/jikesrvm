@@ -26,3 +26,7 @@ EXTERNAL void sysStartControlCollector(int thread_id) {
     return start_control_collector ((size_t) thread_id);
 }
 
+EXTERNAL _Bool sysWillNeverMove(void* object){
+    return will_never_move(object);
+}
+

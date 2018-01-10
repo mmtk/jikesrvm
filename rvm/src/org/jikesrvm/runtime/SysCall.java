@@ -17,10 +17,7 @@ import org.jikesrvm.annotations.SysCallTemplate;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Word;
-import org.vmmagic.unboxed.Extent;
-import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.*;
 
 /**
  * Support for lowlevel (i.e. non-JNI) invocation of C functions with
@@ -193,6 +190,8 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract Address alloc_slow(Address mutator, int size, int align, int offset);
 
+  @SysCallTemplate
+  public abstract boolean sysWillNeverMove(ObjectReference object);
 
   @SysCallTemplate
   public abstract Address sysMalloc(int length);
