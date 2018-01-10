@@ -1055,7 +1055,11 @@ public final class MemoryManager {
    */
   @Pure
   public static boolean willNeverMove(Object obj) {
-    return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
+    if (VM.BuildWithRustMMTk) {
+      return sysCall.sysWillNeverMove(ObjectReference.fromObject(obj));
+    } else {
+      return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
+    }
   }
 
   /**

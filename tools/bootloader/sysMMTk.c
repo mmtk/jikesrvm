@@ -37,3 +37,7 @@ EXTERNAL bool sysWillNotMoveInCurrentCollection(MMTk_TraceLocal trace_local, voi
 EXTERNAL void sysProcessInteriorEdge(MMTk_TraceLocal trace_local, void* target, void* slot, bool root) {
     process_interior_edge(trace_local, target, slot, root);
 }
+
+EXTERNAL bool sysWillNeverMove(void* object){
+    return will_never_move(object);
+}

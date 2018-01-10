@@ -252,7 +252,7 @@ public class BootRecord {
   public Address bind_mutatorIP;
   public Address alloc_slowIP;
   public Address start_control_collectorIP;
-
+  public Address sysWillNeverMoveIP;
 
   // startup/shutdown
   public Address sysExitIP;
