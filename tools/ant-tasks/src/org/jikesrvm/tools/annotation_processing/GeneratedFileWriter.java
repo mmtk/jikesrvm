@@ -201,6 +201,18 @@ class GeneratedFileWriter {
     generatePrivateNativeStub(method);
   }
 
+  /**
+   * Generate an implementation for an aligned method. The implementation will call a
+   * private native stub that will also be generated.
+   *
+   * @param method
+   * @throws IOException
+   */
+  void processAlignedMethod(ExecutableElement method) throws IOException {
+    generateMethodImplementation(method);
+    generateAlignedPrivateNativeStub(method);
+  }
+
   private void generateMethodImplementation(ExecutableElement method)
       throws IOException {
 
@@ -359,6 +371,31 @@ class GeneratedFileWriter {
   private void generatePrivateNativeStub(ExecutableElement method)
       throws IOException {
     writeLine("@org.vmmagic.pragma.SysCallNative");
+
+    StringBuilder stubDeclaration = new StringBuilder();
+    stubDeclaration.append("private static native ");
+
+    TypeMirror returnType = method.getReturnType();
+    stubDeclaration.append(returnType);
+
+    stubDeclaration.append(" ");
+    stubDeclaration.append(getMethodName(method));
+    stubDeclaration.append("(org.vmmagic.unboxed.Address nativeIP");
+
+    List<? extends VariableElement> parameters = method.getParameters();
+    generateParameterList(parameters, stubDeclaration, true);
+
+    stubDeclaration.append(")");
+    stubDeclaration.append(";");
+
+    writeLine(stubDeclaration.toString());
+    writeEmptyLine();
+  }
+
+  private void generateAlignedPrivateNativeStub(ExecutableElement method)
+          throws IOException {
+    writeLine("@org.vmmagic.pragma.SysCallNative");
+    writeLine("@org.vmmagic.pragma.StackAlignment");
 
     StringBuilder stubDeclaration = new StringBuilder();
     stubDeclaration.append("private static native ");

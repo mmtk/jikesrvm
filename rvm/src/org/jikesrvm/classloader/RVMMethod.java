@@ -399,12 +399,16 @@ public abstract class RVMMethod extends RVMMember {
     return isNative() && isStatic() && isAnnotationDeclared(TypeReference.SysCall);
   }
 
+
   /**
-   * @return {@code true} if this is a system call that must be 16 byte stack aligned
+   * @return {@code true} if this is a method that's not implemented in Java
+   *  and use C not JNI calling convention
+   * @see org.jikesrvm.runtime.SysCall
    */
-  public final boolean mustStackAlign() {
-    return isNative() && isStatic() && isAnnotationDeclared(TypeReference.StackAlignment);
+  public final boolean isStackAlignment() {
+    return isAnnotationDeclared(TypeReference.SysCall) && isAnnotationDeclared(TypeReference.StackAlignment);
   }
+
 
   /**
    * @return {@code true} if this is a specialized method invoke

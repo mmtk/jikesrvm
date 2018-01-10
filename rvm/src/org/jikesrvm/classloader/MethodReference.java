@@ -295,8 +295,8 @@ public final class MethodReference extends MemberReference {
    *
    * @return {@code true} if this method has to be stack aligned
    */
-  public boolean mustStackAlign() {
-    return (getType() == TypeReference.StackAlignment) || ((resolvedMember != null) && (resolvedMember.mustStackAlign()));
+  public boolean isStackAlign() {
+    return (getType() == TypeReference.StackAlignment) || ((resolvedMember != null) && (resolvedMember.hasStackAlignment()));
   }
 
   /**
