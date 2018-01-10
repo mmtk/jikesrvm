@@ -175,6 +175,15 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract Address alloc(Address mutator, int size, int align, int offset);
 
+  @SysCallTemplate
+  public abstract void sysReportDelayedRootEdge(Address trace_local, Address addr);
+
+  @SysCallTemplate
+  public abstract boolean sysWillNotMoveInCurrentCollection(Address trace_local, ObjectReference obj);
+
+  @SysCallTemplate
+  public abstract void sysProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root);
+
   /**
    * Allocation slow path
    * @param mutator The mutator instance to be used for this allocation

@@ -29,6 +29,7 @@ import org.vmmagic.pragma.Untraced;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
+import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
@@ -128,15 +129,15 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
     Address pointer;
 
     final void reportDelayedRootEdge(Address addr) {
-
+      sysCall.sysReportDelayedRootEdge(pointer, addr);
     }
 
     final boolean willNotMoveInCurrentCollection(ObjectReference obj) {
-      return false;
+      return sysCall.sysWillNotMoveInCurrentCollection(pointer, obj);
     }
 
     final void processInteriorEdge(ObjectReference target, Address slot, boolean root) {
-
+      sysCall.sysProcessInteriorEdge(pointer, target, slot, root);
     }
   }
 

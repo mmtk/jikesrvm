@@ -254,6 +254,9 @@ EXTERNAL void* alloc_slow(MMTk_Mutator mutator, size_t size,
     size_t align, ssize_t offset) __attribute__((force_align_arg_pointer));
 EXTERNAL void jikesrvm_gc_init(void* jtoc, size_t heap_size) __attribute__((force_align_arg_pointer));
 EXTERNAL void start_control_collector(size_t thread_id) __attribute__((force_align_arg_pointer));
+EXTERNAL void sysReportDelayedRootEdge(MMTk_TraceLocal trace_local, void* addr);
+EXTERNAL bool sysWillNotMoveInCurrentCollection(MMTk_TraceLocal trace_local, void* obj);
+EXTERNAL void sysProcessInteriorEdge(MMTk_TraceLocal trace_local, void* target, void* slot, bool root);
 
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);

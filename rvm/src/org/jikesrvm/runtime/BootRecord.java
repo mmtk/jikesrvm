@@ -253,6 +253,9 @@ public class BootRecord {
   public Address alloc_slowIP;
   public Address start_control_collectorIP;
   public Address sysWillNeverMoveIP;
+  public Address sysReportDelayedRootEdgeIP;
+  public Address sysWillNotMoveInCurrentCollectionIP;
+  public Address sysProcessInteriorEdgeIP;
 
   // startup/shutdown
   public Address sysExitIP;
