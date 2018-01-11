@@ -241,17 +241,17 @@ EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysSyncCache(void *address, size_t size);
 //sysMMTk
 EXTERNAL MMTk_Mutator sysBindMutator(int thread_id) __attribute__((force_align_arg_pointer));
-EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset) __attribute__((force_align_arg_pointer));
-EXTERNAL void* sysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset) __attribute__((force_align_arg_pointer));
+EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
+EXTERNAL void* sysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void sysGCInit(void* jtocPtr, int size) __attribute__((force_align_arg_pointer));
 EXTERNAL void sysStartControlCollector(int thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL _Bool sysWillNeverMove(void* object) __attribute__((force_align_arg_pointer));
 
 EXTERNAL MMTk_Mutator bind_mutator(size_t thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL void* alloc(MMTk_Mutator mutator, size_t size,
-    size_t align, ssize_t offset) __attribute__((force_align_arg_pointer));
+    size_t align, ssize_t offset, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void* alloc_slow(MMTk_Mutator mutator, size_t size,
-    size_t align, ssize_t offset) __attribute__((force_align_arg_pointer));
+    size_t align, ssize_t offset, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void jikesrvm_gc_init(void* jtoc, size_t heap_size) __attribute__((force_align_arg_pointer));
 EXTERNAL void start_control_collector(size_t thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL void sysReportDelayedRootEdge(MMTk_TraceLocal trace_local, void* addr);

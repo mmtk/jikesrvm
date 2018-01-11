@@ -120,9 +120,9 @@ public abstract class SysCall {
   public abstract Address sysBindMutator(int id);
 
   @SysCallTemplate
-  public abstract Address sysAlloc(Address mutator, int size, int align, int offset);
+  public abstract Address sysAlloc(Address mutator, int size, int align, int offset, int allocator);
   @SysCallTemplate
-  public abstract Address sysAllocSlow(Address mutator, int size, int align, int offset);
+  public abstract Address sysAllocSlow(Address mutator, int size, int align, int offset, int allocator);
 
   /**
    * Initialises information about the control collector
@@ -169,11 +169,11 @@ public abstract class SysCall {
    * @return The first byte of a suitably sized and aligned region of memory
    */
   @Inline
-  public Address Alloc(Address mutator, int size, int align, int offset) {
-    return alloc(mutator, size, align, offset);
+  public Address Alloc(Address mutator, int size, int align, int offset, int allocator) {
+    return alloc(mutator, size, align, offset, allocator);
   }
   @SysCallTemplate
-  public abstract Address alloc(Address mutator, int size, int align, int offset);
+  public abstract Address alloc(Address mutator, int size, int align, int offset, int allocator);
 
   @SysCallTemplate
   public abstract void sysReportDelayedRootEdge(Address trace_local, Address addr);
@@ -193,11 +193,11 @@ public abstract class SysCall {
    * @return The first byte of a suitably sized and aligned region of memory
    */
   @Inline
-  public Address AllocSlow(Address mutator, int size, int align, int offset) {
-    return alloc_slow(mutator,size,align,offset);
+  public Address AllocSlow(Address mutator, int size, int align, int offset, int allocator) {
+    return alloc_slow(mutator,size,align,offset,allocator);
   }
   @SysCallTemplate
-  public abstract Address alloc_slow(Address mutator, int size, int align, int offset);
+  public abstract Address alloc_slow(Address mutator, int size, int align, int offset, int allocator);
 
   @SysCallTemplate
   public abstract boolean sysWillNeverMove(ObjectReference object);

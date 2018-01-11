@@ -639,7 +639,10 @@ public final class MemoryManager {
     /* Now make the request */
     Address region;
     if (VM.BuildWithRustMMTk) {
-
+      if (allocator != Selected.Plan.ALLOC_DEFAULT) {
+        Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
+        region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
+      }
       //VM.sysWrite("cursor: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getCursor());
       //VM.sysWrite("sentinel: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getSentinel());
 
@@ -658,12 +661,16 @@ public final class MemoryManager {
 
       if (newCursor.GT(sentinel)) {
         Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
-        region = sysCall.AllocSlow(handle, bytes, align, offset);
+        region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
       } else {
         //mutator.struc.field2 = newCursor;
         mutator.bp.setCursor(newCursor);
         region = result;
       }
+      // VM.sysWrite("BuildWithRustMMTk allocateSpace ");
+      // VM.sysWrite(allocator);
+      // VM.sysWrite(" ");
+      // VM.sysWriteln(region);
 
     } else {
       region = mutator.alloc(bytes, align, offset, allocator, site);
@@ -1056,6 +1063,8 @@ public final class MemoryManager {
   @Pure
   public static boolean willNeverMove(Object obj) {
     if (VM.BuildWithRustMMTk) {
+      // VM.sysWrite("BuildWithRustMMTK willNeverMove ");
+      // VM.sysWriteln(ObjectReference.fromObject(obj).toAddress());
       return sysCall.sysWillNeverMove(ObjectReference.fromObject(obj));
     } else {
       return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
