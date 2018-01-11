@@ -13,9 +13,11 @@
 package org.jikesrvm.runtime;
 
 import org.jikesrvm.annotations.GenerateImplementation;
+import org.jikesrvm.annotations.SysCallAlignedTemplate;
 import org.jikesrvm.annotations.SysCallTemplate;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.StackAlignment;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
@@ -112,6 +114,11 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysMemmove(Address dst, Address src, Extent cnt);
 
+  @SysCallAlignedTemplate
+  public abstract void sysHelloWorld();
+
+  @SysCallAlignedTemplate
+  public abstract void sysBrokenCode();
 
   @SysCallTemplate
   public abstract void sysStartControlCollector(int threadId);
@@ -135,7 +142,8 @@ public abstract class SysCall {
   public void StartControlCollector(int threadId) {
     start_control_collector(threadId);
   }
-  @SysCallTemplate
+  
+  @SysCallAlignedTemplate
   public abstract void start_control_collector(int threadId);
 
   /**
@@ -147,7 +155,8 @@ public abstract class SysCall {
   public void GCInit(Address pointer, int size) {
     jikesrvm_gc_init(pointer,size);
   }
-  @SysCallTemplate
+  
+  @SysCallAlignedTemplate
   public abstract void jikesrvm_gc_init(Address pointer, int size);
 
   /**
@@ -159,7 +168,8 @@ public abstract class SysCall {
   public Address BindMutator(int id) {
     return bind_mutator(id);
   }
-  @SysCallTemplate
+  
+  @SysCallAlignedTemplate
   public abstract Address bind_mutator(int thread_id);
 
   /**
@@ -175,7 +185,7 @@ public abstract class SysCall {
   public Address Alloc(Address mutator, int size, int align, int offset) {
     return alloc(mutator, size, align, offset);
   }
-  @SysCallTemplate
+  @SysCallAlignedTemplate
   public abstract Address alloc(Address mutator, int size, int align, int offset);
 
   /**
@@ -190,7 +200,7 @@ public abstract class SysCall {
   public Address AllocSlow(Address mutator, int size, int align, int offset) {
     return alloc_slow(mutator,size,align,offset);
   }
-  @SysCallTemplate
+  @SysCallAlignedTemplate
   public abstract Address alloc_slow(Address mutator, int size, int align, int offset);
 
 
@@ -265,6 +275,7 @@ public abstract class SysCall {
    * @return native thread's o/s handle
    */
   @SysCallTemplate
+  
   public abstract Word sysThreadCreate(Address ip, Address fp, Address tr, Address jtoc);
 
   /**
@@ -320,6 +331,7 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysMonitorDestroy(Word monitor);
   @SysCallTemplate
+  
   public abstract void sysMonitorEnter(Word monitor);
   @SysCallTemplate
   public abstract void sysMonitorExit(Word monitor);

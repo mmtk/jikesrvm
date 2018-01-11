@@ -140,6 +140,7 @@ public final class MemoryManager {
    */
   private MemoryManager() {} // This constructor will never be invoked.
 
+
   /**
    * Initialization that occurs at <i>boot</i> time (runtime
    * initialization).  This is only executed by one processor (the
@@ -159,11 +160,13 @@ public final class MemoryManager {
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
     if (VM.BuildWithRustMMTk) {
+      sysCall.sysHelloWorld();
+      sysCall.sysBrokenCode();
       VM.sysWriteln("Should not die now");
       sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
       VM.sysWriteln("Should die here");
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
-
+      VM.sysWriteln ("Finished INIT");
     }
 
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
@@ -658,7 +661,7 @@ public final class MemoryManager {
 
       if (newCursor.GT(sentinel)) {
         Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
-        region = sysCall.AllocSlow(handle, bytes, align, offset);
+        region = sysCall.sysAllocSlow(handle, bytes, align, offset);
       } else {
         //mutator.struc.field2 = newCursor;
         mutator.bp.setCursor(newCursor);

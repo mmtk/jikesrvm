@@ -241,6 +241,8 @@ EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysSyncCache(void *address, size_t size);
 //sysMMTk
 EXTERNAL MMTk_Mutator sysBindMutator(int thread_id) __attribute__((force_align_arg_pointer));
+EXTERNAL void sysHelloWorld();
+EXTERNAL void sysBrokenCode();
 EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset) __attribute__((force_align_arg_pointer));
 EXTERNAL void* sysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset) __attribute__((force_align_arg_pointer));
 EXTERNAL void sysGCInit(void* jtocPtr, int size) __attribute__((force_align_arg_pointer));
