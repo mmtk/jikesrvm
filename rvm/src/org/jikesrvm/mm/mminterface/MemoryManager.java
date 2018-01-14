@@ -160,10 +160,10 @@ public final class MemoryManager {
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
     if (VM.BuildWithRustMMTk) {
-      sysCall.sysHelloWorld();
+      //sysCall.sysHelloWorld();
       sysCall.sysBrokenCode();
-      VM.sysWriteln("Should not die now");
-      sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
+      //VM.sysWriteln("Should not die now");
+      sysCall.GCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
       VM.sysWriteln("Should die here");
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
       VM.sysWriteln ("Finished INIT");

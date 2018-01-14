@@ -117,7 +117,7 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract void sysHelloWorld();
 
-  @SysCallAlignedTemplate
+  @SysCallTemplate
   public abstract void sysBrokenCode();
 
   @SysCallTemplate

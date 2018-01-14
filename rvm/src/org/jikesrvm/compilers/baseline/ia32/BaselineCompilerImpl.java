@@ -4300,24 +4300,164 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       ForwardReference dontRealignStack = null;
       int argsToPush = 0;
 
+      ForwardReference stackZero = null;
+      ForwardReference stackOne = null;
+      ForwardReference stackTwo = null;
+      ForwardReference stackThree = null;
+      ForwardReference zeroAlignZero = null;
+      ForwardReference zeroAlignOne = null;
+      ForwardReference zeroAlignTwo = null;
+      ForwardReference zeroAlignThree = null;
+      ForwardReference alignZero = null;
+      ForwardReference alignOne = null;
+      ForwardReference alignTwo = null;
+      ForwardReference alignThree = null;
+      ForwardReference oneAlignZero = null;
+      ForwardReference oneAlignOne = null;
+      ForwardReference oneAlignTwo = null;
+      ForwardReference oneAlignThree = null;
+      ForwardReference twoAlignZero = null;
+      ForwardReference twoAlignOne = null;
+      ForwardReference twoAlignTwo = null;
+      ForwardReference twoAlignThree = null;
+      ForwardReference threeAlignZero = null;
+      ForwardReference threeAlignOne = null;
+      ForwardReference threeAlignTwo = null;
+      ForwardReference threeAlignThree = null;
+
       ///////////////////////
-      if (VM.BuildFor32Addr && m.isStackAlign()) {
+
+      if (m.isStackAlign() && VM.BuildFor32Addr) {
         for (int i = args.length - 1; i >= 1; i--) {
           TypeReference arg = args[i];
           if (arg.isLongType() || arg.isDoubleType()) {
             argsToPush += 2;
           } else {
-            argsToPush ++;
+            argsToPush++;
           }
         }
-        asm.emitTEST_Reg_Imm(SP, 0x8);
-        if ((argsToPush & 1) != 0) {
-          //dontRealignStack = asm.forwardJMP();
-          dontRealignStack = asm.forwardJcc(NE);
-        } else {
-          //dontRealignStack = asm.forwardJMP();
-          dontRealignStack = asm.forwardJcc(EQ);
-        }
+          asm.emitTEST_Reg_Imm(SP, 0xC); // Needs 0 more to be aligned
+          switch (argsToPush % 4) {
+            case 0:
+              alignZero = asm.forwardJcc(EQ);
+              break;
+            case 1:
+              alignOne = asm.forwardJcc(EQ);
+              break;
+            case 2:
+              alignTwo = asm.forwardJcc(EQ);
+              break;
+            case 3:
+              alignThree = asm.forwardJcc(EQ);
+              break;
+          }
+          asm.emitTEST_Reg_Imm(SP, 0x8); // Needs -1 more to be aligned
+          switch (argsToPush % 4) {
+            case 0:
+              alignOne = asm.forwardJcc(EQ);
+              break;
+            case 1:
+              alignTwo = asm.forwardJcc(EQ);
+              break;
+            case 2:
+              alignThree = asm.forwardJcc(EQ);
+              break;
+            case 3:
+              alignZero = asm.forwardJcc(EQ);
+              break;
+          }
+          asm.emitTEST_Reg_Imm(SP, 0x4); // Needs -2 more to be aligned
+          switch (argsToPush % 4) {
+            case 0:
+              alignTwo = asm.forwardJcc(EQ);
+              break;
+            case 1:
+              alignThree = asm.forwardJcc(EQ);
+              break;
+            case 2:
+              alignZero = asm.forwardJcc(EQ);
+              break;
+            case 3:
+              alignOne = asm.forwardJcc(EQ);
+              break;
+          }
+          // needs -3 to be aligned
+          switch (argsToPush % 4) {
+            case 0:
+              alignThree = asm.forwardJMP();
+              break;
+            case 1:
+              alignZero = asm.forwardJMP();
+              break;
+            case 2:
+              alignOne = asm.forwardJMP();
+              break;
+            case 3:
+              alignTwo = asm.forwardJMP();
+              break;
+          }
+          /*
+          switch (argsToPush % 4) {
+            case 0:
+              threeAlignZero = asm.forwardJcc(EQ);
+              break;
+            case 1:
+              threeAlignOne = asm.forwardJcc(EQ);
+              break;
+            case 2:
+              threeAlignTwo = asm.forwardJcc(EQ);
+              break;
+            case 3:
+              threeAlignThree = asm.forwardJcc(EQ);
+              break;
+          }
+          asm.emitTEST_Reg_Imm(SP, 0x8); // Needs -1 more to be aligned
+          switch (argsToPush % 4) {
+            case 0:
+              twoAlignOne = asm.forwardJcc(EQ);
+              break;
+            case 1:
+              twoAlignTwo = asm.forwardJcc(EQ);
+              break;
+            case 2:
+              twoAlignThree = asm.forwardJcc(EQ);
+              break;
+            case 3:
+              twoAlignZero = asm.forwardJcc(EQ);
+              break;
+          }
+          asm.emitTEST_Reg_Imm(SP, 0x4); // Needs -2 more to be aligned
+          switch (argsToPush % 4) {
+            case 0:
+              oneAlignTwo = asm.forwardJcc(EQ);
+              break;
+            case 1:
+              oneAlignThree = asm.forwardJcc(EQ);
+              break;
+            case 2:
+              oneAlignZero = asm.forwardJcc(EQ);
+              break;
+            case 3:
+              oneAlignOne = asm.forwardJcc(EQ);
+              break;
+          }
+          // needs -3 to be aligned
+          switch (argsToPush % 4) {
+            case 0:
+              zeroAlignThree = asm.forwardJMP();
+              break;
+            case 1:
+              zeroAlignZero = asm.forwardJMP();
+              break;
+            case 2:
+              zeroAlignOne = asm.forwardJMP();
+              break;
+            case 3:
+              zeroAlignTwo = asm.forwardJMP();
+              break;
+          }
+          */
+
       }
       ////////////////////
 
@@ -4345,7 +4485,13 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       ForwardReference afterCalls = null;
       Offset originalFirstOffset = offsetToFirstArg;
       Offset originalLastOffset = offsetToLastArg;
-      for (int j = VM.BuildFor32Addr && !m.isStackAlign()? 1 : 0;  j < 2; j++) {
+      ForwardReference afterCallsOne = null;
+      ForwardReference afterCallsTwo = null;
+      ForwardReference afterCallsThree = null;
+
+      if (!m.isStackAlign()) {
+
+      for (int j = VM.BuildFor32Addr && !m.isStackAlign() ? 1 : 0; j < 2; j++) {
         offsetToFirstArg = originalFirstOffset;
         offsetToLastArg = originalLastOffset;
         if (j == 0) {
@@ -4421,18 +4567,126 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
           adjustStack(paramBytes, true);
         }
       }
+      } else {
 
+        //zero = 0 align 1 = 1 align etc
+        for (int j = 0; j < 4; j++) {
+          offsetToFirstArg = originalFirstOffset;
+          offsetToLastArg = originalLastOffset;
+          paramBytes = 0;
+          switch (j) {
+            case 0:
+              if (alignZero != null) alignZero.resolve(asm);
+              break;
+            case 1:
+              if (alignOne != null) alignOne.resolve(asm);
+              break;
+            case 2:
+              if (alignTwo != null) alignTwo.resolve(asm);
+              break;
+            case 3:
+              if (alignThree != null) alignThree.resolve(asm);
+              break;
+            default:
+          }
+          if (j != 0) {
+            adjustStack(-WORDSIZE * j, true);
+            offsetToFirstArg = offsetToFirstArg.plus(WORDSIZE * j);
+            offsetToLastArg = offsetToLastArg.plus(WORDSIZE * j);
+          }
+          // (4) Stack remaining args to target function from right-to-left
+          //     (NB avoid the first argument holding the target function address)
+          offsetToJavaArg = offsetToLastArg;
+          for (int i = args.length - 1; i >= 1; i--) {
+            TypeReference arg = args[i];
+            if (VM.BuildFor32Addr) {
+              if (arg.isLongType() || arg.isDoubleType()) {
+                asm.emitPUSH_RegDisp(SP, offsetToJavaArg.plus(WORDSIZE));
+                asm.emitPUSH_RegDisp(SP, offsetToJavaArg.plus(WORDSIZE));
+                offsetToJavaArg = offsetToJavaArg.plus(4 * WORDSIZE);
+                offsetToFirstArg = offsetToFirstArg.plus(2 * WORDSIZE);
+                offsetToLastArg = offsetToLastArg.plus(2 * WORDSIZE);
+                paramBytes += 2 * WORDSIZE;
+              } else {
+                asm.emitPUSH_RegDisp(SP, offsetToJavaArg);
+                offsetToJavaArg = offsetToJavaArg.plus(2 * WORDSIZE);
+                offsetToFirstArg = offsetToFirstArg.plus(WORDSIZE);
+                offsetToLastArg = offsetToLastArg.plus(WORDSIZE);
+                paramBytes += WORDSIZE;
+              }
+            } else {
+              if (!inRegister[i]) {
+                if (arg.isLongType() || arg.isDoubleType()) {
+                  adjustStack(-WORDSIZE, true);
+                  asm.emitPUSH_RegDisp(SP, offsetToJavaArg.plus(WORDSIZE));
+                  offsetToJavaArg = offsetToJavaArg.plus(4 * WORDSIZE);
+                  offsetToFirstArg = offsetToFirstArg.plus(2 * WORDSIZE);
+                  offsetToLastArg = offsetToLastArg.plus(2 * WORDSIZE);
+                  paramBytes += 2 * WORDSIZE;
+                } else {
+                  asm.emitPUSH_RegDisp(SP, offsetToJavaArg);
+                  offsetToJavaArg = offsetToJavaArg.plus(2 * WORDSIZE);
+                  offsetToFirstArg = offsetToFirstArg.plus(WORDSIZE);
+                  offsetToLastArg = offsetToLastArg.plus(WORDSIZE);
+                  paramBytes += WORDSIZE;
+                }
+              } else {
+                if (arg.isLongType() || arg.isDoubleType()) {
+                  offsetToJavaArg = offsetToJavaArg.plus(2 * WORDSIZE);
+                } else {
+                  offsetToJavaArg = offsetToJavaArg.plus(WORDSIZE);
+                }
+              }
+            }
+          }
+          if (VM.VerifyAssertions) VM._assert(offsetToFirstArg.EQ(offsetToJavaArg));
+
+          // (5) invoke target function with address given by the first argument
+          if (VM.BuildFor32Addr) {
+            asm.emitMOV_Reg_RegDisp(S0, SP, offsetToFirstArg);
+            asm.emitCALL_Reg(S0);
+          } else {
+            asm.emitMOV_Reg_RegDisp_Quad(T0, SP, offsetToFirstArg);
+            asm.emitCALL_Reg(T0);
+          }
+
+          // (6) pop space for arguments
+          switch (j) {
+            case 0:
+              adjustStack(paramBytes, true);
+              afterCallsOne = asm.forwardJMP();
+              break;
+            default:
+              offsetToFirstArg = offsetToFirstArg.minus(WORDSIZE * j);
+              offsetToLastArg = offsetToLastArg.minus(WORDSIZE * j);
+              adjustStack(paramBytes + WORDSIZE * j, true);
+          }
+          switch (j) {
+            case 1:
+              afterCalls = asm.forwardJMP();
+              break;
+            case 2:
+              afterCallsTwo = asm.forwardJMP();
+              break;
+            case 3:
+              afterCallsThree = asm.forwardJMP();
+            default:
+
+          }
+
+        }
+      }
       if (afterCalls != null) afterCalls.resolve(asm);
-
+      if (afterCallsOne != null) afterCallsOne.resolve(asm);
+      if (afterCallsTwo != null) afterCallsTwo.resolve(asm);
+      if (afterCallsThree != null) afterCallsThree.resolve(asm);
       // (7) restore RVM registers
       asm.emitPOP_Reg(EDI);
       asm.emitPOP_Reg(ESI);
       asm.emitPOP_Reg(EBX);
 
       // (8) pop expression stack (including the first parameter)
-      if (!m.isStackAlign()) {
-        adjustStack(m.getParameterWords() << LG_WORDSIZE, true);
-      }
+      adjustStack(m.getParameterWords() << LG_WORDSIZE, true);
 
       // (9) push return value
       if (rtype.isLongType()) {
