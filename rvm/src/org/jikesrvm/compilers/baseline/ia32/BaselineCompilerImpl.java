@@ -114,6 +114,7 @@ import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -4300,7 +4301,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       int argsToPush = 0;
 
       ///////////////////////
-      if (VM.BuildFor32Addr) {
+      if (VM.BuildFor32Addr && m.isStackAlign()) {
         for (int i = args.length - 1; i >= 1; i--) {
           TypeReference arg = args[i];
           if (arg.isLongType() || arg.isDoubleType()) {
@@ -4311,8 +4312,10 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
         }
         asm.emitTEST_Reg_Imm(SP, 0x8);
         if ((argsToPush & 1) != 0) {
+          //dontRealignStack = asm.forwardJMP();
           dontRealignStack = asm.forwardJcc(NE);
         } else {
+          //dontRealignStack = asm.forwardJMP();
           dontRealignStack = asm.forwardJcc(EQ);
         }
       }
@@ -4340,7 +4343,11 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
 
       // Generate argument pushing and call code up to twice, once with realignment
       ForwardReference afterCalls = null;
-      for (int j = VM.BuildFor32Addr ? 1 : 0;  j < 2; j++) {
+      Offset originalFirstOffset = offsetToFirstArg;
+      Offset originalLastOffset = offsetToLastArg;
+      for (int j = VM.BuildFor32Addr && !m.isStackAlign()? 1 : 0;  j < 2; j++) {
+        offsetToFirstArg = originalFirstOffset;
+        offsetToLastArg = originalLastOffset;
         if (j == 0) {
           adjustStack(-WORDSIZE, true);
           offsetToFirstArg = offsetToFirstArg.plus(WORDSIZE);
@@ -4423,7 +4430,9 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       asm.emitPOP_Reg(EBX);
 
       // (8) pop expression stack (including the first parameter)
-      adjustStack(m.getParameterWords() << LG_WORDSIZE, true);
+      if (!m.isStackAlign()) {
+        adjustStack(m.getParameterWords() << LG_WORDSIZE, true);
+      }
 
       // (9) push return value
       if (rtype.isLongType()) {
