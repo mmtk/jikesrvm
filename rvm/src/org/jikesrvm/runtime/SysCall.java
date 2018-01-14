@@ -19,10 +19,7 @@ import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.StackAlignment;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Word;
-import org.vmmagic.unboxed.Extent;
-import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.*;
 
 /**
  * Support for lowlevel (i.e. non-JNI) invocation of C functions with
@@ -130,9 +127,9 @@ public abstract class SysCall {
   public abstract Address sysBindMutator(int id);
 
   @SysCallTemplate
-  public abstract Address sysAlloc(Address mutator, int size, int align, int offset);
+  public abstract Address sysAlloc(Address mutator, int size, int align, int offset, int allocator);
   @SysCallTemplate
-  public abstract Address sysAllocSlow(Address mutator, int size, int align, int offset);
+  public abstract Address sysAllocSlow(Address mutator, int size, int align, int offset, int allocator);
 
   /**
    * Initialises information about the control collector
@@ -182,11 +179,20 @@ public abstract class SysCall {
    * @return The first byte of a suitably sized and aligned region of memory
    */
   @Inline
-  public Address Alloc(Address mutator, int size, int align, int offset) {
-    return alloc(mutator, size, align, offset);
+  public Address Alloc(Address mutator, int size, int align, int offset, int allocator) {
+    return alloc(mutator, size, align, offset, allocator);
   }
   @SysCallAlignedTemplate
-  public abstract Address alloc(Address mutator, int size, int align, int offset);
+  public abstract Address alloc(Address mutator, int size, int align, int offset, int allocator);
+
+  @SysCallTemplate
+  public abstract void sysReportDelayedRootEdge(Address trace_local, Address addr);
+
+  @SysCallTemplate
+  public abstract boolean sysWillNotMoveInCurrentCollection(Address trace_local, ObjectReference obj);
+
+  @SysCallTemplate
+  public abstract void sysProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root);
 
   /**
    * Allocation slow path
@@ -197,12 +203,15 @@ public abstract class SysCall {
    * @return The first byte of a suitably sized and aligned region of memory
    */
   @Inline
-  public Address AllocSlow(Address mutator, int size, int align, int offset) {
-    return alloc_slow(mutator,size,align,offset);
+  public Address AllocSlow(Address mutator, int size, int align, int offset, int allocator) {
+    return alloc_slow(mutator,size,align,offset,allocator);
   }
-  @SysCallAlignedTemplate
-  public abstract Address alloc_slow(Address mutator, int size, int align, int offset);
 
+  @SysCallAlignedTemplate
+  public abstract Address alloc_slow(Address mutator, int size, int align, int offset, int allocator);
+
+  @SysCallTemplate
+  public abstract boolean sysWillNeverMove(ObjectReference object);
 
   @SysCallTemplate
   public abstract Address sysMalloc(int length);
