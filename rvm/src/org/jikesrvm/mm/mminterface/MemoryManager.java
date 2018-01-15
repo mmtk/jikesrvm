@@ -635,46 +635,66 @@ public final class MemoryManager {
                                        int site) {
     /* MMTk requests must be in multiples of MIN_ALIGNMENT */
     bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
-
     /* Now make the request */
     Address region;
     if (VM.BuildWithRustMMTk) {
-      if (allocator != Selected.Plan.ALLOC_DEFAULT) {
-        Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
-        region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
-      }
       //VM.sysWrite("cursor: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getCursor());
       //VM.sysWrite("sentinel: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getSentinel());
+      if (allocator == Plan.ALLOC_DEFAULT) {
+        Address cursor = mutator.cxt.getCursor(); // mutator.struc.field2;
+        Address sentinel = mutator.cxt.getSentinel(); //mutator.struc.field3;
 
-      Address cursor = mutator.bp.getCursor(); // mutator.struc.field2;
-      Address sentinel = mutator.bp.getSentinel(); //mutator.struc.field3;
+        // Align allocation
+        Word mask = Word.fromIntSignExtend(align - 1);
+        Word negOff = Word.fromIntSignExtend(-offset);
 
-      // Align allocation
-      Word mask = Word.fromIntSignExtend(align - 1);
-      Word negOff = Word.fromIntSignExtend(-offset);
+        Offset delta = negOff.minus(cursor.toWord()).and(mask).toOffset();
 
-      Offset delta = negOff.minus(cursor.toWord()).and(mask).toOffset();
+        Address result = cursor.plus(delta);
 
-      Address result = cursor.plus(delta);
+        Address newCursor = result.plus(bytes);
 
-      Address newCursor = result.plus(bytes);
-
-      if (newCursor.GT(sentinel)) {
-        Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
-        region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
+        if (newCursor.GT(sentinel)) {
+          Address handle = Magic.objectAsAddress(mutator.cxt); //Magic.objectAsAddress(mutator.struc);
+          region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
+        } else {
+          //mutator.struc.field2 = newCursor;
+          mutator.cxt.setCursor(newCursor);
+          region = result;
+        }
       } else {
-        //mutator.struc.field2 = newCursor;
-        mutator.bp.setCursor(newCursor);
-        region = result;
-      }
-      // VM.sysWrite("BuildWithRustMMTk allocateSpace ");
-      // VM.sysWrite(allocator);
-      // VM.sysWrite(" ");
-      // VM.sysWriteln(region);
+        Address cursor = mutator.cxt.getImmortalCursor(); // mutator.struc.field2;
+        Address sentinel = mutator.cxt.getImmortalSentinel(); //mutator.struc.field3;
 
+        // Align allocation
+        Word mask = Word.fromIntSignExtend(align - 1);
+        Word negOff = Word.fromIntSignExtend(-offset);
+
+        Offset delta = negOff.minus(cursor.toWord()).and(mask).toOffset();
+
+        Address result = cursor.plus(delta);
+
+        Address newCursor = result.plus(bytes);
+
+        if (newCursor.GT(sentinel)) {
+          Address handle = Magic.objectAsAddress(mutator.cxt); //Magic.objectAsAddress(mutator.struc);
+          region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
+        } else {
+          //mutator.struc.field2 = newCursor;
+          mutator.cxt.setImmortalCursor(newCursor);
+          region = result;
+        }
+      }
     } else {
       region = mutator.alloc(bytes, align, offset, allocator, site);
     }
+
+    // VM.sysWrite("allocateSpace ");
+    // VM.sysWrite(bytes);
+    // VM.sysWrite( " ");
+    // VM.sysWrite(allocator);
+    // VM.sysWrite(" ");
+    // VM.sysWriteln(region);
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
@@ -1062,9 +1082,9 @@ public final class MemoryManager {
    */
   @Pure
   public static boolean willNeverMove(Object obj) {
+    // VM.sysWrite("willNeverMove ");
+    // VM.sysWriteln(ObjectReference.fromObject(obj).toAddress());
     if (VM.BuildWithRustMMTk) {
-      // VM.sysWrite("BuildWithRustMMTK willNeverMove ");
-      // VM.sysWriteln(ObjectReference.fromObject(obj).toAddress());
       return sysCall.sysWillNeverMove(ObjectReference.fromObject(obj));
     } else {
       return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));

@@ -64,40 +64,20 @@ public class Selected {
 
         Address mmtkHandle;
 
-        public BumpPointer bp = new BumpPointer();
-
-        @Unboxed
-        @Uninterruptible
-        @RawStorage(lengthInWords = true, length = 4)
-        public static class BumpPointer {
-
-            public void setBlock(Address src) {
-                Memory.memcopy(Magic.objectAsAddress(this), src, 16);
-            }
-            public void setCursor(Address value) {
-                Magic.setAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(4), value);
-            }
-            public Address getCursor() {
-                return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(4));
-            }
-            public Address getSentinel() {
-                return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(8));
-            }
-
-        }
+        @_PLAN_NAME_@Context cxt = new @_PLAN_NAME_@Context();
 
 @_NO_RUST_MASK_START_@
         @Override
         public void initMutator ( int id){
             if (id != 1) {
                 mmtkHandle = sysCall.BindMutator(id);
-                bp.setBlock(mmtkHandle);
+                cxt.setBlock(mmtkHandle);
             }
         }
 @_NO_RUST_MASK_END_@
         public void setHandle (Address handle){
             mmtkHandle = handle;
-            bp.setBlock(mmtkHandle);
+            cxt.setBlock(mmtkHandle);
         }
 
     public Address getHandle() {
