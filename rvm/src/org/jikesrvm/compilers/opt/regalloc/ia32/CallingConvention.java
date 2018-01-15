@@ -199,9 +199,16 @@ public abstract class CallingConvention extends IRTools {
 
     // 5. For x64 syscalls, the ABI requires that the stack pointer is divisible
     // by 16 at the call.
+    if (VM.BuildFor32Addr && isSysCall) {
+      alignStackForX32SysCall(call,ir,parameterBytes,requireESP,adviseESP);
+    }
     if (VM.BuildFor64Addr && isSysCall) {
       alignStackForX64SysCall(call, ir, parameterBytes, requireESP, adviseESP);
     }
+  }
+
+  public static void alignStackForX32SysCall(Instruction call, IR ir,
+                                             int parameterBytes, Instruction requireESP, Instruction adviseESP){
   }
 
   public static void alignStackForX64SysCall(Instruction call, IR ir,
