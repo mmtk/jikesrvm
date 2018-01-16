@@ -45,3 +45,7 @@ EXTERNAL bool sysWillNeverMove(void* object) {
 EXTERNAL void sysStartWorker(size_t thread_id, void* worker) {
     start_worker(thread_id, worker);
 }
+
+EXTERNAL void sysEnableCollection(size_t thread_id, size_t size) {
+    enable_collection(thread_id, size);
+}

@@ -187,6 +187,9 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysStartWorker(int threadId, Address workerInstance);
 
+  @SysCallTemplate
+  public abstract void sysEnableCollection(int threadId, int size);
+
   /**
    * Allocation slow path
    * @param mutator The mutator instance to be used for this allocation
