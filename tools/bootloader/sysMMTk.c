@@ -38,6 +38,10 @@ EXTERNAL void sysProcessInteriorEdge(MMTk_TraceLocal trace_local, void* target, 
     process_interior_edge(trace_local, target, slot, root);
 }
 
-EXTERNAL bool sysWillNeverMove(void* object){
+EXTERNAL bool sysWillNeverMove(void* object) {
     return will_never_move(object);
+}
+
+EXTERNAL void sysStartWorker(size_t thread_id, void* worker) {
+    start_worker(thread_id, worker);
 }

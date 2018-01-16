@@ -23,6 +23,7 @@ import org.vmmagic.pragma.NoOptCompile;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.unboxed.Address;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
@@ -41,6 +42,13 @@ public final class CollectorThread extends SystemThread {
    *
    * Instance variables
    */
+
+  private Address workerInstance = Address.zero();
+
+  public void setWorker(Address worker) {
+    rvmThread.assertIsCollector();
+    workerInstance = worker;
+  }
 
   /** used by collector threads to hold state during stack scanning */
   private final ScanThread threadScanner = new ScanThread();
@@ -93,7 +101,11 @@ public final class CollectorThread extends SystemThread {
   @Unpreemptible
   public void run() {
     if (VM.BuildWithRustMMTk) {
-      sysCall.sysStartControlCollector(rvmThread.threadSlot);
+      if (workerInstance.EQ(Address.zero())) {
+        sysCall.sysStartControlCollector(rvmThread.threadSlot);
+      } else {
+        sysCall.sysStartWorker(rvmThread.threadSlot, workerInstance);
+      }
     } else {
       rvmThread.collectorContext.run();
     }

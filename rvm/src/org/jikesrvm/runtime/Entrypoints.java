@@ -139,6 +139,9 @@ public class Entrypoints {
   public static final NormalMethod scanThreadMethod =
           getMethod(org.jikesrvm.mm.mminterface.RustScanThread.class, "scanThread",
                   "(Lorg/jikesrvm/scheduler/RVMThread;Lorg/jikesrvm/mm/mminterface/RustScanThread$RustTraceLocal;ZZ)V");
+  public static final NormalMethod spawnCollectorThreadMethod =
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "spawnCollectorThread",
+                  "(Lorg/vmmagic/unboxed/Address;)V");
 
 
   public static final NormalMethod lockMethod =

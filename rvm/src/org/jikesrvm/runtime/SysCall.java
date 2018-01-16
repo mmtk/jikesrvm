@@ -184,6 +184,9 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root);
 
+  @SysCallTemplate
+  public abstract void sysStartWorker(int threadId, Address workerInstance);
+
   /**
    * Allocation slow path
    * @param mutator The mutator instance to be used for this allocation

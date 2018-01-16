@@ -211,6 +211,15 @@ public final class MemoryManager {
     collectionEnabled = true;
   }
 
+  @Interruptible
+  @Entrypoint
+  public static void spawnCollectorThread(Address workerInstance) {
+    byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
+    CollectorThread t = new CollectorThread(stack, null);
+    t.setWorker(workerInstance);
+    t.start();
+  }
+
   /**
    * @return whether collection is enabled
    */
