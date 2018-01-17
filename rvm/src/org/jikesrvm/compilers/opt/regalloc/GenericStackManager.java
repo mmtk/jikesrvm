@@ -165,6 +165,12 @@ public abstract class GenericStackManager extends IRTools {
   public abstract boolean isSysCall(Instruction s);
 
   /**
+   * @param s the instruction to check
+   * @return whether the instruction is a system call?
+   */
+  public abstract boolean isAlignedSysCall(Instruction s);
+
+  /**
    * Given symbolic register r in instruction s, do we need to ensure that
    * r is in a scratch register is s (as opposed to a memory operand)
    *
@@ -1193,7 +1199,7 @@ public abstract class GenericStackManager extends IRTools {
         }
 
         // deal with sys calls that may bash non-volatiles
-        if (isSysCall(s)) {
+        if (isSysCall(s) || isAlignedSysCall(s)) {
           if (VM.BuildForIA32) {
             org.jikesrvm.compilers.opt.regalloc.ia32.CallingConvention.saveNonvolatilesAroundSysCall(s, ir);
           } else {

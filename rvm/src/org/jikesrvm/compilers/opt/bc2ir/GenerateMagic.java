@@ -13,62 +13,7 @@
 package org.jikesrvm.compilers.opt.bc2ir;
 
 import static org.jikesrvm.compilers.opt.ir.IRTools.AC;
-import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2INT;
-import static org.jikesrvm.compilers.opt.ir.Operators.ADDR_2LONG;
-import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_ADDR;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_INT;
-import static org.jikesrvm.compilers.opt.ir.Operators.ATTEMPT_LONG;
-import static org.jikesrvm.compilers.opt.ir.Operators.BOOLEAN_CMP_ADDR;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_AS_LONG_BITS;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_SQRT;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.FENCE;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_AS_INT_BITS;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_SQRT;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.FRAMESIZE;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_OBJ_TIB;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_TIME_BASE;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_TYPE_FROM_TIB;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_2ADDRSigExt;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_2ADDRZerExt;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ADD;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_BITS_AS_FLOAT;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_SHL;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_2ADDR;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_BITS_AS_DOUBLE;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_ADDR;
-import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_INT;
-import static org.jikesrvm.compilers.opt.ir.Operators.PREPARE_LONG;
-import static org.jikesrvm.compilers.opt.ir.Operators.READ_CEILING;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_ADD;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_AND;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_MOVE;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_NOT;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_OR;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_SHL;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_SHR;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_SUB;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_USHR;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_XOR;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
-import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.WRITE_FLOOR;
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_FIRST_SPECIALIZED_METHOD_INDEX;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
@@ -508,8 +453,15 @@ public class GenerateMagic {
       // All methods of SysCall have the following signature:
       // callNAME(Address functionAddress, <var args to pass via native calling convention>)
       // With 64 bit PowerPC ELF ABI, functionAddress points to the function descriptor
+
       TypeReference[] args = meth.getParameterTypes();
-      Instruction call = Call.create(SYSCALL, null, null, null, null, args.length - 1);
+      Instruction call;
+      if (meth.isStackAlign()) {
+        call = Call.create(ALIGNED_SYSCALL, null, null, null, null, args.length - 1);
+      } else {
+        call = Call.create(SYSCALL, null, null, null, null, args.length - 1);
+      }
+
       for (int i = args.length - 1; i >= 1; i--) {
         Call.setParam(call, i - 1, bc2ir.pop(args[i]));
       }

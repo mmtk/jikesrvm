@@ -20,79 +20,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.GUARD_MOVE;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHL;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_SHR;
 import static org.jikesrvm.compilers.opt.ir.Operators.LONG_USHR;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.CALL_SAVE_VOLATILE;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADC;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_AND;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ANDNPD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ANDNPS;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ANDPD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ANDPS;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_BT;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CALL;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CDQ;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMOV;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMP;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPEQSD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPEQSS;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLESD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLESS;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLTSD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CMPLTSS;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_CVTSS2SD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_DIV;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCMOV;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCOMI;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCOMIP;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FFREE;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FILD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FIST;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FLD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FLD1;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FLDL2E;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FLDL2T;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FLDLG2;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FLDLN2;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FLDPI;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FLDZ;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FMOV;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FPREM;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FSTP;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_IDIV;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_IMUL1;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_IMUL2;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_JCC;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_LEA;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_LOCK_CMPXCHG;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_LOCK_CMPXCHG8B;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_METHODSTART;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSXDQ;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSX__B;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVZX__B;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MUL;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_NEG;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_NOT;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_OR;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ORPD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ORPS;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_RCR;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_RDTSC;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SAR;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SBB;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SET__B;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SHL;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SHR;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SUB;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SYSCALL;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XOR;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XORPD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_XORPS;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.MIR_LOWTABLESWITCH;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.*;
 import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
 import static org.jikesrvm.util.Bits.fits;
 
@@ -3411,7 +3339,7 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    */
   protected final void SYSCALL(Instruction s, Operand address) {
     burs.ir.setHasSysCall(true);
-
+    //VM.sysFail("entered syscall");
     if (VM.BuildFor32Addr) {
       // Step 1: Find out how many parameters we're going to have.
       int numParams = Call.getNumberOfParams(s);
@@ -3466,6 +3394,75 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
     } else {
       MIR_Call.mutate(s, IA32_SYSCALL, Call.getResult(s), null,
           address, Call.getMethod(s), Call.getNumberOfParams(s));
+    }
+
+    // emit the call instruction.
+    EMIT(s);
+  }
+
+  /**
+   * Expansion of SYSCALL. Expand longs registers into pairs of int registers.
+   *
+   * @param s the instruction to expand
+   * @param address the operand containing the target address
+   */
+  protected final void ALIGNED_SYSCALL(Instruction s, Operand address) {
+    burs.ir.setHasAlignedSysCall(true);
+
+    if (VM.BuildFor32Addr) {
+      // Step 1: Find out how many parameters we're going to have.
+      int numParams = Call.getNumberOfParams(s);
+      int longParams = 0;
+      for (int pNum = 0; pNum < numParams; pNum++) {
+        if (Call.getParam(s, pNum).getType().isLongType()) {
+          longParams++;
+        }
+      }
+
+      // Step 2: Figure out what the result and result2 values will be.
+      RegisterOperand result = Call.getResult(s);
+      RegisterOperand result2 = null;
+      // NOTE: C callee returns longs little endian!
+      if (result != null && result.getType().isLongType()) {
+        result.setType(TypeReference.Int);
+        result2 = result;
+        result = new RegisterOperand(regpool.getSecondReg(result.getRegister()), TypeReference.Int);
+      }
+
+      // Step 3: Mutate the Call to an MIR_Call.
+      // Note MIR_Call and Call have a different number of fixed
+      // arguments, so some amount of copying is required.
+      Operand[] params = new Operand[numParams];
+      for (int i = 0; i < numParams; i++) {
+        params[i] = Call.getParam(s, i);
+      }
+      MIR_Call.mutate(s, IA32_ALIGNEDSYSCALL, result, result2, address, Call
+              .getMethod(s), numParams + longParams);
+      for (int paramIdx = 0, mirCallIdx = 0; paramIdx < numParams;) {
+        Operand param = params[paramIdx++];
+        if (param instanceof RegisterOperand) {
+          // NOTE: longs passed little endian to C callee!
+          RegisterOperand rparam = (RegisterOperand) param;
+          if (rparam.getType().isLongType()) {
+            rparam.setType(TypeReference.Int);
+            MIR_Call.setParam(s, mirCallIdx++,
+                    new RegisterOperand(regpool.getSecondReg(rparam.getRegister()), TypeReference.Int));
+          }
+          MIR_Call.setParam(s, mirCallIdx++, param);
+        } else if (param instanceof LongConstantOperand) {
+          long value = ((LongConstantOperand) param).value;
+          int valueHigh = (int) (value >> 32);
+          int valueLow = (int) (value & 0xffffffff);
+          // NOTE: longs passed little endian to C callee!
+          MIR_Call.setParam(s, mirCallIdx++, IC(valueLow));
+          MIR_Call.setParam(s, mirCallIdx++, IC(valueHigh));
+        } else {
+          MIR_Call.setParam(s, mirCallIdx++, param);
+        }
+      }
+    } else {
+      MIR_Call.mutate(s, IA32_SYSCALL, Call.getResult(s), null,
+              address, Call.getMethod(s), Call.getNumberOfParams(s));
     }
 
     // emit the call instruction.

@@ -20,28 +20,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_BACKEDGE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_EPILOGUE;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR;
 import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_PROLOGUE;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.ADVISE_ESP;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_ADD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FCLEAR;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FMOV;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FMOV_opcode;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FNINIT;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FNSAVE;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_FRSTOR;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_LEA;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVQ;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSD_opcode;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOVSS_opcode;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_MOV_opcode;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_POP;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_PUSH;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_RET_opcode;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_SYSCALL;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.IA32_TRAPIF;
-import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.REQUIRE_ESP;
+import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.*;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.DOUBLE_REG;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.INT_REG;
 import static org.jikesrvm.compilers.opt.regalloc.ia32.PhysicalRegisterConstants.SPECIAL_REG;
@@ -1119,5 +1098,10 @@ public final class StackManager extends GenericStackManager {
   @Override
   public boolean isSysCall(Instruction s) {
     return s.operator() == IA32_SYSCALL;
+  }
+
+  @Override
+  public boolean isAlignedSysCall(Instruction s) {
+    return s.operator() == IA32_ALIGNEDSYSCALL;
   }
 }

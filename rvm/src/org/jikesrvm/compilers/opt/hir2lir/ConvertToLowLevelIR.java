@@ -13,77 +13,7 @@
 package org.jikesrvm.compilers.opt.hir2lir;
 
 import static org.jikesrvm.compilers.opt.driver.OptConstants.RUNTIME_SERVICES_BCI;
-import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH;
-import static org.jikesrvm.compilers.opt.ir.Operators.BOUNDS_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.BYTE_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL;
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.CHECKCAST_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.GETFIELD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GETSTATIC_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_CLASS_TIB;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_OBJ_TIB;
-import static org.jikesrvm.compilers.opt.ir.Operators.GOTO;
-import static org.jikesrvm.compilers.opt.ir.Operators.IG_CLASS_TEST_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.IG_METHOD_TEST_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_UNRESOLVED_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INSTANCEOF_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_2ADDRSigExt;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_2ADDRZerExt;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ADD;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_IFCMP2;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_SHL;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_ZERO_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_ZERO_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LOOKUPSWITCH;
-import static org.jikesrvm.compilers.opt.ir.Operators.LOOKUPSWITCH_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LOWTABLESWITCH;
-import static org.jikesrvm.compilers.opt.ir.Operators.MUST_IMPLEMENT_INTERFACE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_NOTNULL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.OBJARRAY_STORE_CHECK_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PUTFIELD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.PUTSTATIC_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_IFCMP;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.RESOLVE;
-import static org.jikesrvm.compilers.opt.ir.Operators.RESOLVE_MEMBER_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_ASTORE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.SHORT_STORE;
-import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.TABLESWITCH_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.TRAP_IF;
-import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.UBYTE_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_ALOAD_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.USHORT_LOAD;
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
 import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MOVES_TIBS;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.NEEDS_DYNAMIC_LINK;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_INTERFACE_DISPATCH_TABLE_INDEX;
@@ -290,6 +220,13 @@ public abstract class ConvertToLowLevelIR extends IRTools {
           break;
 
         case SYSCALL_opcode:
+          // If the SYSCALL is using a symbolic address, convert that to
+          // a sequence of loads off the BootRecord to find the appropriate field.
+          if (Call.getMethod(s) != null) {
+            expandSysCallTarget(s, ir);
+          }
+          break;
+        case ALIGNED_SYSCALL_opcode:
           // If the SYSCALL is using a symbolic address, convert that to
           // a sequence of loads off the BootRecord to find the appropriate field.
           if (Call.getMethod(s) != null) {

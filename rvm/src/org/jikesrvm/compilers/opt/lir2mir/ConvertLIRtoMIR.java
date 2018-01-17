@@ -12,25 +12,7 @@
  */
 package org.jikesrvm.compilers.opt.lir2mir;
 
-import static org.jikesrvm.compilers.opt.ir.Operators.ARRAYLENGTH_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.DOUBLE_REM_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_2LONG_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.FLOAT_REM_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_ARRAY_ELEMENT_TIB_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_CLASS_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_DOES_IMPLEMENT_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_OBJ_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_SUPERCLASS_IDS_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.GET_TYPE_FROM_TIB_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.INT_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_2DOUBLE_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_2FLOAT_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_DIV_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.LONG_REM_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.REF_LOAD;
-import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
-import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_ARRAY_ELEMENT_TIB_INDEX;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_DOES_IMPLEMENT_INDEX;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.TIB_SUPERCLASS_IDS_INDEX;
@@ -156,6 +138,16 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
       if (VM.BuildForIA32) {
         org.jikesrvm.compilers.opt.regalloc.ia32.CallingConvention.expandSysCall(s, ir);
       } else {
+        if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
+        org.jikesrvm.compilers.opt.regalloc.ppc.CallingConvention.expandSysCall(s, ir);
+      }
+    }
+
+    private void expandAlignedSysCall(Instruction s, IR ir) {
+      if (VM.BuildForIA32) {
+        org.jikesrvm.compilers.opt.regalloc.ia32.CallingConvention.expandAlignedSysCall(s, ir);
+      } else {
+        // No support for aligned syscalls for PPC
         if (VM.VerifyAssertions) VM._assert(VM.BuildForPowerPC);
         org.jikesrvm.compilers.opt.regalloc.ppc.CallingConvention.expandSysCall(s, ir);
       }
@@ -344,6 +336,9 @@ public final class ConvertLIRtoMIR extends OptimizationPlanCompositeElement {
           break;
           case SYSCALL_opcode:
             expandSysCall(s, ir);
+            break;
+          case ALIGNED_SYSCALL_opcode:
+            expandAlignedSysCall(s, ir);
             break;
           default:
             break;

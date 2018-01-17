@@ -163,8 +163,8 @@ public final class MemoryManager {
       //sysCall.sysHelloWorld();
       sysCall.sysBrokenCode();
       //VM.sysWriteln("Should not die now");
-      sysCall.GCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
-      VM.sysWriteln("Should die here");
+      sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
+     // VM.sysWriteln("Should die here");
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
       VM.sysWriteln ("Finished INIT");
     }
@@ -664,7 +664,7 @@ public final class MemoryManager {
 
       if (newCursor.GT(sentinel)) {
         Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
-        region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
+        region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
       } else {
         //mutator.struc.field2 = newCursor;
         mutator.bp.setCursor(newCursor);

@@ -19,11 +19,6 @@ import org.jikesrvm.compilers.opt.depgraph.DepGraphNode;
 import org.jikesrvm.compilers.opt.ir.BasicBlock;
 import org.jikesrvm.compilers.opt.ir.Instruction;
 import org.jikesrvm.compilers.opt.ir.IR;
-import static org.jikesrvm.compilers.opt.ir.Operators.CALL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.OTHER_OPERAND_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.RETURN_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL_opcode;
-import static org.jikesrvm.compilers.opt.ir.Operators.YIELDPOINT_OSR_opcode;
 import org.jikesrvm.compilers.opt.ir.operand.AddressConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.BranchOperand;
 import org.jikesrvm.compilers.opt.ir.operand.InlinedOsrTypeInfoOperand;
@@ -31,6 +26,8 @@ import org.jikesrvm.compilers.opt.ir.operand.IntConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LongConstantOperand;
 import org.jikesrvm.compilers.opt.ir.operand.Operand;
 import org.jikesrvm.compilers.opt.ir.operand.RegisterOperand;
+
+import static org.jikesrvm.compilers.opt.ir.Operators.*;
 
 /**
  * This class contains code for quick and dirty instruction selection
@@ -132,6 +129,7 @@ final class MinimalBURS extends BURS {
     switch (s.getOpcode()) {
       case CALL_opcode:
       case SYSCALL_opcode:
+      case ALIGNED_SYSCALL_opcode:
       case YIELDPOINT_OSR_opcode:
         if (cur.child2 == null) {
           cur.child2 = NullTreeNode;
