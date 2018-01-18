@@ -5,6 +5,9 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Magic;
+import org.mmtk.plan.Plan;
+
+import static org.jikesrvm.runtime.SysCall.sysCall;
 
 @Unboxed
 @Uninterruptible
@@ -36,5 +39,42 @@ public class SSContext {
 
     public Address getImmortalSentinel() {
         return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(24));
+    }
+
+    @Inline
+    public Address alloc(int bytes, int align, int offset, int allocator, int site) {
+        Address region;
+        Address cursor;
+        Address sentinel;
+        if (allocator == Plan.ALLOC_DEFAULT) {
+            cursor = this.getCursor();
+            sentinel = this.getSentinel();
+        } else {
+            cursor = this.getImmortalCursor();
+            sentinel = this.getImmortalSentinel();
+        }
+
+        // Align allocation
+        Word mask = Word.fromIntSignExtend(align - 1);
+        Word negOff = Word.fromIntSignExtend(-offset);
+
+        Offset delta = negOff.minus(cursor.toWord()).and(mask).toOffset();
+
+        Address result = cursor.plus(delta);
+
+        Address newCursor = result.plus(bytes);
+
+        if (newCursor.GT(sentinel)) {
+            Address handle = Magic.objectAsAddress(this);
+            region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
+        } else {
+            if (allocator == Plan.ALLOC_DEFAULT) {
+                this.setCursor(newCursor);
+            } else {
+                this.setImmortalCursor(newCursor);
+            }
+            region = result;
+        }
+        return region;
     }
 }

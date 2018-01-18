@@ -64,20 +64,20 @@ public class Selected {
 
         Address mmtkHandle;
 
-        @_PLAN_NAME_@Context cxt = new @_PLAN_NAME_@Context();
+        @_PLAN_NAME_@Context ctx = new @_PLAN_NAME_@Context();
 
 @_NO_RUST_MASK_START_@
         @Override
         public void initMutator ( int id){
             if (id != 1) {
                 mmtkHandle = sysCall.BindMutator(id);
-                cxt.setBlock(mmtkHandle);
+                ctx.setBlock(mmtkHandle);
             }
         }
 @_NO_RUST_MASK_END_@
         public void setHandle (Address handle){
             mmtkHandle = handle;
-            cxt.setBlock(mmtkHandle);
+            ctx.setBlock(mmtkHandle);
         }
 
     public Address getHandle() {

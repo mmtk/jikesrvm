@@ -647,63 +647,10 @@ public final class MemoryManager {
     /* Now make the request */
     Address region;
     if (VM.BuildWithRustMMTk) {
-      //VM.sysWrite("cursor: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getCursor());
-      //VM.sysWrite("sentinel: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getSentinel());
-      if (allocator == Plan.ALLOC_DEFAULT) {
-        Address cursor = mutator.cxt.getCursor(); // mutator.struc.field2;
-        Address sentinel = mutator.cxt.getSentinel(); //mutator.struc.field3;
-
-        // Align allocation
-        Word mask = Word.fromIntSignExtend(align - 1);
-        Word negOff = Word.fromIntSignExtend(-offset);
-
-        Offset delta = negOff.minus(cursor.toWord()).and(mask).toOffset();
-
-        Address result = cursor.plus(delta);
-
-        Address newCursor = result.plus(bytes);
-
-        if (newCursor.GT(sentinel)) {
-          Address handle = Magic.objectAsAddress(mutator.cxt); //Magic.objectAsAddress(mutator.struc);
-          region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
-        } else {
-          //mutator.struc.field2 = newCursor;
-          mutator.cxt.setCursor(newCursor);
-          region = result;
-        }
-      } else {
-        Address cursor = mutator.cxt.getImmortalCursor(); // mutator.struc.field2;
-        Address sentinel = mutator.cxt.getImmortalSentinel(); //mutator.struc.field3;
-
-        // Align allocation
-        Word mask = Word.fromIntSignExtend(align - 1);
-        Word negOff = Word.fromIntSignExtend(-offset);
-
-        Offset delta = negOff.minus(cursor.toWord()).and(mask).toOffset();
-
-        Address result = cursor.plus(delta);
-
-        Address newCursor = result.plus(bytes);
-
-        if (newCursor.GT(sentinel)) {
-          Address handle = Magic.objectAsAddress(mutator.cxt); //Magic.objectAsAddress(mutator.struc);
-          region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
-        } else {
-          //mutator.struc.field2 = newCursor;
-          mutator.cxt.setImmortalCursor(newCursor);
-          region = result;
-        }
-      }
+      region = mutator.ctx.alloc(bytes, align, offset, allocator, site);
     } else {
       region = mutator.alloc(bytes, align, offset, allocator, site);
     }
-
-    // VM.sysWrite("allocateSpace ");
-    // VM.sysWrite(bytes);
-    // VM.sysWrite( " ");
-    // VM.sysWrite(allocator);
-    // VM.sysWrite(" ");
-    // VM.sysWriteln(region);
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);

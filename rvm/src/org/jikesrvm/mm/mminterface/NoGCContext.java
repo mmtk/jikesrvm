@@ -5,6 +5,8 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Magic;
+import org.mmtk.plan.Plan;
+import static org.jikesrvm.runtime.SysCall.sysCall;
 
 @Unboxed
 @Uninterruptible
@@ -26,16 +28,29 @@ public class NoGCContext {
         return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(8));
     }
 
-    public void setImmortalCursor(Address value) {
-        Magic.setAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(4), value);
-    }
+    @Inline
+    public Address alloc(int bytes, int align, int offset, int allocator, int site) {
+        Address region;
+        Address cursor = this.getCursor();
+        Address sentinel = this.getSentinel();
 
-    public Address getImmortalCursor() {
-        return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(4));
-    }
+        // Align allocation
+        Word mask = Word.fromIntSignExtend(align - 1);
+        Word negOff = Word.fromIntSignExtend(-offset);
 
-    public Address getImmortalSentinel() {
-        return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(8));
-    }
+        Offset delta = negOff.minus(cursor.toWord()).and(mask).toOffset();
 
+        Address result = cursor.plus(delta);
+
+        Address newCursor = result.plus(bytes);
+
+        if (newCursor.GT(sentinel)) {
+            Address handle = Magic.objectAsAddress(this);
+            region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
+        } else {
+            this.setCursor(newCursor);
+            region = result;
+        }
+        return region;
+    }
 }
