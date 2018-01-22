@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-import subprocess
-import argparse
-import sys
+import subprocess   # run program
+import argparse     # parsing arguments to python
+import sys          # run program
+import glob, os     # retrieve files in directory
 
-compilers = ["FastAdaptive", "BaseBase", "FullAdaptive"]
-collectors = ["NoGC", "MarkSweep", "MarkCompact", "SemiSpace", "RefCount", "Poisoned", "GenImmix", "GenRC",
-              "Immix", "ConcMS", "CopyMS", "GenMS", "GCTrace", "StickyImmix", "StickyMS"]
+a = os.path.abspath(os.path.join(__file__, "..", ".." ))
+os.chdir(a)         # change to base directory
 
+# Arguments to be passed
 parser = argparse.ArgumentParser(description="Runs tests to verify it compiles and builds")
-parser.add_argument("-c", dest="compiler", default="BaseBase", help="Specifies which compiler to use", type=str)
-parser.add_argument("-g", dest="collector", default="NoGC", help="Specifies which garbage collector to use", type=str)
+parser.add_argument("-g", dest="collector", default="BaseBaseNoGC", help="Specifies which garbage collector to use", type=str)
 parser.add_argument("-n", default=1, dest="tests", help="Specifies the number of times to recompile and run the file", type=int)
 parser.add_argument("-a", dest="args", default="-Xms1024M", help="Specifies which arguments to pass when testing MMTk", type=str)
 parser.add_argument("--build-only", dest="build_only", action="store_true", help="Only build the compiler but do not test it")
@@ -36,11 +36,18 @@ def exe(cmd, env=None):
     p.wait()
     return p.returncode
 
+# Generates a list of all garbage collectors supported by MMTk
+garbage_collector_list = []
+for file in glob.glob(os.path.join("build", "configs", "*.properties")):
+    name = os.path.basename(file)
+    fname,lname = name.split(".")
+    garbage_collector_list.append(fname)
+
+b = os.path.abspath(os.path.join(__file__, "..", ".." ))  # files in directory
+os.chdir(b)  
+
 # Check arguments passed are correct
-if not args.compiler in compilers:
-    print ("Compiler chosen is not a valid compiler")
-    exit(1)
-if not args.collector in collectors:
+if not args.collector in garbage_collector_list:
     print ("Garbage Collector chosen is not a valid collection scheme")
     exit(1)
 
@@ -59,38 +66,40 @@ else:
 passes = 0
 
 # Run tests
-for _ in range(0, args.tests):
-    # Build if not test only
-    if not args.test_only:
-        build = False
-        # Corrupted zips return an error code of 3.
-        # If it corrupts, rerun at most 3 times
-        # All other build errors return errors as usual
-        for _ in range (0, 3):
-            rc = exe(("bin/buildit localhost -j /usr/lib/jvm/default-java --answer-yes " +
-                       args.java_build + args.compiler + args.collector + " --nuke").split())
-            if rc != 3:
-                build = rc == 0 
-                break
-        if not build:
-            print ("Build failed.")
-            exit(1)
-    # Test if not build only
-    if not args.build_only:
-        if exe(("dist/" + args.java_build + args.compiler + args.collector + "_x86_64-linux/rvm " 
-                + args.args + " -jar benchmarks/dacapo-2006-10-MR2.jar fop").split()) != 0:
-            if passes != 0:
-                print ("Test failed. Succeeded previously " + str(passes) + " times.")
-            else:
-                print ("Test failed.")
-            exit(1)
-        passes += 1
-
-# Check if the script has passed
-if passes == args.tests:
-   print ("Tests passed.")
-elif build:
-   print ("Build successful")
-else:
-   print ("Script failed.")
-   exit(1)
+while True:
+    for _ in range(0, args.tests):
+        # Build if not test only
+        if not args.test_only:
+            build = False
+            # Corrupted zips return an error code of 3.
+            # If it corrupts, rerun at most 3 times
+            # All other build errors return errors as usual
+            for _ in range(0, 3):
+                rc = exe(("bin/buildit localhost -j /usr/lib/jvm/default-java --answer-yes " +
+                          args.java_build + args.collector + " --nuke").split())
+                if rc != 3:
+                    build = rc == 0
+                    break
+            if not build:
+                print ("Build failed.")
+                exit(1)
+        # Test if not build only
+        if not args.build_only:
+            if exe(("dist/" + args.java_build + args.collector + "_x86_64-linux/rvm "
+                        + args.args + " -jar benchmarks/dacapo-2006-10-MR2.jar fop").split()) != 0:
+                if passes != 0:
+                    print ("Test failed. Succeeded previously " + str(passes) + " times.")
+                    exit(12)
+                else:
+                    print ("Test failed.")
+                    exit(12)
+                exit(1)
+            passes += 1  # Check if the script has passed
+    if passes == args.tests:
+        print ("Tests passed.")
+    elif build:
+        print ("Build successful")
+    else:
+        print ("Script failed.")
+        exit(1)
+    exit(2)
