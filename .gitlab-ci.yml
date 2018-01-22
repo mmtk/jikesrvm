@@ -4,13 +4,40 @@ variables:
 stages:
   - build
   
-build:
+build:basebase:
   stage: build
   script:
     - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
     - python scripts/testMMTk.py -c BaseBase
+  cache:
+    key: rspec
+    paths:
+      - benchmarks/
+
+build:fastadaptive:
+  stage: build
+  script:
+    - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
     - python scripts/testMMTk.py -c FastAdaptive
+  cache:
+    key: rspec
+    paths:
+      - benchmarks/
+
+build:fulladaptive:
+  stage: build
+  script:
+    - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
     - python scripts/testMMTk.py -c FullAdaptive
+  cache:
+    key: rspec
+    paths:
+      - benchmarks/
+
+build:basebasejavabuild:
+  stage: build
+  script:
+    - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
     - python scripts/testMMTk.py -c BaseBase --java-build
   cache:
     key: rspec
