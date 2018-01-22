@@ -17,6 +17,7 @@ import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.utility.Log;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 import org.vmmagic.Unboxed;
 
@@ -73,6 +74,18 @@ public class Selected {
                 mmtkHandle = sysCall.BindMutator(id);
                 ctx.setBlock(mmtkHandle);
             }
+        }
+
+        @Override
+        @Inline
+        public Address alloc(int bytes, int align, int offset, int allocator, int site) {
+            return ctx.alloc(bytes, align, offset, allocator, site);
+        }
+
+        @Override
+        @Inline
+        public void postAlloc(ObjectReference object, ObjectReference typeRef, int bytes, int allocator) {
+            return;
         }
 @_NO_RUST_MASK_END_@
         public void setHandle (Address handle){

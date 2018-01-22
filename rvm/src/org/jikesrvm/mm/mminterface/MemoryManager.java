@@ -166,7 +166,6 @@ public final class MemoryManager {
       sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
       VM.sysWriteln("Should die here");
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
-
     }
 
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
@@ -554,9 +553,7 @@ public final class MemoryManager {
     allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = ObjectModel.initializeScalar(region, tib, size);
-    if (!VM.BuildWithRustMMTk) {
-      mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
-    }
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
 
@@ -622,9 +619,7 @@ public final class MemoryManager {
     allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = ObjectModel.initializeArray(region, tib, numElements, size);
-    if (!VM.BuildWithRustMMTk) {
-      mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
-    }
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
 
@@ -646,11 +641,7 @@ public final class MemoryManager {
     bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
     /* Now make the request */
     Address region;
-    if (VM.BuildWithRustMMTk) {
-      region = mutator.ctx.alloc(bytes, align, offset, allocator, site);
-    } else {
-      region = mutator.alloc(bytes, align, offset, allocator, site);
-    }
+    region = mutator.alloc(bytes, align, offset, allocator, site);
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
