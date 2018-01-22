@@ -143,6 +143,9 @@ public class Entrypoints {
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "spawnCollectorThread",
                   "(Lorg/vmmagic/unboxed/Address;)V");
 
+  public static final RVMField numThreadsField =
+          getField(org.jikesrvm.scheduler.RVMThread.class, "numThreads", int.class);
+
 
   public static final NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");

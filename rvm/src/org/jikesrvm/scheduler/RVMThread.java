@@ -1280,6 +1280,7 @@ public final class RVMThread extends ThreadContext {
   /**
    * Number of threads in the system (some of which may not be active).
    */
+  @Entrypoint
   public static int numThreads;
 
   /**
