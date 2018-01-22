@@ -17,9 +17,7 @@ import static org.jikesrvm.compilers.opt.ir.Operators.LABEL_opcode;
 import static org.jikesrvm.compilers.opt.ir.Operators.SYSCALL;
 import static org.jikesrvm.compilers.opt.ir.ia32.ArchOperators.*;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
-import static org.jikesrvm.ia32.RegisterConstants.JTOC_REGISTER;
-import static org.jikesrvm.ia32.RegisterConstants.R13;
-import static org.jikesrvm.ia32.RegisterConstants.R14;
+import static org.jikesrvm.ia32.RegisterConstants.*;
 import static org.jikesrvm.ia32.StackframeLayoutConstants.BYTES_IN_STACKSLOT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_DOUBLE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_FLOAT;
@@ -32,22 +30,8 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.InterfaceMethodSignature;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.opt.DefUse;
-import org.jikesrvm.compilers.opt.ir.BasicBlock;
-import org.jikesrvm.compilers.opt.ir.Call;
-import org.jikesrvm.compilers.opt.ir.GenericPhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.IR;
-import org.jikesrvm.compilers.opt.ir.IRTools;
-import org.jikesrvm.compilers.opt.ir.Instruction;
-import org.jikesrvm.compilers.opt.ir.Register;
-import org.jikesrvm.compilers.opt.ir.ia32.MIR_Branch;
-import org.jikesrvm.compilers.opt.ir.ia32.MIR_Call;
-import org.jikesrvm.compilers.opt.ir.ia32.MIR_CondBranch;
-import org.jikesrvm.compilers.opt.ir.ia32.MIR_Move;
-import org.jikesrvm.compilers.opt.ir.ia32.MIR_Return;
-import org.jikesrvm.compilers.opt.ir.ia32.MIR_Test;
-import org.jikesrvm.compilers.opt.ir.ia32.MIR_UnaryNoRes;
-import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterSet;
-import org.jikesrvm.compilers.opt.ir.ia32.PhysicalRegisterTools;
+import org.jikesrvm.compilers.opt.ir.*;
+import org.jikesrvm.compilers.opt.ir.ia32.*;
 import org.jikesrvm.compilers.opt.ir.operand.BranchProfileOperand;
 import org.jikesrvm.compilers.opt.ir.operand.LocationOperand;
 import org.jikesrvm.compilers.opt.ir.operand.MemoryOperand;
@@ -142,9 +126,6 @@ public abstract class CallingConvention extends IRTools {
   private static void callExpand(Instruction call, IR ir) {
     boolean isSysCall = call.operator() == IA32_SYSCALL || call.operator() == IA32_ALIGNEDSYSCALL;
     boolean isAlignedSysCall = call.operator() == IA32_ALIGNEDSYSCALL;
-//    } if (isSysCall) {
-//      //VM.sysFail("notborked");
-//    }
 
     // 0. Handle the parameters
     int parameterBytes = isSysCall ? expandParametersToSysCall(call, ir, isAlignedSysCall) : expandParametersToCall(call, ir);
@@ -183,7 +164,7 @@ public abstract class CallingConvention extends IRTools {
     //    or 0 afterwards depending on whether or it is an RVM method or a sysCall.
     Instruction requireESP = MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes));
     call.insertBefore(requireESP);
-    Instruction adviseESP = MIR_UnaryNoRes.create(ADVISE_ESP, IC(isSysCall ? parameterBytes : 0));
+    Instruction adviseESP = MIR_UnaryNoRes.create(ADVISE_ESP,  IC(isSysCall ? parameterBytes : 0));
     call.insertAfter(adviseESP);
 
     // 5. For x64 syscalls, the ABI requires that the stack pointer is divisible
@@ -231,13 +212,80 @@ public abstract class CallingConvention extends IRTools {
     BasicBlock callBlockRest = newBlockForCall.splitNodeWithLinksAt(adviseESP, ir);
 
     // newBlockForCall now has the call and advise_esp / require_esp, subsequent code is in callBlockRest
+    /*
     BasicBlock copiedBlock = newBlockForCall.copyWithoutLinks(ir);
     ir.cfg.addLastInCodeOrder(copiedBlock);
     copiedBlock.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
     copiedBlock.recomputeNormalOut(ir);
+    */
+
+    // Push EAX onto the stack
+    Register eaxReg = ir.regpool.getPhysicalRegisterSet().asIA32().getEBP();
+    Instruction pushEAX = MIR_UnaryNoRes.create(IA32_PUSH, new RegisterOperand(eaxReg, TypeReference.Word));
+    testBlock.appendInstruction(pushEAX);
+
+    Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
+    Register ebxReg = ir.regpool.getPhysicalRegisterSet().asIA32().getEBX();
+
+    Instruction test0 = MIR_Test.create(IA32_TEST, new RegisterOperand(espReg, TypeReference.Word), IC(0));
+    testBlock.appendInstruction(test0);
+    Instruction mov1 = MIR_Move.create(IA32_MOV, new RegisterOperand(ebxReg, TypeReference.Word), IC(4));
+    testBlock.appendInstruction(mov1);
+    Instruction cmov = MIR_CondMove.create(IA32_CMOV,new RegisterOperand(eaxReg, TypeReference.Word), new RegisterOperand(ebxReg, TypeReference.Word), IA32ConditionOperand.EQ());
+    testBlock.appendInstruction(cmov);
+
+    Instruction test4 = MIR_Test.create(IA32_TEST, new RegisterOperand(espReg, TypeReference.Word), IC(4));
+    testBlock.appendInstruction(test4);
+    Instruction mov2 = MIR_Move.create(IA32_MOV, new RegisterOperand(ebxReg, TypeReference.Word), IC(8));
+    testBlock.appendInstruction(mov2);
+    Instruction c1mov = MIR_CondMove.create(IA32_CMOV,new RegisterOperand(eaxReg, TypeReference.Word), new RegisterOperand(ebxReg, TypeReference.Word), IA32ConditionOperand.EQ());
+    testBlock.appendInstruction(c1mov);
+
+    Instruction test8 = MIR_Test.create(IA32_TEST, new RegisterOperand(espReg, TypeReference.Word), IC(8));
+    testBlock.appendInstruction(test8);
+    Instruction mov3 = MIR_Move.create(IA32_MOV, new RegisterOperand(ebxReg, TypeReference.Word), IC(12));
+    testBlock.appendInstruction(mov3);
+    Instruction c2mov = MIR_CondMove.create(IA32_CMOV,new RegisterOperand(eaxReg, TypeReference.Word), new RegisterOperand(ebxReg, TypeReference.Word), IA32ConditionOperand.EQ());
+    testBlock.appendInstruction(c2mov);
+
+    Instruction test12 = MIR_Test.create(IA32_TEST, new RegisterOperand(espReg, TypeReference.Word), IC(12));
+    testBlock.appendInstruction(test12);
+    Instruction mov4 = MIR_Move.create(IA32_MOV, new RegisterOperand(ebxReg, TypeReference.Word), IC(0));
+    testBlock.appendInstruction(mov4);
+    Instruction c3mov = MIR_CondMove.create(IA32_CMOV,new RegisterOperand(eaxReg, TypeReference.Word), new RegisterOperand(ebxReg, TypeReference.Word), IA32ConditionOperand.EQ());
+    testBlock.appendInstruction(c3mov);
+
+    // Add parambytes to EAX
+    Instruction addBytes = MIR_BinaryAcc.create(IA32_ADD, new RegisterOperand(eaxReg, TypeReference.Word), IC(12 - parameterBytes));
+    testBlock.appendInstruction(addBytes);
+
+    Instruction lastBytes = MIR_BinaryAcc.create(IA32_AND, new RegisterOperand(eaxReg, TypeReference.Word), IC(15));
+    testBlock.appendInstruction(lastBytes);
+
+    Instruction movx = MIR_Move.create(IA32_MOV, new RegisterOperand(ebxReg, TypeReference.Word), new RegisterOperand(eaxReg, TypeReference.Word));
+    testBlock.appendInstruction(movx);
+
+    Instruction moveINT4 = MIR_Move.create(IA32_MOV, new RegisterOperand(eaxReg, TypeReference.Word), IC(16));
+    testBlock.appendInstruction(moveINT4);
+
+    Instruction min4 = MIR_BinaryAcc.create(IA32_SUB, new RegisterOperand(eaxReg, TypeReference.Word), new RegisterOperand(ebxReg, TypeReference.Word));
+    testBlock.appendInstruction(min4);
+
+    Instruction alignStack = MIR_BinaryAcc.create(IA32_SUB, new RegisterOperand(espReg, TypeReference.Word), new RegisterOperand(eaxReg, TypeReference.Word));
+    testBlock.appendInstruction(alignStack);
+
+    Instruction unalignStack = MIR_BinaryAcc.create(IA32_ADD, new RegisterOperand(espReg, TypeReference.Word), new RegisterOperand(eaxReg, TypeReference.Word));
+    newBlockForCall.appendInstruction(unalignStack);
+
+    // Pop EAX off the stack
+    Instruction popEAX = MIR_UnaryNoRes.create(IA32_POP, new RegisterOperand(eaxReg, TypeReference.Word));
+    newBlockForCall.appendInstruction(popEAX);
+
+    /*
 
     // Set up test block for checking stack alignment before the call
-    Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
+    //Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
+
     Instruction requireEspCheck = MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes));
     testBlock.appendInstruction(requireEspCheck);
     Instruction spTest = MIR_Test.create(IA32_TEST,
@@ -250,9 +298,11 @@ public abstract class CallingConvention extends IRTools {
     testBlock.appendInstruction(jcc);
     testBlock.recomputeNormalOut(ir);
 
+
     // modify ESP in the copied block to ensure correct alignment
     // when the original alignment would be incorrect. That's accomplished
     // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
+
     Enumeration<Instruction> copiedInsts = copiedBlock.forwardRealInstrEnumerator();
     while (copiedInsts.hasMoreElements()) {
       Instruction inst = copiedInsts.nextElement();
@@ -262,6 +312,7 @@ public abstract class CallingConvention extends IRTools {
         MIR_UnaryNoRes.setVal(inst, IC(val + WORDSIZE));
       }
     }
+    */
   }
 
   public static void alignStackForX64SysCall(Instruction call, IR ir,
@@ -699,7 +750,7 @@ public abstract class CallingConvention extends IRTools {
 
     if (VM.BuildFor32Addr) {
       if (isAligned) {
-        // Add a marker instruction. When processing x64 syscalls, the block of the syscall
+        // Add a marker instruction. When processing aligned syscalls, the block of the syscall
         // needs to be split up to copy the code for the call. Copying has to occur
         // to be able to ensure stack alignment for the x64 ABI. This instruction
         // marks the border for the copy: everything before this instruction isn't duplicated.
