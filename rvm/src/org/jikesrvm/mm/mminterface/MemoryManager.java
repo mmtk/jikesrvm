@@ -163,9 +163,10 @@ public final class MemoryManager {
       //sysCall.sysHelloWorld();
       sysCall.sysBrokenCode();
       //VM.sysWriteln("Should not die now");
-      sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
+      sysCall.GCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
      // VM.sysWriteln("Should die here");
-      RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
+      sysCall.sysBrokenCode();
+      RVMThread.threadBySlot[1].setHandle(sysCall.BindMutator(1));
       VM.sysWriteln ("Finished INIT");
     }
 
@@ -644,7 +645,7 @@ public final class MemoryManager {
     if (VM.BuildWithRustMMTk) {
       if (allocator != Selected.Plan.ALLOC_DEFAULT) {
         Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
-        region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
+        region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
       }
       //VM.sysWrite("cursor: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getCursor());
       //VM.sysWrite("sentinel: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getSentinel());
@@ -664,7 +665,7 @@ public final class MemoryManager {
 
       if (newCursor.GT(sentinel)) {
         Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
-        region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
+        region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
       } else {
         //mutator.struc.field2 = newCursor;
         mutator.bp.setCursor(newCursor);

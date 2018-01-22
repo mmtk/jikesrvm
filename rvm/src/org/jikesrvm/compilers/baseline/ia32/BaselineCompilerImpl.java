@@ -4391,7 +4391,6 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
             }
           }
         }
-        VM.sysFail("never enter");
         asm.emitTEST_Reg_Imm(SP, 0x8);
         if ((argsToPush & 1) != 0) {
           dontRealignStack = asm.forwardJcc(NE);
