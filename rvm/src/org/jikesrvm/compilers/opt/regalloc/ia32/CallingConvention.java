@@ -212,7 +212,7 @@ public abstract class CallingConvention extends IRTools {
     BasicBlock callBlockRest = newBlockForCall.splitNodeWithLinksAt(adviseESP, ir);
 
     // newBlockForCall now has the call and advise_esp / require_esp, subsequent code is in callBlockRest
-    /*
+
     BasicBlock copiedBlock = newBlockForCall.copyWithoutLinks(ir);
     ir.cfg.addLastInCodeOrder(copiedBlock);
     copiedBlock.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
@@ -229,9 +229,9 @@ public abstract class CallingConvention extends IRTools {
     ir.cfg.addLastInCodeOrder(copied4Block);
     copied4Block.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
     copied4Block.recomputeNormalOut(ir);
-    */
 
 
+    /*
     // Push EAX onto the stack
     Register eaxReg = ir.regpool.getPhysicalRegisterSet().asIA32().getEBP();
     Instruction pushEAX = MIR_UnaryNoRes.create(IA32_PUSH, new RegisterOperand(eaxReg, TypeReference.Word));
@@ -293,12 +293,12 @@ public abstract class CallingConvention extends IRTools {
     // Pop EAX off the stack
     Instruction popEAX = MIR_UnaryNoRes.create(IA32_POP, new RegisterOperand(eaxReg, TypeReference.Word));
     newBlockForCall.appendInstruction(popEAX);
-
+    */
 
 
     // Set up test block for checking stack alignment before the call
     //Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
-    /*
+
     int argsToPush = parameterBytes / WORDSIZE;
 
     Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
@@ -306,7 +306,6 @@ public abstract class CallingConvention extends IRTools {
     testBlock.appendInstruction(requireEspCheck);
     Instruction spTest = MIR_Test.create(IA32_TEST,
             new RegisterOperand(espReg, TypeReference.Word), IC(12));
-    testBlock.appendInstruction(spTest);
     Instruction sp2Test = MIR_Test.create(IA32_TEST,
             new RegisterOperand(espReg, TypeReference.Word), IC(8));
     Instruction sp3Test = MIR_Test.create(IA32_TEST,
@@ -332,6 +331,7 @@ public abstract class CallingConvention extends IRTools {
             new BranchProfileOperand());
 
     testBlock.appendInstruction(spTest);
+
     testBlock.appendInstruction(sp2Test);
     testBlock.appendInstruction(sp3Test);
     testBlock.appendInstruction(sp4Test);
@@ -353,7 +353,7 @@ public abstract class CallingConvention extends IRTools {
       if (inst.getOpcode() == REQUIRE_ESP_opcode ||
               inst.getOpcode() == ADVISE_ESP_opcode) {
         int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val + WORDSIZE));
+        MIR_UnaryNoRes.setVal(inst, IC(val + (argsToPush + WORDSIZE) % 4));
       }
     }
 
@@ -366,7 +366,7 @@ public abstract class CallingConvention extends IRTools {
       if (inst.getOpcode() == REQUIRE_ESP_opcode ||
               inst.getOpcode() == ADVISE_ESP_opcode) {
         int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val + 2 * WORDSIZE));
+        MIR_UnaryNoRes.setVal(inst, IC(val + (argsToPush + 2 * WORDSIZE) % 4));
       }
     }
 
@@ -379,7 +379,7 @@ public abstract class CallingConvention extends IRTools {
       if (inst.getOpcode() == REQUIRE_ESP_opcode ||
               inst.getOpcode() == ADVISE_ESP_opcode) {
         int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val + 3 * WORDSIZE));
+        MIR_UnaryNoRes.setVal(inst, IC(val + (argsToPush + 3 * WORDSIZE) % 4));
       }
     }
 
@@ -392,11 +392,10 @@ public abstract class CallingConvention extends IRTools {
       if (inst.getOpcode() == REQUIRE_ESP_opcode ||
               inst.getOpcode() == ADVISE_ESP_opcode) {
         int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val));
+        MIR_UnaryNoRes.setVal(inst, IC(val + argsToPush % 4));
       }
     }
 
-  */
   }
 
   public static void alignStackForX64SysCall(Instruction call, IR ir,
