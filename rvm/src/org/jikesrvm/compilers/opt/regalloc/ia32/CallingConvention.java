@@ -206,6 +206,9 @@ public abstract class CallingConvention extends IRTools {
     // make testBlock empty
     BasicBlock newBlockForCall = testBlock.splitNodeWithLinksAt(testBlock.firstInstruction(), ir);
 
+    BasicBlock test1Block =  testBlock.splitNodeWithLinksAt(testBlock.firstInstruction(), ir);
+    BasicBlock test2Block =  test1Block.splitNodeWithLinksAt(test1Block.firstInstruction(), ir);
+    BasicBlock test3Block =  test2Block.splitNodeWithLinksAt(test2Block.firstInstruction(), ir);
 
     // testBlock is now empty, newBlockForCall has the call and subsequent code
     // Move everything after the call to a new block
@@ -331,17 +334,18 @@ public abstract class CallingConvention extends IRTools {
             new BranchProfileOperand());
 
     testBlock.appendInstruction(spTest);
-
-    testBlock.appendInstruction(sp2Test);
-    testBlock.appendInstruction(sp3Test);
-    testBlock.appendInstruction(sp4Test);
-
-    testBlock.appendInstruction(jcc);
-    testBlock.appendInstruction(jcc2);
-    testBlock.appendInstruction(jcc3);
     testBlock.appendInstruction(jcc4);
+    test1Block.appendInstruction(sp2Test);
+    test1Block.appendInstruction(jcc);
+    test2Block.appendInstruction(sp3Test);
+    test2Block.appendInstruction(jcc2);
+    test3Block.appendInstruction(sp4Test);
+    test3Block.appendInstruction(jcc3);
 
     testBlock.recomputeNormalOut(ir);
+    test1Block.recomputeNormalOut(ir);
+    test2Block.recomputeNormalOut(ir);
+    test3Block.recomputeNormalOut(ir);
 
 
     // modify ESP in the copied block to ensure correct alignment
