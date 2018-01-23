@@ -233,72 +233,6 @@ public abstract class CallingConvention extends IRTools {
     copied4Block.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
     copied4Block.recomputeNormalOut(ir);
 
-
-    /*
-    // Push EAX onto the stack
-    Register eaxReg = ir.regpool.getPhysicalRegisterSet().asIA32().getEBP();
-    Instruction pushEAX = MIR_UnaryNoRes.create(IA32_PUSH, new RegisterOperand(eaxReg, TypeReference.Word));
-    testBlock.appendInstruction(pushEAX);
-    Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
-
-    Register ebxReg = ir.regpool.getPhysicalRegisterSet().asIA32().getEBX();
-
-    Instruction test0 = MIR_Test.create(IA32_TEST, new RegisterOperand(espReg, TypeReference.Word), IC(0));
-    testBlock.appendInstruction(test0);
-    Instruction mov1 = MIR_Move.create(IA32_MOV, new RegisterOperand(ebxReg, TypeReference.Word), IC(4));
-    testBlock.appendInstruction(mov1);
-    Instruction cmov = MIR_CondMove.create(IA32_CMOV,new RegisterOperand(eaxReg, TypeReference.Word), new RegisterOperand(ebxReg, TypeReference.Word), IA32ConditionOperand.EQ());
-    testBlock.appendInstruction(cmov);
-
-    Instruction test4 = MIR_Test.create(IA32_TEST, new RegisterOperand(espReg, TypeReference.Word), IC(4));
-    testBlock.appendInstruction(test4);
-    Instruction mov2 = MIR_Move.create(IA32_MOV, new RegisterOperand(ebxReg, TypeReference.Word), IC(8));
-    testBlock.appendInstruction(mov2);
-    Instruction c1mov = MIR_CondMove.create(IA32_CMOV,new RegisterOperand(eaxReg, TypeReference.Word), new RegisterOperand(ebxReg, TypeReference.Word), IA32ConditionOperand.EQ());
-    testBlock.appendInstruction(c1mov);
-
-    Instruction test8 = MIR_Test.create(IA32_TEST, new RegisterOperand(espReg, TypeReference.Word), IC(8));
-    testBlock.appendInstruction(test8);
-    Instruction mov3 = MIR_Move.create(IA32_MOV, new RegisterOperand(ebxReg, TypeReference.Word), IC(12));
-    testBlock.appendInstruction(mov3);
-    Instruction c2mov = MIR_CondMove.create(IA32_CMOV,new RegisterOperand(eaxReg, TypeReference.Word), new RegisterOperand(ebxReg, TypeReference.Word), IA32ConditionOperand.EQ());
-    testBlock.appendInstruction(c2mov);
-
-    Instruction test12 = MIR_Test.create(IA32_TEST, new RegisterOperand(espReg, TypeReference.Word), IC(12));
-    testBlock.appendInstruction(test12);
-    Instruction mov4 = MIR_Move.create(IA32_MOV, new RegisterOperand(ebxReg, TypeReference.Word), IC(0));
-    testBlock.appendInstruction(mov4);
-    Instruction c3mov = MIR_CondMove.create(IA32_CMOV,new RegisterOperand(eaxReg, TypeReference.Word), new RegisterOperand(ebxReg, TypeReference.Word), IA32ConditionOperand.EQ());
-    testBlock.appendInstruction(c3mov);
-
-    // Add parambytes to EAX
-    Instruction addBytes = MIR_BinaryAcc.create(IA32_ADD, new RegisterOperand(eaxReg, TypeReference.Word), IC(12 - parameterBytes));
-    testBlock.appendInstruction(addBytes);
-
-    Instruction lastBytes = MIR_BinaryAcc.create(IA32_AND, new RegisterOperand(eaxReg, TypeReference.Word), IC(15));
-    testBlock.appendInstruction(lastBytes);
-
-    Instruction movx = MIR_Move.create(IA32_MOV, new RegisterOperand(ebxReg, TypeReference.Word), new RegisterOperand(eaxReg, TypeReference.Word));
-    testBlock.appendInstruction(movx);
-
-    Instruction moveINT4 = MIR_Move.create(IA32_MOV, new RegisterOperand(eaxReg, TypeReference.Word), IC(16));
-    testBlock.appendInstruction(moveINT4);
-
-    Instruction min4 = MIR_BinaryAcc.create(IA32_SUB, new RegisterOperand(eaxReg, TypeReference.Word), new RegisterOperand(ebxReg, TypeReference.Word));
-    testBlock.appendInstruction(min4);
-
-    Instruction alignStack = MIR_BinaryAcc.create(IA32_SUB, new RegisterOperand(espReg, TypeReference.Word), new RegisterOperand(eaxReg, TypeReference.Word));
-    testBlock.appendInstruction(alignStack);
-
-    Instruction unalignStack = MIR_BinaryAcc.create(IA32_ADD, new RegisterOperand(espReg, TypeReference.Word), new RegisterOperand(eaxReg, TypeReference.Word));
-    newBlockForCall.appendInstruction(unalignStack);
-
-    // Pop EAX off the stack
-    Instruction popEAX = MIR_UnaryNoRes.create(IA32_POP, new RegisterOperand(eaxReg, TypeReference.Word));
-    newBlockForCall.appendInstruction(popEAX);
-    */
-
-
     // Set up test block for checking stack alignment before the call
     //Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
 
@@ -306,8 +240,10 @@ public abstract class CallingConvention extends IRTools {
 
     Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
     //Instruction requireEspCheck = MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes));
-    //testBlock.prependInstruction(requireEspCheck);
+    //test3Block.appendInstruction(requireEspCheck);
     Instruction spTest = MIR_Test.create(IA32_TEST,
+            new RegisterOperand(espReg, TypeReference.Word), IC(12));
+    Instruction spfTest = MIR_Test.create(IA32_TEST,
             new RegisterOperand(espReg, TypeReference.Word), IC(12));
     Instruction sp2Test = MIR_Test.create(IA32_TEST,
             new RegisterOperand(espReg, TypeReference.Word), IC(8));
@@ -334,6 +270,7 @@ public abstract class CallingConvention extends IRTools {
             new BranchProfileOperand());
 
     testBlock.appendInstruction(spTest);
+    testBlock.appendInstruction(spfTest);
     testBlock.appendInstruction(jcc4);
     test1Block.appendInstruction(sp2Test);
     test1Block.appendInstruction(jcc);
@@ -839,9 +776,13 @@ public abstract class CallingConvention extends IRTools {
       if (isAligned) {
         // Add a marker instruction. When processing aligned syscalls, the block of the syscall
         // needs to be split up to copy the code for the call. Copying has to occur
-        // to be able to ensure stack alignment for the x64 ABI. This instruction
+        // to be able to ensure stack alignment for the x32 ABI. This instruction
         // marks the border for the copy: everything before this instruction isn't duplicated.
         call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(MARKER)));
+
+        // Require ESP to be at bottom of frame before a call,
+        call.insertBefore(MIR_UnaryNoRes.create(REQUIRE_ESP, IC(0)));
+
       }
       // walk over the parameters in reverse order
       // NOTE: All params to syscall are passed on the stack!
@@ -1052,7 +993,7 @@ public abstract class CallingConvention extends IRTools {
 
     // allocate space for each parameter,
     // plus one word on the stack to hold the address of the callee,
-    // plus one word on stack for alignment of x64 syscalls
+    // plus three words on stack for alignment of x32 syscalls
     int alignWords = 3;
     int neededWords = parameterWords + alignWords + 1;
     ir.stackManager.allocateParameterSpace(neededWords * WORDSIZE);

@@ -316,7 +316,7 @@ public abstract class GenericStackManager extends IRTools {
     int bytes = n * WORDSIZE;
     if (sysCallOffset == 0) {
       sysCallOffset = allocateOnStackFrame(bytes);
-      aligned = true;
+      aligned = isAligned;
     }
     return sysCallOffset;
   }
