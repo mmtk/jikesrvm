@@ -645,6 +645,7 @@ public final class MemoryManager {
     if (VM.BuildWithRustMMTk) {
       if (allocator != Selected.Plan.ALLOC_DEFAULT) {
         Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
+        sysCall.sysBrokenCode();
         region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
       }
       //VM.sysWrite("cursor: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getCursor());
@@ -665,6 +666,7 @@ public final class MemoryManager {
 
       if (newCursor.GT(sentinel)) {
         Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
+        sysCall.sysBrokenCode();
         region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
       } else {
         //mutator.struc.field2 = newCursor;
