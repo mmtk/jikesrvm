@@ -122,6 +122,11 @@ public abstract class GenericStackManager extends IRTools {
   private int sysCallOffset = 0;
 
   /**
+   * This field records whether or not the stack needs to be aligned.
+   */
+  private boolean aligned = false;
+
+  /**
    * For each physical register, holds a ScratchRegister which records
    * the current scratch assignment for the physical register.
    */
@@ -307,10 +312,11 @@ public abstract class GenericStackManager extends IRTools {
    * @return the offset into the stack where n*4 contiguous words are
    * reserved
    */
-  public int allocateSpaceForSysCall(int n) {
+  public int allocateSpaceForSysCall(int n, boolean isAligned) {
     int bytes = n * WORDSIZE;
     if (sysCallOffset == 0) {
       sysCallOffset = allocateOnStackFrame(bytes);
+      aligned = true;
     }
     return sysCallOffset;
   }
@@ -334,6 +340,13 @@ public abstract class GenericStackManager extends IRTools {
    */
   public boolean hasSysCall() {
     return sysCallOffset != 0;
+  }
+
+  /**
+   * @return whether the compiled method has to be aligned
+   */
+  public boolean isAligned() {
+    return aligned;
   }
 
   /**

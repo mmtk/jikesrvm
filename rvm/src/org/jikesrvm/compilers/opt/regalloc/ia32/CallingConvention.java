@@ -105,7 +105,7 @@ public abstract class CallingConvention extends IRTools {
     // expand the prologue instruction
     expandPrologue(ir);
     // TODO do something about this
-    if ((VM.BuildFor64Addr && ir.stackManager.hasSysCall())) {
+    if ((VM.BuildFor64Addr && ir.stackManager.hasSysCall()) || ir.stackManager.isAligned()) {
       // Recompute def-use data structures due to added blocks
       // for syscall expansion.
       DefUse.computeDU(ir);
@@ -217,14 +217,27 @@ public abstract class CallingConvention extends IRTools {
     ir.cfg.addLastInCodeOrder(copiedBlock);
     copiedBlock.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
     copiedBlock.recomputeNormalOut(ir);
+    BasicBlock copied2Block = newBlockForCall.copyWithoutLinks(ir);
+    ir.cfg.addLastInCodeOrder(copied2Block);
+    copied2Block.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
+    copied2Block.recomputeNormalOut(ir);
+    BasicBlock copied3Block = newBlockForCall.copyWithoutLinks(ir);
+    ir.cfg.addLastInCodeOrder(copied3Block);
+    copied3Block.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
+    copied3Block.recomputeNormalOut(ir);
+    BasicBlock copied4Block = newBlockForCall.copyWithoutLinks(ir);
+    ir.cfg.addLastInCodeOrder(copied4Block);
+    copied4Block.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
+    copied4Block.recomputeNormalOut(ir);
     */
+
 
     // Push EAX onto the stack
     Register eaxReg = ir.regpool.getPhysicalRegisterSet().asIA32().getEBP();
     Instruction pushEAX = MIR_UnaryNoRes.create(IA32_PUSH, new RegisterOperand(eaxReg, TypeReference.Word));
     testBlock.appendInstruction(pushEAX);
-
     Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
+
     Register ebxReg = ir.regpool.getPhysicalRegisterSet().asIA32().getEBX();
 
     Instruction test0 = MIR_Test.create(IA32_TEST, new RegisterOperand(espReg, TypeReference.Word), IC(0));
@@ -281,28 +294,59 @@ public abstract class CallingConvention extends IRTools {
     Instruction popEAX = MIR_UnaryNoRes.create(IA32_POP, new RegisterOperand(eaxReg, TypeReference.Word));
     newBlockForCall.appendInstruction(popEAX);
 
-    /*
+
 
     // Set up test block for checking stack alignment before the call
     //Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
+    /*
+    int argsToPush = parameterBytes / WORDSIZE;
 
+    Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
     Instruction requireEspCheck = MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes));
     testBlock.appendInstruction(requireEspCheck);
     Instruction spTest = MIR_Test.create(IA32_TEST,
-            new RegisterOperand(espReg, TypeReference.Word), IC(8));
+            new RegisterOperand(espReg, TypeReference.Word), IC(12));
     testBlock.appendInstruction(spTest);
+    Instruction sp2Test = MIR_Test.create(IA32_TEST,
+            new RegisterOperand(espReg, TypeReference.Word), IC(8));
+    Instruction sp3Test = MIR_Test.create(IA32_TEST,
+            new RegisterOperand(espReg, TypeReference.Word), IC(4));
+    Instruction sp4Test = MIR_Test.create(IA32_TEST,
+            new RegisterOperand(espReg, TypeReference.Word), IC(0));
+
     Instruction jcc = MIR_CondBranch.create(IA32_JCC,
-            IA32ConditionOperand.NE(),
+            IA32ConditionOperand.EQ(),
             copiedBlock.makeJumpTarget(),
             new BranchProfileOperand());
+    Instruction jcc2 = MIR_CondBranch.create(IA32_JCC,
+            IA32ConditionOperand.EQ(),
+            copied2Block.makeJumpTarget(),
+            new BranchProfileOperand());
+    Instruction jcc3 = MIR_CondBranch.create(IA32_JCC,
+            IA32ConditionOperand.EQ(),
+            copied3Block.makeJumpTarget(),
+            new BranchProfileOperand());
+    Instruction jcc4 = MIR_CondBranch.create(IA32_JCC,
+            IA32ConditionOperand.EQ(),
+            copied4Block.makeJumpTarget(),
+            new BranchProfileOperand());
+
+    testBlock.appendInstruction(spTest);
+    testBlock.appendInstruction(sp2Test);
+    testBlock.appendInstruction(sp3Test);
+    testBlock.appendInstruction(sp4Test);
+
     testBlock.appendInstruction(jcc);
+    testBlock.appendInstruction(jcc2);
+    testBlock.appendInstruction(jcc3);
+    testBlock.appendInstruction(jcc4);
+
     testBlock.recomputeNormalOut(ir);
 
 
     // modify ESP in the copied block to ensure correct alignment
     // when the original alignment would be incorrect. That's accomplished
     // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
-
     Enumeration<Instruction> copiedInsts = copiedBlock.forwardRealInstrEnumerator();
     while (copiedInsts.hasMoreElements()) {
       Instruction inst = copiedInsts.nextElement();
@@ -312,7 +356,47 @@ public abstract class CallingConvention extends IRTools {
         MIR_UnaryNoRes.setVal(inst, IC(val + WORDSIZE));
       }
     }
-    */
+
+    // modify ESP in the copied block to ensure correct alignment
+    // when the original alignment would be incorrect. That's accomplished
+    // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
+    Enumeration<Instruction> copied2Insts = copied2Block.forwardRealInstrEnumerator();
+    while (copied2Insts.hasMoreElements()) {
+      Instruction inst = copied2Insts.nextElement();
+      if (inst.getOpcode() == REQUIRE_ESP_opcode ||
+              inst.getOpcode() == ADVISE_ESP_opcode) {
+        int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
+        MIR_UnaryNoRes.setVal(inst, IC(val + 2 * WORDSIZE));
+      }
+    }
+
+    // modify ESP in the copied block to ensure correct alignment
+    // when the original alignment would be incorrect. That's accomplished
+    // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
+    Enumeration<Instruction> copied3Insts = copied3Block.forwardRealInstrEnumerator();
+    while (copied3Insts.hasMoreElements()) {
+      Instruction inst = copied3Insts.nextElement();
+      if (inst.getOpcode() == REQUIRE_ESP_opcode ||
+              inst.getOpcode() == ADVISE_ESP_opcode) {
+        int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
+        MIR_UnaryNoRes.setVal(inst, IC(val + 3 * WORDSIZE));
+      }
+    }
+
+    // modify ESP in the copied block to ensure correct alignment
+    // when the original alignment would be incorrect. That's accomplished
+    // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
+    Enumeration<Instruction> copied4Insts = copied4Block.forwardRealInstrEnumerator();
+    while (copied4Insts.hasMoreElements()) {
+      Instruction inst = copied4Insts.nextElement();
+      if (inst.getOpcode() == REQUIRE_ESP_opcode ||
+              inst.getOpcode() == ADVISE_ESP_opcode) {
+        int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
+        MIR_UnaryNoRes.setVal(inst, IC(val));
+      }
+    }
+
+  */
   }
 
   public static void alignStackForX64SysCall(Instruction call, IR ir,
@@ -898,7 +982,7 @@ public abstract class CallingConvention extends IRTools {
    *
    * @param ir the governing IR
    */
-  public static void allocateSpaceForSysCall(IR ir) {
+  public static void allocateSpaceForSysCall(IR ir, Boolean isAligned) {
     StackManager sm = (StackManager) ir.stackManager;
 
     // add one to account for the thread register.
@@ -906,7 +990,7 @@ public abstract class CallingConvention extends IRTools {
     // add one for JTOC
     if (JTOC_REGISTER != null) nToSave++;
 
-    sm.allocateSpaceForSysCall(nToSave);
+    sm.allocateSpaceForSysCall(nToSave, isAligned);
   }
 
   /**
@@ -920,7 +1004,7 @@ public abstract class CallingConvention extends IRTools {
     Operand ip = Call.getClearAddress(s);
 
     // Allocate space to save non-volatiles.
-    allocateSpaceForSysCall(ir);
+    allocateSpaceForSysCall(ir, false);
 
     // Make sure we allocate enough space for the parameters to this call.
     int numberParams = Call.getNumberOfParams(s);
@@ -952,7 +1036,7 @@ public abstract class CallingConvention extends IRTools {
     Operand ip = Call.getClearAddress(s);
 
     // Allocate space to save non-volatiles.
-    allocateSpaceForSysCall(ir);
+    allocateSpaceForSysCall(ir, true);
 
     // Make sure we allocate enough space for the parameters to this call.
     int numberParams = Call.getNumberOfParams(s);
@@ -967,7 +1051,7 @@ public abstract class CallingConvention extends IRTools {
     // plus one word on the stack to hold the address of the callee,
     // plus one word on stack for alignment of x64 syscalls
     int alignWords = VM.BuildFor64Addr ? 1 : 0;
-    int neededWords = parameterWords + alignWords + 1;
+    int neededWords = parameterWords + alignWords + 2;
     ir.stackManager.allocateParameterSpace(neededWords * WORDSIZE);
     // Convert to a SYSCALL instruction with a null method operand.
     Call.mutate0(s, ALIGNED_SYSCALL, Call.getClearResult(s), ip, null);
