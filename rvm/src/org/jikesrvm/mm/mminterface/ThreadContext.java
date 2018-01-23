@@ -13,6 +13,7 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.mmtk.plan.CollectorContext;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
@@ -22,6 +23,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
  */
 @Uninterruptible
 public abstract class ThreadContext extends Selected.Mutator {
+  @Entrypoint
   private boolean isCollector = false;
 
   public void assertIsCollector() {

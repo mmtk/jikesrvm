@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import org.vmmagic.pragma.Entrypoint;
+
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
 
 
@@ -37,6 +39,7 @@ public class MemoryManagerConstants {
   /** {@code true} if the selected plan moves TIB objects */
   public static final boolean MOVES_TIBS = false;
   /** {@code true} if the selected plan moves code */
+  @Entrypoint(fieldMayBeFinal = true)
   public static final boolean MOVES_CODE = false;
 }
 

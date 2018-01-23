@@ -145,6 +145,12 @@ public class Entrypoints {
 
   public static final RVMField numThreadsField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "numThreads", int.class);
+  public static final RVMField movesCodeField =
+          getField(org.jikesrvm.mm.mminterface.MemoryManagerConstants.class, "MOVES_CODE", boolean.class);
+  public static final RVMField isCollectorField =
+          getField(org.jikesrvm.mm.mminterface.ThreadContext.class, "isCollector", boolean.class);
+  public static final RVMField threadsField =
+          getField(org.jikesrvm.scheduler.RVMThread.class, "threads", org.jikesrvm.scheduler.RVMThread[].class);
 
 
   public static final NormalMethod lockMethod =
