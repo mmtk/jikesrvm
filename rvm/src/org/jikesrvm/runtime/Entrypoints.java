@@ -142,6 +142,12 @@ public class Entrypoints {
   public static final NormalMethod spawnCollectorThreadMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "spawnCollectorThread",
                   "(Lorg/vmmagic/unboxed/Address;)V");
+  public static final NormalMethod snipObsoleteCompiledMethodsMethod =
+          getMethod(org.jikesrvm.compilers.common.CompiledMethods.class, "snipObsoleteCompiledMethods", "()V");
+  public static final NormalMethod getReferenceSlotSizeMethod =
+          getMethod(org.jikesrvm.runtime.Statics.class, "getReferenceSlotSize", "()I");
+  public static final NormalMethod getNumberOfReferenceSlotsMethod =
+          getMethod(org.jikesrvm.runtime.Statics.class, "getNumberOfReferenceSlots", "()I");
 
   public static final RVMField numThreadsField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "numThreads", int.class);

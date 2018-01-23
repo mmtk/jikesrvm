@@ -23,6 +23,7 @@ import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.util.BitVector;
 import org.jikesrvm.util.ImmutableEntryIdentityHashMapRVM;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Address;
@@ -430,6 +431,7 @@ public class Statics {
    * @return number of reference JTOC slots currently allocated.
    */
   @Uninterruptible
+  @Entrypoint
   public static int getNumberOfReferenceSlots() {
     return nextReferenceSlot - middleOfTable;
   }
@@ -496,6 +498,7 @@ public class Statics {
    * @return size occupied by a reference
    */
   @Uninterruptible
+  @Entrypoint
   public static int getReferenceSlotSize() {
     return VM.BuildFor64Addr ? 2 : 1;
   }
