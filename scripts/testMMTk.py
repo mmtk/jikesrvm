@@ -66,40 +66,38 @@ else:
 passes = 0
 
 # Run tests
-while True:
-    for _ in range(0, args.tests):
-        # Build if not test only
-        if not args.test_only:
-            build = False
-            # Corrupted zips return an error code of 3.
-            # If it corrupts, rerun at most 3 times
-            # All other build errors return errors as usual
-            for _ in range(0, 3):
-                rc = exe(("bin/buildit localhost -j /usr/lib/jvm/default-java --answer-yes " +
-                          args.java_build + args.collector + " --nuke").split())
-                if rc != 3:
-                    build = rc == 0
-                    break
-            if not build:
-                print ("Build failed.")
-                exit(1)
-        # Test if not build only
-        if not args.build_only:
-            if exe(("dist/" + args.java_build + args.collector + "_x86_64-linux/rvm "
-                        + args.args + " -jar benchmarks/dacapo-2006-10-MR2.jar fop").split()) != 0:
-                if passes != 0:
-                    print ("Test failed. Succeeded previously " + str(passes) + " times.")
-                    exit(12)
-                else:
-                    print ("Test failed.")
-                    exit(12)
-                exit(1)
-            passes += 1  # Check if the script has passed
-    if passes == args.tests:
-        print ("Tests passed.")
-    elif build:
-        print ("Build successful")
-    else:
-        print ("Script failed.")
-        exit(1)
-    exit(2)
+for _ in range(0, args.tests):
+    # Build if not test only
+    if not args.test_only:
+        build = False
+        # Corrupted zips return an error code of 3.
+        # If it corrupts, rerun at most 3 times
+        # All other build errors return errors as usual
+        for _ in range(0, 3):
+            rc = exe(("bin/buildit localhost -j /usr/lib/jvm/default-java --answer-yes " +
+                      args.java_build + args.collector + " --nuke").split())
+            if rc != 3:
+                build = rc == 0
+                break
+        if not build:
+            print ("Build failed.")
+            exit(1)
+    # Test if not build only
+    if not args.build_only:
+        if exe(("dist/" + args.java_build + args.collector + "_x86_64-linux/rvm "
+                    + args.args + " -jar benchmarks/dacapo-2006-10-MR2.jar fop").split()) != 0:
+            if passes != 0:
+                print ("Test failed. Succeeded previously " + str(passes) + " times.")
+                exit(12)
+            else:
+                print ("Test failed.")
+                exit(12)
+            exit(1)
+        passes += 1  # Check if the script has passed
+if passes == args.tests:
+    print ("Tests passed.")
+elif build:
+    print ("Build successful")
+else:
+    print ("Script failed.")
+    exit(1)
