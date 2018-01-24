@@ -449,6 +449,7 @@ public final class RVMThread extends ThreadContext {
    * Non-null indicates this is a system thread, that is one used by the system and as such
    * doesn't have a Runnable...
    */
+  @Entrypoint(fieldMayBeFinal = true)
   private final SystemThread systemThread;
 
   /**

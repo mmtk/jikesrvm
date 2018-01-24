@@ -148,6 +148,10 @@ public class Entrypoints {
           getMethod(org.jikesrvm.runtime.Statics.class, "getReferenceSlotSize", "()I");
   public static final NormalMethod getNumberOfReferenceSlotsMethod =
           getMethod(org.jikesrvm.runtime.Statics.class, "getNumberOfReferenceSlots", "()I");
+  public static final NormalMethod functionTableLengthMethod =
+          getMethod(org.jikesrvm.jni.FunctionTable.class, "length", "()I");
+  public static final NormalMethod implementedInJavaMethod =
+          getMethod(org.jikesrvm.jni.JNIGenericHelpers.class, "implementedInJava", "(I)Z");
 
   public static final RVMField numThreadsField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "numThreads", int.class);
@@ -157,6 +161,12 @@ public class Entrypoints {
           getField(org.jikesrvm.mm.mminterface.ThreadContext.class, "isCollector", boolean.class);
   public static final RVMField threadsField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "threads", org.jikesrvm.scheduler.RVMThread[].class);
+  public static final RVMField systemThreadField =
+          getField(org.jikesrvm.scheduler.RVMThread.class, "systemThread", org.jikesrvm.scheduler.SystemThread.class);
+  public static final RVMField workerInstanceField =
+          getField(org.jikesrvm.mm.mminterface.CollectorThread.class, "workerInstance", org.vmmagic.unboxed.Address.class);
+  public static final RVMField JNIFunctionsField =
+          getField(org.jikesrvm.jni.JNIEnvironment.class, "JNIFunctions", org.jikesrvm.jni.FunctionTable.class);
 
 
   public static final NormalMethod lockMethod =

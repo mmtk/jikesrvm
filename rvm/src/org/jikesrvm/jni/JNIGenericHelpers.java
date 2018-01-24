@@ -37,6 +37,7 @@ import org.jikesrvm.runtime.Reflection;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.util.StringUtilities;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
@@ -380,6 +381,7 @@ public abstract class JNIGenericHelpers {
    *  bootloader)
    */
   @Uninterruptible
+  @Entrypoint
   public static boolean implementedInJava(int functionTableIndex) {
     if (VM.BuildForPowerPC) {
       return true;

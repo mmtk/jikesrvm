@@ -17,12 +17,7 @@ import org.jikesrvm.mm.mmtk.ScanThread;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.SystemThread;
 import org.mmtk.plan.CollectorContext;
-import org.vmmagic.pragma.BaselineNoRegisters;
-import org.vmmagic.pragma.BaselineSaveLSRegisters;
-import org.vmmagic.pragma.NoOptCompile;
-import org.vmmagic.pragma.NonMoving;
-import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
@@ -43,6 +38,7 @@ public final class CollectorThread extends SystemThread {
    * Instance variables
    */
 
+  @Entrypoint
   private Address workerInstance = Address.zero();
 
   public void setWorker(Address worker) {
