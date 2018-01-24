@@ -1683,14 +1683,21 @@ Check to make sure all required properties are specified. This includes properti
 
 
   <target name="compile-rust-mmtk" depends="gen-asm">
-    <exec executable="cargo" dir="mmtk" failonerror="true">
-      <arg value="+nightly"/>
-      <arg value="build"/>
-      <arg value="--release"/>
-      <arg value="--target=i686-unknown-linux-gnu"/>
-      <arg value="--features=jikesrvm ${rust.args}"/>
-      <arg value="--no-default-features"/>
-    </exec>
+    <if>
+      <conditions>
+      <equals arg1="${rust.build}" arg2="true"/>
+      </conditions>
+      <sequential>
+        <exec executable="cargo" dir="mmtk" failonerror="true">
+          <arg value="+nightly"/>
+          <arg value="build"/>
+          <arg value="--release"/>
+          <arg value="--target=i686-unknown-linux-gnu"/>
+          <arg value="--features=jikesrvm ${rust.args}"/>
+          <arg value="--no-default-features"/>
+        </exec>
+      </sequential>
+    </if>
   </target>
 
 
