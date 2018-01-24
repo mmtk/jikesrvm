@@ -239,19 +239,8 @@ EXTERNAL void sysMemmove(void *dst, const void *src, Extent cnt);
 EXTERNAL void sysSyncCache(void *address, size_t size);
 
 //sysMMTk
-EXTERNAL MMTk_Mutator sysBindMutator(int thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL void sysHelloWorld();
 EXTERNAL void sysBrokenCode();
-EXTERNAL void* sysAlloc(MMTk_Mutator mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
-EXTERNAL void* sysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
-EXTERNAL void sysGCInit(void* jtocPtr, int size) __attribute__((force_align_arg_pointer));
-EXTERNAL void sysStartControlCollector(int thread_id) __attribute__((force_align_arg_pointer));
-EXTERNAL void sysStartWorker(size_t thread_id, void* worker) __attribute__((force_align_arg_pointer));
-EXTERNAL bool sysWillNeverMove(void* object) __attribute__((force_align_arg_pointer));
-EXTERNAL void sysReportDelayedRootEdge(MMTk_TraceLocal trace_local, void* addr) __attribute__((force_align_arg_pointer));
-EXTERNAL bool sysWillNotMoveInCurrentCollection(MMTk_TraceLocal trace_local, void* obj) __attribute__((force_align_arg_pointer));
-EXTERNAL void sysProcessInteriorEdge(MMTk_TraceLocal trace_local, void* target, void* slot, bool root) __attribute__((force_align_arg_pointer));
-EXTERNAL void sysEnableCollection(size_t thread_id, size_t size) __attribute__((force_align_arg_pointer));
 
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);

@@ -46,7 +46,7 @@ public class NoGCContext {
 
         if (newCursor.GT(sentinel)) {
             Address handle = Magic.objectAsAddress(this);
-            region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
+            region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
         } else {
             this.setCursor(newCursor);
             region = result;

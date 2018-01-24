@@ -242,24 +242,20 @@ public class BootRecord {
   public Address sysConsoleFlushErrorAndTraceIP;
 
   // garbage collector
-  public Address sysGCInitIP;
-  public Address sysAllocIP;
-  public Address sysBindMutatorIP;
-  public Address sysAllocSlowIP;
-  public Address sysStartControlCollectorIP;
+  public Address sysHelloWorldIP;
+  public Address sysBrokenCodeIP;
+
   public Address jikesrvm_gc_initIP;
   public Address allocIP;
   public Address bind_mutatorIP;
   public Address alloc_slowIP;
   public Address start_control_collectorIP;
-  public Address sysHelloWorldIP;
-  public Address sysBrokenCodeIP;
-  public Address sysWillNeverMoveIP;
-  public Address sysReportDelayedRootEdgeIP;
-  public Address sysWillNotMoveInCurrentCollectionIP;
-  public Address sysProcessInteriorEdgeIP;
-  public Address sysStartWorkerIP;
-  public Address sysEnableCollectionIP;
+  public Address will_never_moveIP;
+  public Address report_delayed_root_edgeIP;
+  public Address will_not_move_in_current_collectionIP;
+  public Address process_interior_edgeIP;
+  public Address start_workerIP;
+  public Address enable_collectionIP;
 
   // startup/shutdown
   public Address sysExitIP;

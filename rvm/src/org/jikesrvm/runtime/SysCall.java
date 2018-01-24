@@ -117,26 +117,12 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysBrokenCode();
 
-  @SysCallTemplate
-  public abstract void sysStartControlCollector(int threadId);
-
-  @SysCallTemplate
-  public abstract void sysGCInit(Address pointer, int size);
-
-  @SysCallTemplate
-  public abstract Address sysBindMutator(int id);
-
-  @SysCallTemplate
-  public abstract Address sysAlloc(Address mutator, int size, int align, int offset, int allocator);
-  @SysCallTemplate
-  public abstract Address sysAllocSlow(Address mutator, int size, int align, int offset, int allocator);
-
-  /**
+   /**
    * Initialises information about the control collector
    * @param threadId thread id of the control collector
    */
   @Inline
-  public void StartControlCollector(int threadId) {
+  public void sysStartControlCollector(int threadId) {
     start_control_collector(threadId);
   }
   
@@ -149,7 +135,7 @@ public abstract class SysCall {
    * @param size the maximum size of the heap
    */
   @Inline
-  public void GCInit(Address pointer, int size) {
+  public void sysGCInit(Address pointer, int size) {
     jikesrvm_gc_init(pointer,size);
   }
   
@@ -162,12 +148,28 @@ public abstract class SysCall {
    * @return Address corresponding to start of the Rust structure of the mutator
    */
   @Inline
-  public Address BindMutator(int id) {
+  public Address sysBindMutator(int id) {
     return bind_mutator(id);
   }
   
   @SysCallAlignedTemplate
   public abstract Address bind_mutator(int thread_id);
+
+  /**
+   * Allocation slow path
+   * @param mutator The mutator instance to be used for this allocation
+   * @param size The size of the allocation in bytes
+   * @param align The alignment requested; must be a power of 2
+   * @param offset The offset at which the alignment is desired
+   * @return The first byte of a suitably sized and aligned region of memory
+   */
+  @Inline
+  public Address sysAllocSlow(Address mutator, int size, int align, int offset, int allocator) {
+    return alloc_slow(mutator,size,align,offset,allocator);
+  }
+
+  @SysCallAlignedTemplate
+  public abstract Address alloc_slow(Address mutator, int size, int align, int offset, int allocator);
 
   /**
    * TODO REDUNDANT
@@ -179,45 +181,53 @@ public abstract class SysCall {
    * @return The first byte of a suitably sized and aligned region of memory
    */
   @Inline
-  public Address Alloc(Address mutator, int size, int align, int offset, int allocator) {
+  public Address sysAlloc(Address mutator, int size, int align, int offset, int allocator) {
     return alloc(mutator, size, align, offset, allocator);
   }
   @SysCallAlignedTemplate
   public abstract Address alloc(Address mutator, int size, int align, int offset, int allocator);
 
-  @SysCallTemplate
-  public abstract void sysReportDelayedRootEdge(Address trace_local, Address addr);
-
-  @SysCallTemplate
-  public abstract boolean sysWillNotMoveInCurrentCollection(Address trace_local, ObjectReference obj);
-
-  @SysCallTemplate
-  public abstract void sysProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root);
-
-  @SysCallTemplate
-  public abstract void sysStartWorker(int threadId, Address workerInstance);
-
-  @SysCallTemplate
-  public abstract void sysEnableCollection(int threadId, int size);
-
-  /**
-   * Allocation slow path
-   * @param mutator The mutator instance to be used for this allocation
-   * @param size The size of the allocation in bytes
-   * @param align The alignment requested; must be a power of 2
-   * @param offset The offset at which the alignment is desired
-   * @return The first byte of a suitably sized and aligned region of memory
-   */
   @Inline
-  public Address AllocSlow(Address mutator, int size, int align, int offset, int allocator) {
-    return alloc_slow(mutator,size,align,offset,allocator);
+  public void sysReportDelayedRootEdge(Address trace_local, Address addr){
+    report_delayed_root_edge(trace_local,addr);
   }
-
   @SysCallAlignedTemplate
-  public abstract Address alloc_slow(Address mutator, int size, int align, int offset, int allocator);
+  public abstract void report_delayed_root_edge(Address trace_local, Address addr);
 
-  @SysCallTemplate
-  public abstract boolean sysWillNeverMove(ObjectReference object);
+  @Inline
+  public boolean sysWillNotMoveInCurrentCollection(Address trace_local, ObjectReference obj){
+    return will_not_move_in_current_collection(trace_local, obj);
+  }
+  @SysCallAlignedTemplate
+  public abstract boolean will_not_move_in_current_collection(Address trace_local, ObjectReference obj);
+
+  @Inline
+  public void sysProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root){
+    process_interior_edge(trace_local, target, slot, root);
+  }
+  @SysCallAlignedTemplate
+  public abstract void process_interior_edge(Address trace_local, ObjectReference target, Address slot, boolean root);
+
+  @Inline
+  public void sysStartWorker(int threadId, Address workerInstance){
+    start_worker(threadId, workerInstance);
+  }
+  @SysCallAlignedTemplate
+  public abstract void start_worker(int threadId, Address workerInstance);
+
+  @Inline
+  public void sysEnableCollection(int threadId, int size){
+    enable_collection(threadId, size);
+  }
+  @SysCallAlignedTemplate
+  public abstract void enable_collection(int threadId, int size);
+
+  @Inline
+  public boolean sysWillNeverMove(ObjectReference object){
+    return will_never_move(object);
+  }
+  @SysCallAlignedTemplate
+  public abstract boolean will_never_move(ObjectReference object);
 
   @SysCallTemplate
   public abstract Address sysMalloc(int length);

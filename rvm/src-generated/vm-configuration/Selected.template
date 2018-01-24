@@ -71,7 +71,7 @@ public class Selected {
         @Override
         public void initMutator ( int id){
             if (id != 1) {
-                mmtkHandle = sysCall.BindMutator(id);
+                mmtkHandle = sysCall.sysBindMutator(id);
                 ctx.setBlock(mmtkHandle);
             }
         }
