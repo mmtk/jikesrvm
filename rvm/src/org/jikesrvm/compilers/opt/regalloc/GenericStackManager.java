@@ -113,10 +113,10 @@ public abstract class GenericStackManager extends IRTools {
 
   /**
    * We will have to save and restore all non-volatile registers around
-   * system calls, to protect ourselve from malicious native code that may
+   * system calls, to protect ourselves from malicious native code that may
    * bash these registers.
    *
-   * This field, when non-zero,  holds the stack-frame offset reserved to
+   * This field, when non-zero, holds the stack-frame offset reserved to
    * hold this data.
    */
   private int sysCallOffset = 0;
