@@ -167,6 +167,10 @@ public class Entrypoints {
           getField(org.jikesrvm.mm.mminterface.CollectorThread.class, "workerInstance", org.vmmagic.unboxed.Address.class);
   public static final RVMField JNIFunctionsField =
           getField(org.jikesrvm.jni.JNIEnvironment.class, "JNIFunctions", org.jikesrvm.jni.FunctionTable.class);
+  public static final RVMField linkageTripletsField =
+          getField(org.jikesrvm.jni.JNIEnvironment.class, "linkageTriplets", org.jikesrvm.jni.LinkageTripletTable.class);
+  public static final RVMField JNIGlobalRefsField2 = getField(org.jikesrvm.jni.JNIGlobalRefTable.class,
+          "JNIGlobalRefs", org.vmmagic.unboxed.AddressArray.class);
 
 
   public static final NormalMethod lockMethod =
