@@ -8,11 +8,11 @@ build:
   stage: build
   script:
     - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
-    - python scripts/testMMTk.py -c BaseBase
-    - python scripts/testMMTk.py -c FastAdaptive
-    - python scripts/testMMTk.py -c FullAdaptive
-    - python scripts/testMMTk.py -c BaseBase --java-build
+    - python scripts/testMMTk.py -g BaseBaseNoGC
+    - python scripts/testMMTk.py -g FastAdaptiveNoGC
+    - python scripts/testMMTk.py -g FullAdaptiveNoGC
+    - python scripts/testMMTk.py -g BaseBaseNoGC --java-build
   cache:
     key: rspec
     paths:
-      - benchmarks/
+      -i benchmarks/
