@@ -139,6 +139,34 @@ public class Entrypoints {
   public static final NormalMethod scanThreadMethod =
           getMethod(org.jikesrvm.mm.mminterface.RustScanThread.class, "scanThread",
                   "(Lorg/jikesrvm/scheduler/RVMThread;Lorg/jikesrvm/mm/mminterface/RustScanThread$RustTraceLocal;ZZ)V");
+  public static final NormalMethod spawnCollectorThreadMethod =
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "spawnCollectorThread",
+                  "(Lorg/vmmagic/unboxed/Address;)V");
+  public static final NormalMethod snipObsoleteCompiledMethodsMethod =
+          getMethod(org.jikesrvm.compilers.common.CompiledMethods.class, "snipObsoleteCompiledMethods", "()V");
+  public static final NormalMethod getReferenceSlotSizeMethod =
+          getMethod(org.jikesrvm.runtime.Statics.class, "getReferenceSlotSize", "()I");
+  public static final NormalMethod getNumberOfReferenceSlotsMethod =
+          getMethod(org.jikesrvm.runtime.Statics.class, "getNumberOfReferenceSlots", "()I");
+  public static final NormalMethod functionTableLengthMethod =
+          getMethod(org.jikesrvm.jni.FunctionTable.class, "length", "()I");
+  public static final NormalMethod implementedInJavaMethod =
+          getMethod(org.jikesrvm.jni.JNIGenericHelpers.class, "implementedInJava", "(I)Z");
+
+  public static final RVMField numThreadsField =
+          getField(org.jikesrvm.scheduler.RVMThread.class, "numThreads", int.class);
+  public static final RVMField movesCodeField =
+          getField(org.jikesrvm.mm.mminterface.MemoryManagerConstants.class, "MOVES_CODE", boolean.class);
+  public static final RVMField isCollectorField =
+          getField(org.jikesrvm.mm.mminterface.ThreadContext.class, "isCollector", boolean.class);
+  public static final RVMField threadsField =
+          getField(org.jikesrvm.scheduler.RVMThread.class, "threads", org.jikesrvm.scheduler.RVMThread[].class);
+  public static final RVMField systemThreadField =
+          getField(org.jikesrvm.scheduler.RVMThread.class, "systemThread", org.jikesrvm.scheduler.SystemThread.class);
+  public static final RVMField workerInstanceField =
+          getField(org.jikesrvm.mm.mminterface.CollectorThread.class, "workerInstance", org.vmmagic.unboxed.Address.class);
+  public static final RVMField JNIFunctionsField =
+          getField(org.jikesrvm.jni.JNIEnvironment.class, "JNIFunctions", org.jikesrvm.jni.FunctionTable.class);
 
 
   public static final NormalMethod lockMethod =

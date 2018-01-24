@@ -92,6 +92,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
   private static final int DEFAULT_VERBOSITY = 0 /*0*/;
   private static final int FAILURE_VERBOSITY = 4;
 
+  // FIXME: GC options
   private static final boolean USE_SHORT_STACK_SCANS = false;
   private static final boolean USE_RETURN_BARRIER = false;
 

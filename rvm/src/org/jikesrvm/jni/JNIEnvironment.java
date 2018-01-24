@@ -61,6 +61,7 @@ public final class JNIEnvironment {
    * to invoke methods in @link{JNIFunctions}.
    */
   @Untraced // because bootloader code must be able to access it
+  @Entrypoint
   public static FunctionTable JNIFunctions;
 
   /**

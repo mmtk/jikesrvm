@@ -258,6 +258,8 @@ public class BootRecord {
   public Address sysReportDelayedRootEdgeIP;
   public Address sysWillNotMoveInCurrentCollectionIP;
   public Address sysProcessInteriorEdgeIP;
+  public Address sysStartWorkerIP;
+  public Address sysEnableCollectionIP;
 
   // startup/shutdown
   public Address sysExitIP;

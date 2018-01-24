@@ -17,6 +17,7 @@ import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.utility.Log;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 import org.vmmagic.Unboxed;
 
@@ -64,40 +65,32 @@ public class Selected {
 
         Address mmtkHandle;
 
-        public BumpPointer bp = new BumpPointer();
-
-        @Unboxed
-        @Uninterruptible
-        @RawStorage(lengthInWords = true, length = 4)
-        public static class BumpPointer {
-
-            public void setBlock(Address src) {
-                Memory.memcopy(Magic.objectAsAddress(this), src, 16);
-            }
-            public void setCursor(Address value) {
-                Magic.setAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(4), value);
-            }
-            public Address getCursor() {
-                return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(4));
-            }
-            public Address getSentinel() {
-                return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(8));
-            }
-
-        }
+        @_PLAN_NAME_@Context ctx = new @_PLAN_NAME_@Context();
 
 @_NO_RUST_MASK_START_@
         @Override
         public void initMutator ( int id){
             if (id != 1) {
-                mmtkHandle = sysCall.sysBindMutator(id);
-                bp.setBlock(mmtkHandle);
+                mmtkHandle = sysCall.BindMutator(id);
+                ctx.setBlock(mmtkHandle);
             }
+        }
+
+        @Override
+        @Inline
+        public Address alloc(int bytes, int align, int offset, int allocator, int site) {
+            return ctx.alloc(bytes, align, offset, allocator, site);
+        }
+
+        @Override
+        @Inline
+        public void postAlloc(ObjectReference object, ObjectReference typeRef, int bytes, int allocator) {
+            return;
         }
 @_NO_RUST_MASK_END_@
         public void setHandle (Address handle){
             mmtkHandle = handle;
-            bp.setBlock(mmtkHandle);
+            ctx.setBlock(mmtkHandle);
         }
 
     public Address getHandle() {

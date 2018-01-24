@@ -95,6 +95,9 @@ public final class MemoryManager {
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
   private static final boolean traceAllocator = false;
 
+  // FIXME: GC options
+  private static final int GC_THREADS = 4;
+
   /**
    * Has the interface been booted yet?
    */
@@ -140,7 +143,6 @@ public final class MemoryManager {
    */
   private MemoryManager() {} // This constructor will never be invoked.
 
-
   /**
    * Initialization that occurs at <i>boot</i> time (runtime
    * initialization).  This is only executed by one processor (the
@@ -160,14 +162,10 @@ public final class MemoryManager {
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
     if (VM.BuildWithRustMMTk) {
-      //sysCall.sysHelloWorld();
-      sysCall.sysBrokenCode();
-      //VM.sysWriteln("Should not die now");
-      sysCall.GCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
-     // VM.sysWriteln("Should die here");
-      sysCall.sysBrokenCode();
-      RVMThread.threadBySlot[1].setHandle(sysCall.BindMutator(1));
-      VM.sysWriteln ("Finished INIT");
+      VM.sysWriteln("Should not die now");
+      sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
+      VM.sysWriteln("Should die here");
+      RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
     }
 
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
@@ -205,14 +203,20 @@ public final class MemoryManager {
   @Interruptible
   public static void enableCollection() {
     if (VM.BuildWithRustMMTk) {
-      byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
-      CollectorThread t = new CollectorThread(stack, null);
-      t.getRVMThread().assertIsCollector();
-      t.start();
+      sysCall.sysEnableCollection(RVMThread.getCurrentThreadSlot(), GC_THREADS);
     } else {
       Selected.Plan.get().enableCollection();
     }
     collectionEnabled = true;
+  }
+
+  @Interruptible
+  @Entrypoint
+  public static void spawnCollectorThread(Address workerInstance) {
+    byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
+    CollectorThread t = new CollectorThread(stack, null);
+    t.setWorker(workerInstance);
+    t.start();
   }
 
   /**
@@ -549,9 +553,7 @@ public final class MemoryManager {
     allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = ObjectModel.initializeScalar(region, tib, size);
-    if (!VM.BuildWithRustMMTk) {
-      mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
-    }
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
 
@@ -617,9 +619,7 @@ public final class MemoryManager {
     allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = ObjectModel.initializeArray(region, tib, numElements, size);
-    if (!VM.BuildWithRustMMTk) {
-      mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
-    }
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     return result;
   }
 
@@ -639,48 +639,9 @@ public final class MemoryManager {
                                        int site) {
     /* MMTk requests must be in multiples of MIN_ALIGNMENT */
     bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
-
     /* Now make the request */
     Address region;
-    if (VM.BuildWithRustMMTk) {
-      if (allocator != Selected.Plan.ALLOC_DEFAULT) {
-        Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
-        sysCall.sysBrokenCode();
-        region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
-      }
-      //VM.sysWrite("cursor: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getCursor());
-      //VM.sysWrite("sentinel: "); VM.sysWriteln(Selected.Mutator.BumpPointer.getSentinel());
-
-      Address cursor = mutator.bp.getCursor(); // mutator.struc.field2;
-      Address sentinel = mutator.bp.getSentinel(); //mutator.struc.field3;
-
-      // Align allocation
-      Word mask = Word.fromIntSignExtend(align - 1);
-      Word negOff = Word.fromIntSignExtend(-offset);
-
-      Offset delta = negOff.minus(cursor.toWord()).and(mask).toOffset();
-
-      Address result = cursor.plus(delta);
-
-      Address newCursor = result.plus(bytes);
-
-      if (newCursor.GT(sentinel)) {
-        Address handle = Magic.objectAsAddress(mutator.bp); //Magic.objectAsAddress(mutator.struc);
-        sysCall.sysBrokenCode();
-        region = sysCall.AllocSlow(handle, bytes, align, offset, allocator);
-      } else {
-        //mutator.struc.field2 = newCursor;
-        mutator.bp.setCursor(newCursor);
-        region = result;
-      }
-      // VM.sysWrite("BuildWithRustMMTk allocateSpace ");
-      // VM.sysWrite(allocator);
-      // VM.sysWrite(" ");
-      // VM.sysWriteln(region);
-
-    } else {
-      region = mutator.alloc(bytes, align, offset, allocator, site);
-    }
+    region = mutator.alloc(bytes, align, offset, allocator, site);
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
@@ -1068,9 +1029,9 @@ public final class MemoryManager {
    */
   @Pure
   public static boolean willNeverMove(Object obj) {
+    // VM.sysWrite("willNeverMove ");
+    // VM.sysWriteln(ObjectReference.fromObject(obj).toAddress());
     if (VM.BuildWithRustMMTk) {
-      // VM.sysWrite("BuildWithRustMMTK willNeverMove ");
-      // VM.sysWriteln(ObjectReference.fromObject(obj).toAddress());
       return sysCall.sysWillNeverMove(ObjectReference.fromObject(obj));
     } else {
       return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));

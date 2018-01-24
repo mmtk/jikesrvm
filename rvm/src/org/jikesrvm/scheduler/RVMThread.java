@@ -449,6 +449,7 @@ public final class RVMThread extends ThreadContext {
    * Non-null indicates this is a system thread, that is one used by the system and as such
    * doesn't have a Runnable...
    */
+  @Entrypoint(fieldMayBeFinal = true)
   private final SystemThread systemThread;
 
   /**
@@ -1280,10 +1281,11 @@ public final class RVMThread extends ThreadContext {
   /**
    * Number of threads in the system (some of which may not be active).
    */
+  @Entrypoint
   public static int numThreads;
 
   /**
-   * Packed and unordered array or active threads. Only entries in the range 0
+   * Packed and unordered array of active threads. Only entries in the range 0
    * to numThreads-1 (inclusive) are defined. Note that it should be possible to
    * scan this array without locking and get all of the threads - but only if
    * you scan downward and place a memory fence between loads.
@@ -1291,6 +1293,7 @@ public final class RVMThread extends ThreadContext {
    * Note further that threads remain in this array even after the Java
    * libraries no longer consider the thread to be active.
    */
+  @Entrypoint(fieldMayBeFinal = true)
   public static final RVMThread[] threads = new RVMThread[MAX_THREADS];
 
   /**

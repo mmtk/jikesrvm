@@ -16,6 +16,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.objectmodel.RuntimeTable;
 import org.vmmagic.Intrinsic;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NonMoving;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
@@ -91,6 +92,7 @@ public final class FunctionTable implements RuntimeTable<CodeArray> {
   @Override
   @Intrinsic
   @Uninterruptible
+  @Entrypoint
   public int length() {
     if (VM.VerifyAssertions && VM.runningVM) VM._assert(VM.NOT_REACHED);
     return data.length;
