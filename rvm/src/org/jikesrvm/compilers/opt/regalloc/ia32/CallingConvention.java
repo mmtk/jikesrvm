@@ -162,6 +162,7 @@ public abstract class CallingConvention extends IRTools {
 
     // 4. ESP must be parameterBytes before call, will be at either parameterBytes
     //    or 0 afterwards depending on whether or it is an RVM method or a sysCall.
+
     Instruction requireESP = MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes));
     call.insertBefore(requireESP);
     Instruction adviseESP = MIR_UnaryNoRes.create(ADVISE_ESP,  IC(isSysCall ? parameterBytes : 0));
@@ -239,11 +240,7 @@ public abstract class CallingConvention extends IRTools {
     int wordsToPush = -parameterBytes;
 
     Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
-    //Instruction requireEspCheck = MIR_UnaryNoRes.create(REQUIRE_ESP, IC(parameterBytes));
-    //test3Block.appendInstruction(requireEspCheck);
     Instruction spTest = MIR_Test.create(IA32_TEST,
-            new RegisterOperand(espReg, TypeReference.Word), IC(12));
-    Instruction spfTest = MIR_Test.create(IA32_TEST,
             new RegisterOperand(espReg, TypeReference.Word), IC(12));
     Instruction sp2Test = MIR_Test.create(IA32_TEST,
             new RegisterOperand(espReg, TypeReference.Word), IC(8));
@@ -270,7 +267,6 @@ public abstract class CallingConvention extends IRTools {
             new BranchProfileOperand());
 
     testBlock.appendInstruction(spTest);
-    testBlock.appendInstruction(spfTest);
     testBlock.appendInstruction(jcc4);
     test1Block.appendInstruction(sp2Test);
     test1Block.appendInstruction(jcc);
@@ -294,7 +290,7 @@ public abstract class CallingConvention extends IRTools {
       if (inst.getOpcode() == REQUIRE_ESP_opcode ||
               inst.getOpcode() == ADVISE_ESP_opcode) {
         int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-          MIR_UnaryNoRes.setVal(inst, IC(val + (wordsToPush + 3 * WORDSIZE) % 16));
+          MIR_UnaryNoRes.setVal(inst, IC(val - ((1 * WORDSIZE - wordsToPush) % 16 + 16) % 16));
       }
     }
 
@@ -307,7 +303,7 @@ public abstract class CallingConvention extends IRTools {
       if (inst.getOpcode() == REQUIRE_ESP_opcode ||
               inst.getOpcode() == ADVISE_ESP_opcode) {
         int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val + (wordsToPush + 2 * WORDSIZE) % 16));
+        MIR_UnaryNoRes.setVal(inst, IC(val - ((2 * WORDSIZE - wordsToPush) % 16 + 16) % 16));
       }
     }
 
@@ -320,7 +316,7 @@ public abstract class CallingConvention extends IRTools {
       if (inst.getOpcode() == REQUIRE_ESP_opcode ||
               inst.getOpcode() == ADVISE_ESP_opcode) {
         int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val + (wordsToPush + 1 * WORDSIZE) % 16));
+        MIR_UnaryNoRes.setVal(inst, IC(val - ((3 * WORDSIZE - wordsToPush) % 16 + 16) % 16));
       }
     }
 
@@ -333,7 +329,7 @@ public abstract class CallingConvention extends IRTools {
       if (inst.getOpcode() == REQUIRE_ESP_opcode ||
               inst.getOpcode() == ADVISE_ESP_opcode) {
         int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val + wordsToPush % 16));
+        MIR_UnaryNoRes.setVal(inst, IC(val - ((0 * WORDSIZE - wordsToPush) % 16 + 16) % 16));
       }
     }
 
@@ -994,7 +990,7 @@ public abstract class CallingConvention extends IRTools {
     // allocate space for each parameter,
     // plus one word on the stack to hold the address of the callee,
     // plus three words on stack for alignment of x32 syscalls
-    int alignWords = 3;
+    int alignWords = 0;
     int neededWords = parameterWords + alignWords + 1;
     ir.stackManager.allocateParameterSpace(neededWords * WORDSIZE);
     // Convert to a SYSCALL instruction with a null method operand.
