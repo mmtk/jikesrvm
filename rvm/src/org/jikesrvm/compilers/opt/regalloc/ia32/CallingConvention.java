@@ -211,125 +211,54 @@ public abstract class CallingConvention extends IRTools {
     BasicBlock test2Block =  test1Block.splitNodeWithLinksAt(test1Block.firstInstruction(), ir);
     BasicBlock test3Block =  test2Block.splitNodeWithLinksAt(test2Block.firstInstruction(), ir);
 
+    BasicBlock[] testBlocks = {testBlock,test1Block,test2Block,test3Block};
+
     // testBlock is now empty, newBlockForCall has the call and subsequent code
     // Move everything after the call to a new block
     BasicBlock callBlockRest = newBlockForCall.splitNodeWithLinksAt(adviseESP, ir);
 
     // newBlockForCall now has the call and advise_esp / require_esp, subsequent code is in callBlockRest
 
-    BasicBlock copiedBlock = newBlockForCall.copyWithoutLinks(ir);
-    ir.cfg.addLastInCodeOrder(copiedBlock);
-    copiedBlock.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
-    copiedBlock.recomputeNormalOut(ir);
-    BasicBlock copied2Block = newBlockForCall.copyWithoutLinks(ir);
-    ir.cfg.addLastInCodeOrder(copied2Block);
-    copied2Block.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
-    copied2Block.recomputeNormalOut(ir);
-    BasicBlock copied3Block = newBlockForCall.copyWithoutLinks(ir);
-    ir.cfg.addLastInCodeOrder(copied3Block);
-    copied3Block.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
-    copied3Block.recomputeNormalOut(ir);
-    BasicBlock copied4Block = newBlockForCall.copyWithoutLinks(ir);
-    ir.cfg.addLastInCodeOrder(copied4Block);
-    copied4Block.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
-    copied4Block.recomputeNormalOut(ir);
+    BasicBlock[] callBlocks = new BasicBlock[4];
+    callBlocks[0] = newBlockForCall;
+    callBlocks[0].recomputeNormalOut(ir);
+
+    for (int i = 1; i < 4; i++) {
+      BasicBlock copiedBlock = newBlockForCall.copyWithoutLinks(ir);
+      ir.cfg.addLastInCodeOrder(copiedBlock);
+      copiedBlock.appendInstruction(MIR_Branch.create(IA32_JMP, callBlockRest.makeJumpTarget()));
+      copiedBlock.recomputeNormalOut(ir);
+      callBlocks[i] = copiedBlock;
+    }
 
     // Set up test block for checking stack alignment before the call
-    //Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
-
     int wordsToPush = -parameterBytes;
-
     Register espReg = ir.regpool.getPhysicalRegisterSet().asIA32().getESP();
-    Instruction spTest = MIR_Test.create(IA32_TEST,
-            new RegisterOperand(espReg, TypeReference.Word), IC(12));
-    Instruction sp2Test = MIR_Test.create(IA32_TEST,
-            new RegisterOperand(espReg, TypeReference.Word), IC(8));
-    Instruction sp3Test = MIR_Test.create(IA32_TEST,
-            new RegisterOperand(espReg, TypeReference.Word), IC(4));
-    Instruction sp4Test = MIR_Test.create(IA32_TEST,
-            new RegisterOperand(espReg, TypeReference.Word), IC(0));
 
-    Instruction jcc = MIR_CondBranch.create(IA32_JCC,
-            IA32ConditionOperand.EQ(),
-            copiedBlock.makeJumpTarget(),
-            new BranchProfileOperand());
-    Instruction jcc2 = MIR_CondBranch.create(IA32_JCC,
-            IA32ConditionOperand.EQ(),
-            copied2Block.makeJumpTarget(),
-            new BranchProfileOperand());
-    Instruction jcc3 = MIR_CondBranch.create(IA32_JCC,
-            IA32ConditionOperand.EQ(),
-            copied3Block.makeJumpTarget(),
-            new BranchProfileOperand());
-    Instruction jcc4 = MIR_CondBranch.create(IA32_JCC,
-            IA32ConditionOperand.EQ(),
-            copied4Block.makeJumpTarget(),
-            new BranchProfileOperand());
-
-    testBlock.appendInstruction(spTest);
-    testBlock.appendInstruction(jcc4);
-    test1Block.appendInstruction(sp2Test);
-    test1Block.appendInstruction(jcc);
-    test2Block.appendInstruction(sp3Test);
-    test2Block.appendInstruction(jcc2);
-    test3Block.appendInstruction(sp4Test);
-    test3Block.appendInstruction(jcc3);
-
-    testBlock.recomputeNormalOut(ir);
-    test1Block.recomputeNormalOut(ir);
-    test2Block.recomputeNormalOut(ir);
-    test3Block.recomputeNormalOut(ir);
-
-
-    // modify ESP in the copied block to ensure correct alignment
-    // when the original alignment would be incorrect. That's accomplished
-    // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
-    Enumeration<Instruction> copiedInsts = copiedBlock.forwardRealInstrEnumerator();
-    while (copiedInsts.hasMoreElements()) {
-      Instruction inst = copiedInsts.nextElement();
-      if (inst.getOpcode() == REQUIRE_ESP_opcode ||
-              inst.getOpcode() == ADVISE_ESP_opcode) {
-        int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-          MIR_UnaryNoRes.setVal(inst, IC(val - ((1 * WORDSIZE - wordsToPush) % 16 + 16) % 16));
-      }
+    for (int i = 0; i < 4; i++) {
+      Instruction spTest = MIR_Test.create(IA32_TEST,
+              new RegisterOperand(espReg, TypeReference.Word), IC((3 - i) * 4));
+      Instruction jcc = MIR_CondBranch.create(IA32_JCC,
+              IA32ConditionOperand.EQ(),
+              callBlocks[i].makeJumpTarget(),
+              new BranchProfileOperand());
+      testBlocks[i].appendInstruction(spTest);
+      testBlocks[i].appendInstruction(jcc);
+      testBlocks[i].recomputeNormalOut(ir);
     }
 
     // modify ESP in the copied block to ensure correct alignment
     // when the original alignment would be incorrect. That's accomplished
     // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
-    Enumeration<Instruction> copied2Insts = copied2Block.forwardRealInstrEnumerator();
-    while (copied2Insts.hasMoreElements()) {
-      Instruction inst = copied2Insts.nextElement();
-      if (inst.getOpcode() == REQUIRE_ESP_opcode ||
-              inst.getOpcode() == ADVISE_ESP_opcode) {
-        int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val - ((2 * WORDSIZE - wordsToPush) % 16 + 16) % 16));
-      }
-    }
-
-    // modify ESP in the copied block to ensure correct alignment
-    // when the original alignment would be incorrect. That's accomplished
-    // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
-    Enumeration<Instruction> copied3Insts = copied3Block.forwardRealInstrEnumerator();
-    while (copied3Insts.hasMoreElements()) {
-      Instruction inst = copied3Insts.nextElement();
-      if (inst.getOpcode() == REQUIRE_ESP_opcode ||
-              inst.getOpcode() == ADVISE_ESP_opcode) {
-        int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val - ((3 * WORDSIZE - wordsToPush) % 16 + 16) % 16));
-      }
-    }
-
-    // modify ESP in the copied block to ensure correct alignment
-    // when the original alignment would be incorrect. That's accomplished
-    // by adjusting the ESP upwards (i.e. towards the bottom of the stack).
-    Enumeration<Instruction> copied4Insts = copied4Block.forwardRealInstrEnumerator();
-    while (copied4Insts.hasMoreElements()) {
-      Instruction inst = copied4Insts.nextElement();
-      if (inst.getOpcode() == REQUIRE_ESP_opcode ||
-              inst.getOpcode() == ADVISE_ESP_opcode) {
-        int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
-        MIR_UnaryNoRes.setVal(inst, IC(val - ((0 * WORDSIZE - wordsToPush) % 16 + 16) % 16));
+    for (int i = 0; i < 4; i++) {
+      Enumeration<Instruction> copiedInsts = callBlocks[i].forwardRealInstrEnumerator();
+      while (copiedInsts.hasMoreElements()) {
+        Instruction inst = copiedInsts.nextElement();
+        if (inst.getOpcode() == REQUIRE_ESP_opcode ||
+                inst.getOpcode() == ADVISE_ESP_opcode) {
+          int val = MIR_UnaryNoRes.getVal(inst).asIntConstant().value;
+          MIR_UnaryNoRes.setVal(inst, IC(val - ((i * WORDSIZE - wordsToPush) % 16 + 16) % 16));
+        }
       }
     }
 
