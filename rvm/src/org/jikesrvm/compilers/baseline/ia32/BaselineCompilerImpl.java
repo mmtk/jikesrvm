@@ -4301,12 +4301,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       ForwardReference dontRealignStack = null;
       int argsToPush = 0;
 
-      ForwardReference alignZero = null;
-      ForwardReference alignOne = null;
-      ForwardReference alignTwo = null;
-      ForwardReference alignThree = null;
-
-      ForwardReference[] alignStack = {alignZero, alignOne, alignTwo, alignThree};
+      ForwardReference[] alignStack = new ForwardReference[4];
 
       if (m.isStackAlign() && VM.BuildFor32Addr) {
         for (int i = args.length - 1; i >= 1; i--) {
@@ -4323,7 +4318,7 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
         alignStack[(5 - argsToPush % 4) % 4] = asm.forwardJcc(EQ);
         asm.emitTEST_Reg_Imm(SP, 0x4); // Needs -2 more to be aligned
         alignStack[(6 - argsToPush % 4) % 4] = asm.forwardJcc(EQ);
-        // needs -3 to be aligned
+        // Otherwise it needs -3 to be aligned
         alignStack[(7 - argsToPush % 4) % 4] = asm.forwardJcc(NE);
       }
 
@@ -4347,50 +4342,28 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
       }
 
       // Generate argument pushing and call code up to twice, once with realignment
-      ForwardReference afterCalls = null;
       Offset originalFirstOffset = offsetToFirstArg;
       Offset originalLastOffset = offsetToLastArg;
-      ForwardReference afterCallsOne = null;
-      ForwardReference afterCallsTwo = null;
-      ForwardReference afterCallsThree = null;
-      ForwardReference[] jumpToRest = {afterCalls, afterCallsOne, afterCallsTwo, afterCallsThree};
-
+      ForwardReference[] jumpToRest = new ForwardReference[4];
       if (!m.isStackAlign()) {
-
-      for (int j = VM.BuildFor32Addr ? 1 : 0; j < 2; j++) {
-        offsetToFirstArg = originalFirstOffset;
-        offsetToLastArg = originalLastOffset;
-        if (j == 0) {
-          adjustStack(-WORDSIZE, true);
-          offsetToFirstArg = offsetToFirstArg.plus(WORDSIZE);
-          offsetToLastArg = offsetToLastArg.plus(WORDSIZE);
-        } else {
-          if (dontRealignStack != null) dontRealignStack.resolve(asm);
-        }
-        // (4) Stack remaining args to target function from right-to-left
-        //     (NB avoid the first argument holding the target function address)
-        offsetToJavaArg = offsetToLastArg;
-        for (int i = args.length - 1; i >= 1; i--) {
-          TypeReference arg = args[i];
-          if (VM.BuildFor32Addr) {
-            if (arg.isLongType() || arg.isDoubleType()) {
-              asm.emitPUSH_RegDisp(SP, offsetToJavaArg.plus(WORDSIZE));
-              asm.emitPUSH_RegDisp(SP, offsetToJavaArg.plus(WORDSIZE));
-              offsetToJavaArg = offsetToJavaArg.plus(4 * WORDSIZE);
-              offsetToFirstArg = offsetToFirstArg.plus(2 * WORDSIZE);
-              offsetToLastArg = offsetToLastArg.plus(2 * WORDSIZE);
-              paramBytes += 2 * WORDSIZE;
-            } else {
-              asm.emitPUSH_RegDisp(SP, offsetToJavaArg);
-              offsetToJavaArg = offsetToJavaArg.plus(2 * WORDSIZE);
-              offsetToFirstArg = offsetToFirstArg.plus(WORDSIZE);
-              offsetToLastArg = offsetToLastArg.plus(WORDSIZE);
-              paramBytes += WORDSIZE;
-            }
+        for (int j = VM.BuildFor32Addr ? 1 : 0; j < 2; j++) {
+          offsetToFirstArg = originalFirstOffset;
+          offsetToLastArg = originalLastOffset;
+          if (j == 0) {
+            adjustStack(-WORDSIZE, true);
+            offsetToFirstArg = offsetToFirstArg.plus(WORDSIZE);
+            offsetToLastArg = offsetToLastArg.plus(WORDSIZE);
           } else {
-            if (!inRegister[i]) {
+            if (dontRealignStack != null) dontRealignStack.resolve(asm);
+          }
+          // (4) Stack remaining args to target function from right-to-left
+          //     (NB avoid the first argument holding the target function address)
+          offsetToJavaArg = offsetToLastArg;
+          for (int i = args.length - 1; i >= 1; i--) {
+            TypeReference arg = args[i];
+            if (VM.BuildFor32Addr) {
               if (arg.isLongType() || arg.isDoubleType()) {
-                adjustStack(-WORDSIZE, true);
+                asm.emitPUSH_RegDisp(SP, offsetToJavaArg.plus(WORDSIZE));
                 asm.emitPUSH_RegDisp(SP, offsetToJavaArg.plus(WORDSIZE));
                 offsetToJavaArg = offsetToJavaArg.plus(4 * WORDSIZE);
                 offsetToFirstArg = offsetToFirstArg.plus(2 * WORDSIZE);
@@ -4404,35 +4377,51 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
                 paramBytes += WORDSIZE;
               }
             } else {
-              if (arg.isLongType() || arg.isDoubleType()) {
-                offsetToJavaArg = offsetToJavaArg.plus(2 * WORDSIZE);
+              if (!inRegister[i]) {
+                if (arg.isLongType() || arg.isDoubleType()) {
+                  adjustStack(-WORDSIZE, true);
+                  asm.emitPUSH_RegDisp(SP, offsetToJavaArg.plus(WORDSIZE));
+                  offsetToJavaArg = offsetToJavaArg.plus(4 * WORDSIZE);
+                  offsetToFirstArg = offsetToFirstArg.plus(2 * WORDSIZE);
+                  offsetToLastArg = offsetToLastArg.plus(2 * WORDSIZE);
+                  paramBytes += 2 * WORDSIZE;
+                } else {
+                  asm.emitPUSH_RegDisp(SP, offsetToJavaArg);
+                  offsetToJavaArg = offsetToJavaArg.plus(2 * WORDSIZE);
+                  offsetToFirstArg = offsetToFirstArg.plus(WORDSIZE);
+                  offsetToLastArg = offsetToLastArg.plus(WORDSIZE);
+                  paramBytes += WORDSIZE;
+                }
               } else {
-                offsetToJavaArg = offsetToJavaArg.plus(WORDSIZE);
+                if (arg.isLongType() || arg.isDoubleType()) {
+                  offsetToJavaArg = offsetToJavaArg.plus(2 * WORDSIZE);
+                } else {
+                  offsetToJavaArg = offsetToJavaArg.plus(WORDSIZE);
+                }
               }
             }
           }
-        }
-        if (VM.VerifyAssertions) VM._assert(offsetToFirstArg.EQ(offsetToJavaArg));
+          if (VM.VerifyAssertions) VM._assert(offsetToFirstArg.EQ(offsetToJavaArg));
 
-        // (5) invoke target function with address given by the first argument
-        if (VM.BuildFor32Addr) {
-          asm.emitMOV_Reg_RegDisp(S0, SP, offsetToFirstArg);
-          asm.emitCALL_Reg(S0);
-        } else {
-          asm.emitMOV_Reg_RegDisp_Quad(T0, SP, offsetToFirstArg);
-          asm.emitCALL_Reg(T0);
-        }
+          // (5) invoke target function with address given by the first argument
+          if (VM.BuildFor32Addr) {
+            asm.emitMOV_Reg_RegDisp(S0, SP, offsetToFirstArg);
+            asm.emitCALL_Reg(S0);
+          } else {
+            asm.emitMOV_Reg_RegDisp_Quad(T0, SP, offsetToFirstArg);
+            asm.emitCALL_Reg(T0);
+          }
 
-        // (6) pop space for arguments
-        if (j == 0) {
-          offsetToFirstArg = offsetToFirstArg.minus(WORDSIZE);
-          offsetToLastArg = offsetToLastArg.minus(WORDSIZE);
-          adjustStack(paramBytes + WORDSIZE, true);
-          jumpToRest[0] = asm.forwardJMP();
-        } else {
-          adjustStack(paramBytes, true);
+          // (6) pop space for arguments
+          if (j == 0) {
+            offsetToFirstArg = offsetToFirstArg.minus(WORDSIZE);
+            offsetToLastArg = offsetToLastArg.minus(WORDSIZE);
+            adjustStack(paramBytes + WORDSIZE, true);
+            jumpToRest[0] = asm.forwardJMP();
+          } else {
+            adjustStack(paramBytes, true);
+          }
         }
-      }
       } else {
         for (int j = 0; j < 4; j++) {
           offsetToFirstArg = originalFirstOffset;
@@ -4504,8 +4493,8 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
           if (j == 0){
             adjustStack(paramBytes, true);
           } else {
-            offsetToFirstArg = offsetToFirstArg.minus(WORDSIZE * j);
-            offsetToLastArg = offsetToLastArg.minus(WORDSIZE * j);
+            // offsetToFirstArg = offsetToFirstArg.minus(WORDSIZE * j);    // todo This code is technically redundant
+            // offsetToLastArg = offsetToLastArg.minus(WORDSIZE * j);      // todo This code is technically redundant
             adjustStack(paramBytes + WORDSIZE * j, true);
           }
           jumpToRest[j] = asm.forwardJMP();
