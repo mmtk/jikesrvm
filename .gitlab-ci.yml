@@ -11,7 +11,6 @@ stages:
 before_script:
   - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
     
-  
 build:basebase:
   stage: build
   script:
