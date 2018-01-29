@@ -11,7 +11,7 @@ os.chdir(a)         # change to base directory
 parser = argparse.ArgumentParser(description="Runs tests to verify it compiles and builds")
 parser.add_argument("-g", dest="collector", default="BaseBaseNoGC", help="Specifies which garbage collector to use", type=str)
 parser.add_argument("-n", default=1, dest="tests", help="Specifies the number of times to recompile and run the file", type=int)
-parser.add_argument("-a", dest="args", default="-Xms512M", help="Specifies which arguments to pass when testing MMTk", type=str)
+parser.add_argument("-a", dest="args", default="-Xms1024M", help="Specifies which arguments to pass when testing MMTk", type=str)
 parser.add_argument("--build-only", dest="build_only", action="store_true", help="Only build the compiler but do not test it")
 parser.add_argument("--test-only", dest="test_only",action="store_true", help="Do not build the compiler, only test it")
 parser.add_argument("--java-build", dest="java_build", action="store_true", help="Build using the java MMTk instead of the rust MMTk")
