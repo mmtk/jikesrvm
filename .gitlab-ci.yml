@@ -11,22 +11,42 @@ stages:
 before_script:
   - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
     
-build:basebase:
+build:basebasenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g BaseBaseNoGC
 
-build:fastadaptive:
+build:fastadaptivenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g FastAdaptiveNoGC
 
-build:fulladaptive:
+build:fulladaptivenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g FullAdaptiveNoGC
 
-build:basebasejavabuild:
+build:basebasenogcjavabuild:
   stage: build
   script:
     - python scripts/testMMTk.py -g BaseBaseNoGC --java-build
+
+build:basebasesemispace:
+  stage: build
+  script:
+    - python scripts/testMMTk.py -g BaseBaseSemiSpace
+
+build:fastadaptivesemispace:
+  stage: build
+  script:
+    - python scripts/testMMTk.py -g FastAdaptiveSemiSpace
+
+build:fulladaptivesemispace:
+  stage: build
+  script:
+    - python scripts/testMMTk.py -g FullAdaptiveSemiSpace
+
+build:basebasesemispacejavabuild:
+  stage: build
+  script:
+    - python scripts/testMMTk.py -g BaseBaseSemiSpace --java-build
