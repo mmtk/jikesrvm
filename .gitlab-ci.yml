@@ -1,45 +1,33 @@
+cache:
+  paths:
+    - benchmarks/
+
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
 stages:
   - build
+
+before_script:
+  - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
+    
   
 build:basebase:
   stage: build
   script:
-    - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
     - python scripts/testMMTk.py -g BaseBaseNoGC
-  cache:
-    key: rspec
-    paths:
-      - benchmarks/
 
 build:fastadaptive:
   stage: build
   script:
-    - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
     - python scripts/testMMTk.py -g FastAdaptiveNoGC
-  cache:
-    key: rspec
-    paths:
-      - benchmarks/
 
 build:fulladaptive:
   stage: build
   script:
-    - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
     - python scripts/testMMTk.py -g FullAdaptiveNoGC
-  cache:
-    key: rspec
-    paths:
-      - benchmarks/
 
 build:basebasejavabuild:
   stage: build
   script:
-    - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
     - python scripts/testMMTk.py -g BaseBaseNoGC --java-build
-  cache:
-    key: rspec
-    paths:
-      - benchmarks/
