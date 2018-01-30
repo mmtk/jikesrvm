@@ -1178,6 +1178,7 @@ public final class RVMThread extends ThreadContext {
   protected int inDumpStack = 0;
 
   /** Is this a "registered mutator?" */
+  @Entrypoint
   public boolean activeMutatorContext = false;
 
   /** Lock used for dumping stack and such. */

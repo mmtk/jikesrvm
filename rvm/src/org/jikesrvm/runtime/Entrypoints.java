@@ -177,6 +177,8 @@ public class Entrypoints {
           getField(org.jikesrvm.runtime.BootRecord.class, "bootImageRMapStart", org.vmmagic.unboxed.Address.class);
   public static final RVMField bootImageRMapEnd =
           getField(org.jikesrvm.runtime.BootRecord.class, "bootImageRMapEnd", org.vmmagic.unboxed.Address.class);
+  public static final RVMField activeMutatorContextField =
+          getField(org.jikesrvm.scheduler.RVMThread.class, "activeMutatorContext", boolean.class);
 
   public static final NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");
