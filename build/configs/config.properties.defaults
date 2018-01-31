@@ -31,4 +31,6 @@ rust.false.comment.start=
 rust.false.comment.end=
 rust.true.comment.start=/*
 rust.true.comment.end=*/
-rust.args=nogc
+rust.features=nogc
+rust.args=--release
+mmtk.path=${basedir}/mmtk/target/i686-unknown-linux-gnu/release
