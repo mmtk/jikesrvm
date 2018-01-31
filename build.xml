@@ -1691,10 +1691,10 @@ Check to make sure all required properties are specified. This includes properti
         <exec executable="cargo" dir="mmtk" failonerror="true">
           <arg value="+nightly"/>
           <arg value="build"/>
-          <arg value="--release"/>
           <arg value="--target=i686-unknown-linux-gnu"/>
-          <arg value="--features=jikesrvm ${rust.args}"/>
+          <arg value="--features=jikesrvm ${rust.features}"/>
           <arg value="--no-default-features"/>
+          <arg line="${rust.args}"/>
         </exec>
       </sequential>
     </if>
