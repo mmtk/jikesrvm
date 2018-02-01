@@ -63,6 +63,7 @@ public class Selected {
     @Uninterruptible
     public static class Mutator extends @_PLAN_@Mutator {
 
+        @Entrypoint
         Address mmtkHandle;
 
         @_PLAN_NAME_@Context ctx = new @_PLAN_NAME_@Context();
@@ -73,6 +74,7 @@ public class Selected {
             if (id != 1) {
                 mmtkHandle = sysCall.sysBindMutator(id);
                 ctx.setBlock(mmtkHandle);
+                mmtkHandle = Magic.objectAsAddress(ctx);
             }
         }
 
