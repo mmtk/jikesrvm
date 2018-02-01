@@ -193,7 +193,6 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void boot(BootRecord theBootRecord) {
-    VM.sysWriteln("Start Boot");
     Extent pageSize = BootRecord.the_boot_record.bytesInPage;
     org.jikesrvm.runtime.Memory.setPageSize(pageSize);
     HeapLayout.mmapper.markAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
@@ -203,9 +202,7 @@ public final class MemoryManager {
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
     if (VM.BuildWithRustMMTk) {
-      VM.sysWriteln("Should not die now");
       sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
-      VM.sysWriteln("Should die here");
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
     }
 
