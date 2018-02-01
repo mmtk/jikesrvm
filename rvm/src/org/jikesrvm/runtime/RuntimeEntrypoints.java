@@ -1214,17 +1214,4 @@ public class RuntimeEntrypoints {
   private static boolean canForceGC() {
     return VM.ForceFrequentGC && RVMThread.safeToForceGCs() && MemoryManager.collectionEnabled();
   }
-
-  //---------------------------------------------------------------//
-  //                  JikesRVM Entrypoints for mmtk                //
-  //---------------------------------------------------------------//
-
-  @Entrypoint
-  @Unpreemptible
-  public static void blockForGC() {
-    RVMThread t = RVMThread.getCurrentThread();
-    t.assertAcceptableStates(RVMThread.IN_JAVA, RVMThread.IN_JAVA_TO_BLOCK);
-    RVMThread.observeExecStatusAtSTW(t.getExecStatus());
-    t.block(RVMThread.gcBlockAdapter);
-  }
 }

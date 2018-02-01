@@ -125,7 +125,10 @@ public class Entrypoints {
   public static final RVMField threadBySlotField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "threadBySlot", RVMThread[].class);
   public static final NormalMethod blockForGCMethod =
-          getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "blockForGC", "()V");
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "blockForGC", "()V");
+  public static final NormalMethod prepareMutatorMethod =
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "prepareMutator",
+                  "(Lorg/jikesrvm/scheduler/RVMThread;)V");
   public static final NormalMethod testMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test", "(I)I");
   public static final NormalMethod test1Method =
