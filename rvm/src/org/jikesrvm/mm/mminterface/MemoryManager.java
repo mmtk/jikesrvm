@@ -96,7 +96,7 @@ public final class MemoryManager {
   private static final boolean traceAllocator = false;
 
   // FIXME: GC options
-  private static final int GC_THREADS = 4;
+  private static final int GC_THREADS = 1;
 
   /**
    * Has the interface been booted yet?

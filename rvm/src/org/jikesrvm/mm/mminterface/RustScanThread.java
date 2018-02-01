@@ -109,7 +109,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
   private GCMapIterator iterator;
   @Untraced
   private boolean processCodeLocations;
-  private RustTraceLocal trace;
+  private Address trace;
   @Untraced
   private RVMThread thread;
   private Address ip, fp, prevFp, initialIPLoc, topFrame;
@@ -124,24 +124,6 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
    * Thread scanning
    */
 
-  @Unboxed
-  @Uninterruptible
-  private static class RustTraceLocal {
-    Address pointer;
-
-    final void reportDelayedRootEdge(Address addr) {
-      sysCall.sysReportDelayedRootEdge(pointer, addr);
-    }
-
-    final boolean willNotMoveInCurrentCollection(ObjectReference obj) {
-      return sysCall.sysWillNotMoveInCurrentCollection(pointer, obj);
-    }
-
-    final void processInteriorEdge(ObjectReference target, Address slot, boolean root) {
-      sysCall.sysProcessInteriorEdge(pointer, target, slot, root);
-    }
-  }
-
   /**
    * Scan a thread, placing the addresses of pointers into supplied buffers.
    *
@@ -151,7 +133,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
    * @param newRootsSufficient Is a partial stack scan sufficient, or must we do a full scan?
    */
   @Entrypoint
-  public static void scanThread(RVMThread thread, RustTraceLocal trace,
+  public static void scanThread(RVMThread thread, Address trace,
                                 boolean processCodeLocations, boolean newRootsSufficient) {
     if (DEFAULT_VERBOSITY >= 1) {
       VM.sysWriteln("scanning ",thread.getThreadSlot());
@@ -165,7 +147,6 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
     Address fp = regs.getInnermostFramePointer();
     regs.clear();
     regs.setInnermost(ip,fp);
-
     scanThread(thread, trace, processCodeLocations, gprs, Address.zero(), newRootsSufficient);
   }
 
@@ -177,9 +158,9 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
    *  will be called
    * @param addr see JavaDoc of {@link RustTraceLocal#reportDelayedRootEdge(Address)}
    */
-  private static void reportDelayedRootEdge(RustTraceLocal trace, Address addr) {
+  private static void reportDelayedRootEdge(Address trace, Address addr) {
     if (VALIDATE_REFS) checkReference(addr);
-    trace.reportDelayedRootEdge(addr);
+    sysCall.sysReportDelayedRootEdge(trace, addr);
   }
 
   /**
@@ -196,7 +177,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
    * if this is to be inferred from the thread (normally the case).
    * @param newRootsSufficent Is a partial stack scan sufficient, or must we do a full scan?
    */
-  private static void scanThread(RVMThread thread, RustTraceLocal trace,
+  private static void scanThread(RVMThread thread, Address trace,
                                  boolean processCodeLocations,
                                  Address gprs, Address topFrame, boolean newRootsSufficent) {
     // figure out if the thread should be scanned at all; if not, exit
@@ -256,7 +237,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
    * if this is to be inferred from the thread (normally the case).
    * @param sentinelFp The frame pointer at which the stack scan should stop.
    */
-  private void startScan(RustTraceLocal trace,
+  private void startScan(Address trace,
                          boolean processCodeLocations,
                          RVMThread thread, Address gprs, Address ip,
                          Address fp, Address initialIPLoc, Address topFrame,
@@ -381,7 +362,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
         if (!failed) failed = true;
       }
     }
-    trace.processInteriorEdge(code, ipLoc, true);
+    sysCall.sysProcessInteriorEdge(trace, code, ipLoc, true);
   }
 
   /***********************************************************************
@@ -597,15 +578,15 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
     // switch off Checkstyle for this method.
 
     //CHECKSTYLE:OFF
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread)));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getStack())));
-    VM._assert(thread.getJNIEnv() == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getJNIEnv())));
-    VM._assert(thread.getJNIEnv() == null || thread.getJNIEnv().refsArray() == null || trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getJNIEnv().refsArray())));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getContextRegisters())));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getContextRegisters().getGPRs())));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getExceptionRegisters())));
-    VM._assert(trace.willNotMoveInCurrentCollection(ObjectReference.fromObject(thread.getExceptionRegisters().getGPRs())));
+    VM._assert(sysCall.sysWillNotMoveInCurrentCollection(trace, ObjectReference.fromObject(thread.getStack())));
+    VM._assert(sysCall.sysWillNotMoveInCurrentCollection(trace, ObjectReference.fromObject(thread)));
+    VM._assert(sysCall.sysWillNotMoveInCurrentCollection(trace, ObjectReference.fromObject(thread.getStack())));
+    VM._assert(thread.getJNIEnv() == null || sysCall.sysWillNotMoveInCurrentCollection(trace, ObjectReference.fromObject(thread.getJNIEnv())));
+    VM._assert(thread.getJNIEnv() == null || thread.getJNIEnv().refsArray() == null || sysCall.sysWillNotMoveInCurrentCollection(trace, ObjectReference.fromObject(thread.getJNIEnv().refsArray())));
+    VM._assert(sysCall.sysWillNotMoveInCurrentCollection(trace,ObjectReference.fromObject(thread.getContextRegisters())));
+    VM._assert(sysCall.sysWillNotMoveInCurrentCollection(trace,ObjectReference.fromObject(thread.getContextRegisters().getGPRs())));
+    VM._assert(sysCall.sysWillNotMoveInCurrentCollection(trace,ObjectReference.fromObject(thread.getExceptionRegisters())));
+    VM._assert(sysCall.sysWillNotMoveInCurrentCollection(trace,ObjectReference.fromObject(thread.getExceptionRegisters().getGPRs())));
     //CHECKSTYLE:ON
   }
 
