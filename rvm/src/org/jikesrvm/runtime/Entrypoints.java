@@ -185,6 +185,9 @@ public class Entrypoints {
   public static final RVMField mmtkHandleField =
           getField(org.jikesrvm.mm.mminterface.Selected.Mutator.class, "mmtkHandle",
                   org.vmmagic.unboxed.Address.class);
+  public static final RVMField functionTableDataField =
+          getField(org.jikesrvm.jni.FunctionTable.class, "data",
+                  org.jikesrvm.compilers.common.CodeArray[].class);
 
   public static final NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");

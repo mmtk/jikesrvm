@@ -31,6 +31,7 @@ public final class FunctionTable implements RuntimeTable<CodeArray> {
   /**
    * The backing data used during boot image writing.
    */
+  @Entrypoint(fieldMayBeFinal = true)
   private final CodeArray[] data;
 
   /**
