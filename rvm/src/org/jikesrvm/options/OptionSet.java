@@ -84,9 +84,7 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
     byte[] valueBytes = stringToBytes("converting value", value);
 
     if (VM.BuildWithRustMMTk) {
-      if (!SysCall.sysCall.sysProcess(nameBytes, valueBytes)) {
-        VM.sysFail("Could not process the option correctly.");
-      } else {
+      if (SysCall.sysCall.sysProcess(nameBytes, valueBytes)) {
         return true;
       }
     } else {
