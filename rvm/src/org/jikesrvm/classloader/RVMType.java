@@ -549,7 +549,7 @@ public abstract class RVMType extends AnnotatedElement {
    * not long enough).
    *
    * @param it the type to add
-   * @return the id of the tpye in the types array
+   * @return the id of the type in the types array
    */
   private static synchronized int nextId(RVMType it) {
     int ans = nextId++;
