@@ -82,7 +82,9 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
    */
 
   /** quietly validates each ref reported by map iterators */
-  static final boolean VALIDATE_REFS = VM.VerifyAssertions;
+  // FIXME: Enable this once rust-mmtk mmaps in the correct address range
+  static final boolean VALIDATE_REFS
+          = VM.VerifyAssertions && !VM.BuildWithRustMMTk;
 
   /*
    * debugging options to produce printout during scanStack
@@ -422,6 +424,23 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
    * be skipped.
    */
   private boolean setUpFrame(int verbosity) {
+    // FIXME: We probably want this to explicitly check whether it's
+    //        in **Rust** address space, via /proc maps, instead of
+    //        just if it's in RVM code space
+    if (VM.BuildWithRustMMTk && (ip.LT(Address.fromIntSignExtend(0x64000000))
+            || ip.GT(Address.fromIntZeroExtend(0xb0000000)))) {
+      if (verbosity >= 1) {
+        VM.sysWrite("Skipping frame, fp=", fp);
+        VM.sysWriteln(", ip=", ip);
+      }
+      return false;
+    }
+
+    if (verbosity >= 1) {
+      VM.sysWrite("Continuing with scan, fp=", fp);
+      VM.sysWriteln(", ip=", ip);
+    }
+
     /* get the compiled method ID for this frame */
     int compiledMethodId = Magic.getCompiledMethodID(fp);
 
