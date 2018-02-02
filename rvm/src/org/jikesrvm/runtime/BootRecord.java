@@ -259,6 +259,7 @@ public class BootRecord {
   public Address process_interior_edgeIP;
   public Address start_workerIP;
   public Address enable_collectionIP;
+  public Address processIP;
 
   // startup/shutdown
   public Address sysExitIP;

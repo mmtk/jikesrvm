@@ -187,6 +187,15 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract Address alloc(Address mutator, int size, int align, int offset, int allocator);
 
+
+  @Inline
+  public boolean sysProcess(byte[] name, byte[] value) {
+    return process(name, value);
+  }
+  @SysCallAlignedTemplate
+  public abstract boolean process(byte[] name, byte[] value);
+
+
   @Inline
   public void sysReportDelayedRootEdge(Address trace_local, Address addr){
     report_delayed_root_edge(trace_local,addr);

@@ -937,7 +937,7 @@ public class CommandLineArgs {
    * {@code null}-terminated C string. Returns {@code null} for a {@code null}
    * arg.
    */
-  private static byte[] stringToBytes(String argName, String arg) {
+  public static byte[] stringToBytes(String argName, String arg) {
     if (arg == null) {
       return null;
     }
