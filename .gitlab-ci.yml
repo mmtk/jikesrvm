@@ -16,42 +16,42 @@ build:pre-commit:
   script:
     - python scripts/testMMTk.py -T pre-commit
 
-build:basebasenogc:
+build:rbasebasenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g RBaseBaseNoGC
 
-build:fastadaptivenogc:
+build:rfastadaptivenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g RFastAdaptiveNoGC
 
-build:fulladaptivenogc:
+build:rfulladaptivenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g RFullAdaptiveNoGC
 
-build:basebasenogcjavabuild:
+build:basebasenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g BaseBaseNoGC
 
-build:basebasesemispace:
+build:rbasebasesemispace:
   stage: build
   script:
     - python scripts/testMMTk.py -g RBaseBaseSemiSpace
 
-build:fastadaptivesemispace:
+build:rfastadaptivesemispace:
   stage: build
   script:
     - python scripts/testMMTk.py -g RFastAdaptiveSemiSpace
 
-build:fulladaptivesemispace:
+build:rfulladaptivesemispace:
   stage: build
   script:
     - python scripts/testMMTk.py -g RFullAdaptiveSemiSpace
 
-build:basebasesemispacejavabuild:
+build:basebasesemispace:
   stage: build
   script:
     - python scripts/testMMTk.py -g BaseBaseSemiSpace
