@@ -201,6 +201,36 @@ public class Entrypoints {
           getField(org.jikesrvm.classloader.RVMType.class, "isReferenceType", boolean.class);
   public static final RVMField instanceSizeField =
           getField(org.jikesrvm.classloader.RVMClass.class, "instanceSize", int.class);
+  public static final RVMField logElementSizeField =
+          getField(org.jikesrvm.classloader.RVMArray.class, "logElementSize", int.class);
+
+  public static final RVMField booleanArrayField =
+          getField(org.jikesrvm.classloader.RVMArray.class, "BooleanArray",
+                  org.jikesrvm.classloader.RVMArray.class);
+  public static final RVMField byteArrayField =
+          getField(org.jikesrvm.classloader.RVMArray.class, "ByteArray",
+                  org.jikesrvm.classloader.RVMArray.class);
+  public static final RVMField charArrayField =
+          getField(org.jikesrvm.classloader.RVMArray.class, "CharArray",
+                  org.jikesrvm.classloader.RVMArray.class);
+  public static final RVMField shortArrayField =
+          getField(org.jikesrvm.classloader.RVMArray.class, "ShortArray",
+                  org.jikesrvm.classloader.RVMArray.class);
+  public static final RVMField intArrayField =
+          getField(org.jikesrvm.classloader.RVMArray.class, "IntArray",
+                  org.jikesrvm.classloader.RVMArray.class);
+  public static final RVMField longArrayField =
+          getField(org.jikesrvm.classloader.RVMArray.class, "LongArray",
+                  org.jikesrvm.classloader.RVMArray.class);
+  public static final RVMField floatArrayField =
+          getField(org.jikesrvm.classloader.RVMArray.class, "FloatArray",
+                  org.jikesrvm.classloader.RVMArray.class);
+  public static final RVMField doubleArrayField =
+          getField(org.jikesrvm.classloader.RVMArray.class, "DoubleArray",
+                  org.jikesrvm.classloader.RVMArray.class);
+  public static final RVMField javaLangObjectArrayField =
+          getField(org.jikesrvm.classloader.RVMArray.class, "JavaLangObjectArray",
+                  org.jikesrvm.classloader.RVMArray.class);
 
   public static final NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");

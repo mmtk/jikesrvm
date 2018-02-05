@@ -65,14 +65,23 @@ public final class RVMArray extends RVMType {
   /*
    * We hold on to a number of commonly used arrays for easy access.
    */
+  @Entrypoint(fieldMayBeFinal = true)
   public static final RVMArray BooleanArray;
+  @Entrypoint(fieldMayBeFinal = true)
   public static final RVMArray ByteArray;
+  @Entrypoint(fieldMayBeFinal = true)
   public static final RVMArray CharArray;
+  @Entrypoint(fieldMayBeFinal = true)
   public static final RVMArray ShortArray;
+  @Entrypoint(fieldMayBeFinal = true)
   public static final RVMArray IntArray;
+  @Entrypoint(fieldMayBeFinal = true)
   public static final RVMArray LongArray;
+  @Entrypoint(fieldMayBeFinal = true)
   public static final RVMArray FloatArray;
+  @Entrypoint(fieldMayBeFinal = true)
   public static final RVMArray DoubleArray;
+  @Entrypoint(fieldMayBeFinal = true)
   public static final RVMArray JavaLangObjectArray;
 
   static {
@@ -95,6 +104,7 @@ public final class RVMArray extends RVMType {
   /**
    * The log of the element size for this array type.
    */
+  @Entrypoint(fieldMayBeFinal = true)
   private final int logElementSize;
 
   /**
