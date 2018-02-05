@@ -21,7 +21,6 @@ import org.jikesrvm.mm.mmtk.ObjectModel;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
-import org.vmmagic.Unboxed;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
@@ -30,8 +29,6 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
 import static org.jikesrvm.runtime.SysCall.sysCall;
-
-import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
 /**
  * Class that supports scanning thread stacks for references during
@@ -83,8 +80,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
 
   /** quietly validates each ref reported by map iterators */
   // FIXME: Enable this once rust-mmtk mmaps in the correct address range
-  static final boolean VALIDATE_REFS
-          = VM.VerifyAssertions && !VM.BuildWithRustMMTk;
+  static final boolean VALIDATE_REFS = VM.VerifyAssertions && !VM.BuildWithRustMMTk;
 
   /*
    * debugging options to produce printout during scanStack
@@ -427,8 +423,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_ADDRESS;
     // FIXME: We probably want this to explicitly check whether it's
     //        in **Rust** address space, via /proc maps, instead of
     //        just if it's in RVM code space
-    if (VM.BuildWithRustMMTk && (ip.LT(Address.fromIntSignExtend(0x64000000))
-            || ip.GT(Address.fromIntZeroExtend(0xb0000000)))) {
+    if (VM.BuildWithRustMMTk && (ip.LT(Address.fromIntSignExtend(0x64000000)) || ip.GT(Address.fromIntZeroExtend(0xb0000000)))) {
       if (verbosity >= 1) {
         VM.sysWrite("Skipping frame, fp=", fp);
         VM.sysWriteln(", ip=", ip);

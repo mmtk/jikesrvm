@@ -114,7 +114,6 @@ import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -4490,18 +4489,16 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
           }
 
           // (6) pop space for arguments
-          if (j == 0){
+          if (j == 0) {
             adjustStack(paramBytes, true);
           } else {
-            // offsetToFirstArg = offsetToFirstArg.minus(WORDSIZE * j);    // todo This code is technically redundant
-            // offsetToLastArg = offsetToLastArg.minus(WORDSIZE * j);      // todo This code is technically redundant
             adjustStack(paramBytes + WORDSIZE * j, true);
           }
           jumpToRest[j] = asm.forwardJMP();
         }
       }
 
-      for (int i = 0; i < 4; i ++){
+      for (int i = 0; i < 4; i ++) {
         if (jumpToRest[i] != null) jumpToRest[i].resolve(asm);
       }
 

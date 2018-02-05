@@ -17,7 +17,6 @@ import org.jikesrvm.annotations.SysCallAlignedTemplate;
 import org.jikesrvm.annotations.SysCallTemplate;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
-import org.vmmagic.pragma.StackAlignment;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
@@ -125,7 +124,7 @@ public abstract class SysCall {
   public void sysStartControlCollector(int threadId) {
     start_control_collector(threadId);
   }
-  
+
   @SysCallAlignedTemplate
   public abstract void start_control_collector(int threadId);
 
@@ -138,7 +137,7 @@ public abstract class SysCall {
   public void sysGCInit(Address pointer, int size) {
     jikesrvm_gc_init(pointer,size);
   }
-  
+
   @SysCallAlignedTemplate
   public abstract void jikesrvm_gc_init(Address pointer, int size);
 
@@ -151,7 +150,7 @@ public abstract class SysCall {
   public Address sysBindMutator(int id) {
     return bind_mutator(id);
   }
-  
+
   @SysCallAlignedTemplate
   public abstract Address bind_mutator(int thread_id);
 
@@ -187,7 +186,6 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract Address alloc(Address mutator, int size, int align, int offset, int allocator);
 
-
   @Inline
   public boolean sysProcess(byte[] name, byte[] value) {
     return process(name, value);
@@ -197,42 +195,42 @@ public abstract class SysCall {
 
 
   @Inline
-  public void sysReportDelayedRootEdge(Address trace_local, Address addr){
+  public void sysReportDelayedRootEdge(Address trace_local, Address addr) {
     report_delayed_root_edge(trace_local,addr);
   }
   @SysCallAlignedTemplate
   public abstract void report_delayed_root_edge(Address trace_local, Address addr);
 
   @Inline
-  public boolean sysWillNotMoveInCurrentCollection(Address trace_local, ObjectReference obj){
+  public boolean sysWillNotMoveInCurrentCollection(Address trace_local, ObjectReference obj) {
     return will_not_move_in_current_collection(trace_local, obj);
   }
   @SysCallAlignedTemplate
   public abstract boolean will_not_move_in_current_collection(Address trace_local, ObjectReference obj);
 
   @Inline
-  public void sysProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root){
+  public void sysProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root) {
     process_interior_edge(trace_local, target, slot, root);
   }
   @SysCallAlignedTemplate
   public abstract void process_interior_edge(Address trace_local, ObjectReference target, Address slot, boolean root);
 
   @Inline
-  public void sysStartWorker(int threadId, Address workerInstance){
+  public void sysStartWorker(int threadId, Address workerInstance) {
     start_worker(threadId, workerInstance);
   }
   @SysCallAlignedTemplate
   public abstract void start_worker(int threadId, Address workerInstance);
 
   @Inline
-  public void sysEnableCollection(int threadId, int size){
+  public void sysEnableCollection(int threadId, int size) {
     enable_collection(threadId, size);
   }
   @SysCallAlignedTemplate
   public abstract void enable_collection(int threadId, int size);
 
   @Inline
-  public boolean sysWillNeverMove(ObjectReference object){
+  public boolean sysWillNeverMove(ObjectReference object) {
     return will_never_move(object);
   }
   @SysCallAlignedTemplate
@@ -309,7 +307,7 @@ public abstract class SysCall {
    * @return native thread's o/s handle
    */
   @SysCallTemplate
-  
+
   public abstract Word sysThreadCreate(Address ip, Address fp, Address tr, Address jtoc);
 
   /**
@@ -365,7 +363,7 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysMonitorDestroy(Word monitor);
   @SysCallTemplate
-  
+
   public abstract void sysMonitorEnter(Word monitor);
   @SysCallTemplate
   public abstract void sysMonitorExit(Word monitor);

@@ -15,7 +15,6 @@ package org.jikesrvm.mm.mmtk;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.mm.mminterface.Selected;
@@ -28,7 +27,6 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.pragma.Unpreemptible;
-import org.vmmagic.unboxed.Address;
 
 @Uninterruptible
 public class Collection extends org.mmtk.vm.Collection {

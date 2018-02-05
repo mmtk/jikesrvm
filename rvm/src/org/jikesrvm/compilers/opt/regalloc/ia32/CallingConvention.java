@@ -179,7 +179,7 @@ public abstract class CallingConvention extends IRTools {
   }
 
   public static void alignStackForX32SysCall(Instruction call, IR ir,
-                                             int parameterBytes, Instruction requireESP, Instruction adviseESP){
+                                             int parameterBytes, Instruction requireESP, Instruction adviseESP) {
     BasicBlock originalBlockForCall = call.getBasicBlock();
 
     // Search marker instruction

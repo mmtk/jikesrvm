@@ -14,7 +14,6 @@ package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mmtk.ScanThread;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.SystemThread;
 import org.mmtk.plan.CollectorContext;
 import org.vmmagic.pragma.*;

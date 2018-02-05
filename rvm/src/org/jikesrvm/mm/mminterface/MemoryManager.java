@@ -74,7 +74,6 @@ import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
-import static org.jikesrvm.runtime.EntrypointHelper.getField;
 
 
 /**

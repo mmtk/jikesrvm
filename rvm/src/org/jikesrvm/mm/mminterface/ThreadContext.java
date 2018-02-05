@@ -16,8 +16,6 @@ import org.mmtk.plan.CollectorContext;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 
-import static org.jikesrvm.runtime.SysCall.sysCall;
-
 /**
  * RVMThread must extend this class to associate appropriate context with processor.
  */
