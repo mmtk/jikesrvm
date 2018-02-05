@@ -189,6 +189,19 @@ public class Entrypoints {
           getField(org.jikesrvm.jni.FunctionTable.class, "data",
                   org.jikesrvm.compilers.common.CodeArray[].class);
 
+  public static final RVMField isClassTypeField =
+          getField(org.jikesrvm.classloader.RVMType.class, "isClassType", boolean.class);
+  public static final RVMField isArrayTypeField =
+          getField(org.jikesrvm.classloader.RVMType.class, "isArrayType", boolean.class);
+  public static final RVMField isPrimitiveTypeField =
+          getField(org.jikesrvm.classloader.RVMType.class, "isPrimitiveType", boolean.class);
+  public static final RVMField isUnboxedTypeField =
+          getField(org.jikesrvm.classloader.RVMType.class, "isUnboxedType", boolean.class);
+  public static final RVMField isReferenceTypeField =
+          getField(org.jikesrvm.classloader.RVMType.class, "isReferenceType", boolean.class);
+  public static final RVMField instanceSizeField =
+          getField(org.jikesrvm.classloader.RVMClass.class, "instanceSize", int.class);
+
   public static final NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");
   public static final NormalMethod unlockMethod =

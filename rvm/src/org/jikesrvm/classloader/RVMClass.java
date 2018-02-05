@@ -158,6 +158,7 @@ public final class RVMClass extends RVMType {
   private RVMField[] instanceFields;
 
   /** Total size of per-instance data, in bytes  */
+  @Entrypoint
   private int instanceSize;
 
   /** The desired alignment for instances of this type. */

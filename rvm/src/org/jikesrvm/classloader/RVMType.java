@@ -728,10 +728,15 @@ public abstract class RVMType extends AnnotatedElement {
   @Uninterruptible
   public abstract Offset getThinLockOffset();
 
+  @Entrypoint
   protected boolean isClassType = false;
+  @Entrypoint
   protected boolean isArrayType = false;
+  @Entrypoint
   protected boolean isPrimitiveType = false;
+  @Entrypoint
   protected boolean isUnboxedType = false;
+  @Entrypoint
   protected boolean isReferenceType = false;
   /**
    * Is this is an instance of RVMClass?
