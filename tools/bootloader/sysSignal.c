@@ -42,9 +42,6 @@ EXTERNAL int inRVMAddressSpace(Address addr)
     // Test against sentinel.
     if (start == ~(Address) 0 && end == ~ (Address) 0) break;
     if (start <= addr  && addr < end) {
-      ERROR_PRINTF("which=%d\n", which);
-      ERROR_PRINTF("start=%p\n", start);
-      ERROR_PRINTF("end=%p\n", end);
       return 1;
     }
   }
