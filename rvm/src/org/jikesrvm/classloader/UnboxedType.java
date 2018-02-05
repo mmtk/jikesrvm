@@ -76,6 +76,7 @@ public final class UnboxedType extends RVMType {
           -1,    // dimensionality
           null  // runtime visible annotations
     );
+    isUnboxedType = true;
     this.name = name;
     this.stackWords = stackWords;
     this.memoryBytes = memoryBytes;
@@ -199,56 +200,6 @@ public final class UnboxedType extends RVMType {
   public Offset getThinLockOffset() {
     if (VM.VerifyAssertions) VM._assert(NOT_REACHED);
     return Offset.max();
-  }
-
-  /**
-   * @return <code>false</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isClassType() {
-    return false;
-  }
-
-  /**
-   * @return <code>false</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isArrayType() {
-    return false;
-  }
-
-  /**
-   * @return <code>false</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isPrimitiveType() {
-    return false;
-  }
-
-  /**
-   * @return <code>false</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isReferenceType() {
-    return false;
-  }
-
-  /**
-   * @return <code>true</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isUnboxedType() {
-    return true;
   }
 
   /**
