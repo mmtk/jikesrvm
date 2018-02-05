@@ -191,7 +191,7 @@ import org.vmmagic.unboxed.Word;
   }
 
   @Override
-  public byte [] getTypeDescriptor(ObjectReference ref) {
+  public byte[] getTypeDescriptor(ObjectReference ref) {
     Atom descriptor = Magic.getObjectType(ref).getDescriptor();
     return descriptor.toByteArray();
   }

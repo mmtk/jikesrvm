@@ -158,6 +158,7 @@ public final class RVMClass extends RVMType {
   private RVMField[] instanceFields;
 
   /** Total size of per-instance data, in bytes  */
+  @Entrypoint
   private int instanceSize;
 
   /** The desired alignment for instances of this type. */
@@ -1021,6 +1022,8 @@ public final class RVMClass extends RVMType {
            MethodReference enclosingMethod, Atom sourceName, RVMMethod classInitializerMethod,
            Atom signature, RVMAnnotation[] annotations) {
     super(typeRef, 0, annotations);
+    isClassType = true;
+    isReferenceType = true;
     if (VM.VerifyAssertions) VM._assert(!getTypeRef().isUnboxedType());
     if (VM.VerifyAssertions && null != superClass) VM._assert(!superClass.getTypeRef().isUnboxedType());
 
@@ -1912,56 +1915,6 @@ public final class RVMClass extends RVMType {
   @Uninterruptible
   public int getTypeDepth() {
     return depth;
-  }
-
-  /**
-   * @return <code>true</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isClassType() {
-    return true;
-  }
-
-  /**
-   * @return <code>false</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isArrayType() {
-    return false;
-  }
-
-  /**
-   * @return <code>false</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isPrimitiveType() {
-    return false;
-  }
-
-  /**
-   * @return <code>true</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isReferenceType() {
-    return true;
-  }
-
-  /**
-   * @return <code>false</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isUnboxedType() {
-    return false;
   }
 
   public static boolean isClassLoadingDisabled() {

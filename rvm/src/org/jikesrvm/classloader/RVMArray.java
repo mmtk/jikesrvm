@@ -363,58 +363,10 @@ public final class RVMArray extends RVMType {
     return ObjectModel.defaultThinLockOffset();
   }
 
-  /**
-   * @return <code>false</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isClassType() {
-    return false;
-  }
-
-  /**
-   * @return <code>true</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isArrayType() {
-    return true;
-  }
-
-  /**
-   * @return <code>false</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isPrimitiveType() {
-    return false;
-  }
-
-  /**
-   * @return <code>true</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isReferenceType() {
-    return true;
-  }
-
-  /**
-   * @return <code>false</code>
-   */
-  @Override
-  @Pure
-  @Uninterruptible
-  public boolean isUnboxedType() {
-    return false;
-  }
-
   RVMArray(TypeReference typeRef, RVMType elementType) {
     super(typeRef, typeRef.getDimensionality(), null);
+    isArrayType = true;
+    isReferenceType = true;
     this.elementType = elementType;
     this.logElementSize = computeLogElementSize();
     depth = 1;
