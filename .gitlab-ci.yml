@@ -10,43 +10,48 @@ stages:
 
 before_script:
   - '! [ -e ./benchmarks/dacapo-2006-10-MR2.jar ] && mkdir -p benchmarks && wget https://downloads.sourceforge.net/project/dacapobench/archive/2006-10-MR2/dacapo-2006-10-MR2.jar -O benchmarks/dacapo-2006-10-MR2.jar'
-    
+
+build:pre-commit:
+  stage: build
+  script:
+    - python scripts/testMMTk.py -T pre-commit
+
 build:basebasenogc:
   stage: build
   script:
-    - python scripts/testMMTk.py -g BaseBaseNoGC
+    - python scripts/testMMTk.py -g RBaseBaseNoGC
 
 build:fastadaptivenogc:
   stage: build
   script:
-    - python scripts/testMMTk.py -g FastAdaptiveNoGC
+    - python scripts/testMMTk.py -g RFastAdaptiveNoGC
 
 build:fulladaptivenogc:
   stage: build
   script:
-    - python scripts/testMMTk.py -g FullAdaptiveNoGC
+    - python scripts/testMMTk.py -g RFullAdaptiveNoGC
 
 build:basebasenogcjavabuild:
   stage: build
   script:
-    - python scripts/testMMTk.py -g BaseBaseNoGC --java-build
+    - python scripts/testMMTk.py -g BaseBaseNoGC
 
 build:basebasesemispace:
   stage: build
   script:
-    - python scripts/testMMTk.py -g BaseBaseSemiSpace
+    - python scripts/testMMTk.py -g RBaseBaseSemiSpace
 
 build:fastadaptivesemispace:
   stage: build
   script:
-    - python scripts/testMMTk.py -g FastAdaptiveSemiSpace
+    - python scripts/testMMTk.py -g RFastAdaptiveSemiSpace
 
 build:fulladaptivesemispace:
   stage: build
   script:
-    - python scripts/testMMTk.py -g FullAdaptiveSemiSpace
+    - python scripts/testMMTk.py -g RFullAdaptiveSemiSpace
 
 build:basebasesemispacejavabuild:
   stage: build
   script:
-    - python scripts/testMMTk.py -g BaseBaseSemiSpace --java-build
+    - python scripts/testMMTk.py -g BaseBaseSemiSpace
