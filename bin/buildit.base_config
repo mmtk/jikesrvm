@@ -15,10 +15,10 @@
 # Buildit has three files of the same format
 #   1. buildit.base_config file at the location of buildit
 #   2. .buildit_config in the user's home directory
-#   3. .buildit_cache in the user's home directory  
+#   3. .buildit_cache in the user's home directory
 #
-# Use the examples that follow to set the appropriate configuration 
-# in your .buildit_config file to enable more functionality in buildit. 
+# Use the examples that follow to set the appropriate configuration
+# in your .buildit_config file to enable more functionality in buildit.
 #
 # Format is key=value
 # Do not quote values
@@ -43,7 +43,7 @@
 # =================================================
 
 # Benchmarks directory
-global.ext.lib.dir=/usr/share/benchmarks
+global.ext.lib.dir=../../../benchmarks/
 
 # Components cache directory. Relative to home directory
 global.components.cache.dir=.buildit_components_cache
