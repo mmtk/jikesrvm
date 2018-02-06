@@ -240,7 +240,6 @@ EXTERNAL void sysSyncCache(void *address, size_t size);
 
 //sysMMTk
 EXTERNAL void sysHelloWorld();
-EXTERNAL void sysBrokenCode();
 
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);
