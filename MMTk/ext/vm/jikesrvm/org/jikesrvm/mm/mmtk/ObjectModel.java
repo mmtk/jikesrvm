@@ -123,7 +123,7 @@ import org.vmmagic.unboxed.Word;
         bytes = org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(from.toObject(), classType);
         org.jikesrvm.objectmodel.ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, classType);
       } else {
-      RVMArray arrayType = type.asArray();
+        RVMArray arrayType = type.asArray();
         int elements = Magic.getArrayLength(from.toObject());
         bytes = org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(from.toObject(), arrayType, elements);
         org.jikesrvm.objectmodel.ObjectModel.moveObject(from.toObject(), to.toObject(), bytes, arrayType);
