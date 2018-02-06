@@ -94,9 +94,6 @@ public final class MemoryManager {
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
   private static final boolean traceAllocator = false;
 
-  // FIXME: GC options
-  private static final int GC_THREADS = 1;
-
   /**
    * Has the interface been booted yet?
    */
@@ -240,7 +237,7 @@ public final class MemoryManager {
   @Interruptible
   public static void enableCollection() {
     if (VM.BuildWithRustMMTk) {
-      sysCall.sysEnableCollection(RVMThread.getCurrentThreadSlot(), GC_THREADS);
+      sysCall.sysEnableCollection(RVMThread.getCurrentThreadSlot());
     } else {
       Selected.Plan.get().enableCollection();
     }

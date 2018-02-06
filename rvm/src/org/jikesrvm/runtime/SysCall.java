@@ -220,11 +220,11 @@ public abstract class SysCall {
   public abstract void start_worker(int threadId, Address workerInstance);
 
   @Inline
-  public void sysEnableCollection(int threadId, int size) {
-    enable_collection(threadId, size);
+  public void sysEnableCollection(int threadId) {
+    enable_collection(threadId);
   }
   @SysCallAlignedTemplate
-  public abstract void enable_collection(int threadId, int size);
+  public abstract void enable_collection(int threadId);
 
   @Inline
   public boolean sysWillNeverMove(ObjectReference object) {

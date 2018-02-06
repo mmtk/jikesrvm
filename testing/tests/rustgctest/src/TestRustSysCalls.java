@@ -14,8 +14,6 @@
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.SysCall;
 
-import javax.xml.transform.Result;
-
 class TestRustSysCalls {
 
     public static void main(String[] args)  {
