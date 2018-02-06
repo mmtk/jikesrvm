@@ -99,6 +99,7 @@ public final class RVMClass extends RVMType {
    * the transformed modifiers, i.e. the modifiers that the JVM uses (e.g.
    * for access control)
    */
+  @Entrypoint(fieldMayBeFinal = true)
   private final short modifiers;
   /**
    * the original modifiers from the source (required to support
@@ -162,6 +163,7 @@ public final class RVMClass extends RVMType {
   private int instanceSize;
 
   /** The desired alignment for instances of this type. */
+  @Entrypoint
   private int alignment;
 
   /**
@@ -206,6 +208,7 @@ public final class RVMClass extends RVMType {
   private Offset thinLockOffset;
 
   /** Reference Count GC: is this type acyclic?  */
+  @Entrypoint
   private boolean acyclic;
 
   /** Cached set of inherited and declared annotations. */

@@ -232,6 +232,17 @@ public class Entrypoints {
           getField(org.jikesrvm.classloader.RVMArray.class, "JavaLangObjectArray",
                   org.jikesrvm.classloader.RVMArray.class);
 
+  public static final RVMField rvmClassAlignment =
+          getField(org.jikesrvm.classloader.RVMClass.class, "alignment", int.class);
+  public static final RVMField rvmArrayAlignment =
+          getField(org.jikesrvm.classloader.RVMArray.class, "alignment", int.class);
+  public static final RVMField rvmArrayAcyclic =
+          getField(org.jikesrvm.classloader.RVMArray.class, "acyclic", boolean.class);
+  public static final RVMField rvmClassAcyclic =
+          getField(org.jikesrvm.classloader.RVMClass.class, "acyclic", boolean.class);
+  public static final RVMField rvmClassModifiers =
+          getField(org.jikesrvm.classloader.RVMClass.class, "modifiers", short.class);
+
   public static final NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");
   public static final NormalMethod unlockMethod =
