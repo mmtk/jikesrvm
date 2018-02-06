@@ -9,7 +9,3 @@
 EXTERNAL void sysHelloWorld() {
     printf("Hello World!\n");
 }
-
-EXTERNAL void sysBrokenCode() {
-    broken_code();
-}

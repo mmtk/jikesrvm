@@ -113,9 +113,6 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract void sysHelloWorld();
 
-  @SysCallTemplate
-  public abstract void sysBrokenCode();
-
    /**
    * Initialises information about the control collector
    * @param threadId thread id of the control collector
@@ -608,5 +605,20 @@ public abstract class SysCall {
 
   @SysCallTemplate
   public abstract void sysStackAlignmentTest();
+
+  @Inline
+  public void sysTestStackAlignment() {
+    test_stack_alignment();
+  }
+  @SysCallAlignedTemplate
+  public abstract void test_stack_alignment();
+
+  @Inline
+  public int sysTestStackAlignment1(int a, int b, int c, int d, int e) {
+    return test_stack_alignment1(a, b, c, d, e);
+  }
+  @SysCallAlignedTemplate
+  public abstract int test_stack_alignment1(int a, int b, int c, int d, int e);
+
 }
 
