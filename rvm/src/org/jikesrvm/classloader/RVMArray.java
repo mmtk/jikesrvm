@@ -124,11 +124,13 @@ public final class RVMArray extends RVMType {
    * Cached rather than computed because this is a frequently
    * asked question
    */
+  @Entrypoint(fieldMayBeFinal = true)
   private final int alignment;
 
   /**
    * Reference Count GC: is this type acyclic?
    */
+  @Entrypoint(fieldMayBeFinal = true)
   private final boolean acyclic;
 
   /**
