@@ -4413,8 +4413,6 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
 
           // (6) pop space for arguments
           if (j == 0) {
-            offsetToFirstArg = offsetToFirstArg.minus(WORDSIZE);
-            offsetToLastArg = offsetToLastArg.minus(WORDSIZE);
             adjustStack(paramBytes + WORDSIZE, true);
             jumpToRest[0] = asm.forwardJMP();
           } else {
