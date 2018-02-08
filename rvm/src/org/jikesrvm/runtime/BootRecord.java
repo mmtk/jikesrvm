@@ -246,6 +246,10 @@ public class BootRecord {
 
   // garbage collector
   public Address sysHelloWorldIP;
+  public Address alignedSysAllocIP;
+  public Address alignedSysAllocSlowIP;
+
+  //mmtk.h - Rust Functions
   public Address jikesrvm_gc_initIP;
   public Address test_stack_alignmentIP;
   public Address test_stack_alignment1IP;
@@ -260,6 +264,8 @@ public class BootRecord {
   public Address start_workerIP;
   public Address enable_collectionIP;
   public Address processIP;
+
+
 
   // startup/shutdown
   public Address sysExitIP;
