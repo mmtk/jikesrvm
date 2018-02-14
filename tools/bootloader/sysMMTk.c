@@ -9,3 +9,11 @@
 EXTERNAL void sysHelloWorld() {
     printf("Hello World!\n");
 }
+
+EXTERNAL void* alignedSysAlloc(MMTk_Mutator mutator, int size, int align, int offset, int allocator) {
+	return alloc(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
+}
+
+EXTERNAL void* alignedSysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset, int allocator) {
+    return alloc_slow(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
+}
