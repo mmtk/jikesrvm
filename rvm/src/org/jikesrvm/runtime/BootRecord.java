@@ -251,8 +251,8 @@ public class BootRecord {
 
   //mmtk.h - Rust Functions
   public Address jikesrvm_gc_initIP;
-  public Address test_stack_alignmentIP;
-  public Address test_stack_alignment1IP;
+//  public Address test_stack_alignmentIP;
+//  public Address test_stack_alignment1IP;
   public Address allocIP;
   public Address bind_mutatorIP;
   public Address alloc_slowIP;

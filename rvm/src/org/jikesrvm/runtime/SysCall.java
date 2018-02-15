@@ -614,18 +614,19 @@ public abstract class SysCall {
 
   @Inline
   public void sysTestStackAlignment() {
-    test_stack_alignment();
+  //  test_stack_alignment();
   }
-  @SysCallAlignedTemplate
-  public abstract void test_stack_alignment();
+//  @SysCallAlignedTemplate
+//  public abstract void test_stack_alignment();
 
   @Inline
   public int sysTestStackAlignment1(int a, int b, int c, int d, int e) {
-    return test_stack_alignment1(a, b, c, d, e);
+    return 0;
+    //return test_stack_alignment1(a, b, c, d, e);
   }
 
-  @SysCallAlignedTemplate
-  public abstract int test_stack_alignment1(int a, int b, int c, int d, int e);
+//  @SysCallAlignedTemplate
+//  public abstract int test_stack_alignment1(int a, int b, int c, int d, int e);
 
   @SysCallTemplate
   public abstract void sysArgumentPassingTest(long firstLong, long secondLong, long thirdLong, long fourthLong,
