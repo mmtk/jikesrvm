@@ -310,7 +310,11 @@ public class GenerateInterfaceDeclarations {
       if (fieldName.indexOf("gcspy") > -1 && !VM.BuildWithGCSpy) {
         continue;  // ugh.  NOTE: ugly hack to side-step unconditional inclusion of GCSpy stuff
       }
+      if (fieldName.indexOf("RIP") > -1 && !VM.BuildWithRustMMTk) {
+        continue;  // ugh.  NOTE: ugly hack to side-step unconditional inclusion of Rust MMTk stuff
+      }
       int suffixIndex = fieldName.indexOf("IP");
+
       if (suffixIndex > 0) {
         // java field "xxxIP" corresponds to C function "xxx"
         String functionName = fieldName.substring(0, suffixIndex);
@@ -320,6 +324,7 @@ public class GenerateInterfaceDeclarations {
       } else if (fieldName.equals("sysJavaVM")) {
         pln("  br->" + fieldName + " = (Address)&" + fieldName + ";");
       }
+
     }
 
     pln("}");
