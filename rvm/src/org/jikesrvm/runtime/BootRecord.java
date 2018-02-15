@@ -342,8 +342,6 @@ public class BootRecord {
   public Address sysPrimitiveParseLongIP;
   public Address sysParseMemorySizeIP;
 
-  public Address sysStackAlignmentTestIP;
-
   // time
   Address sysCurrentTimeMillisIP;
   Address sysNanoTimeIP;
@@ -432,6 +430,9 @@ public class BootRecord {
 
   public Address gcspyFormatSizeIP;
   public Address gcspySprintfIP;
+
+  public Address sysStackAlignmentTestIP;
+  public Address sysArgumentPassingTestIP;
 
   // perf event support
   public Address sysPerfEventInitIP;

@@ -623,8 +623,15 @@ public abstract class SysCall {
   public int sysTestStackAlignment1(int a, int b, int c, int d, int e) {
     return test_stack_alignment1(a, b, c, d, e);
   }
+
   @SysCallAlignedTemplate
   public abstract int test_stack_alignment1(int a, int b, int c, int d, int e);
+
+  @SysCallTemplate
+  public abstract void sysArgumentPassingTest(long firstLong, long secondLong, long thirdLong, long fourthLong,
+      long fifthLong, long sixthLong, long seventhLong, long eightLong, double firstDouble, double secondDouble,
+      double thirdDouble, double fourthDouble, double fifthDouble, double sixthDouble, double seventhDouble,
+      double eightDouble, int firstInt, long ninthLong, byte[] firstByteArray, double ninthDouble, Address firstAddress);
 
 }
 

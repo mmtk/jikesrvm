@@ -25,11 +25,11 @@ class TestRustSysCalls {
         // This returns the addition of each argument multiplied by a value
         // The returned value ensures that the arguments are passed in the correct order
         for (int i = 0; i < 4; i++) {
-            int a = (int) Math.random() * 50;
-            int b = (int) Math.random() * 50;
-            int c = (int) Math.random() * 50;
-            int d = (int) Math.random() * 50;
-            int e = (int) Math.random() * 50;
+            int a = (int) (Math.random() * 50);
+            int b = (int) (Math.random() * 50);
+            int c = (int) (Math.random() * 50);
+            int d = (int) (Math.random() * 50);
+            int e = (int) (Math.random() * 50);
             int result = SysCall.sysCall.sysTestStackAlignment1(a, b, c, d, e);
             if (result != a + 2 * b + 3 * c + 4 * d + 5 * e) {
                 System.out.println("Result: " + result);
