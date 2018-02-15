@@ -35,7 +35,7 @@ import org.vmmagic.unboxed.*;
 /**
  * This class defines and manages spaces.  Each policy is an instance
  * of a space.  A space is a region of virtual memory (contiguous or
- * discontigous) which is subject to the same memory management
+ * discontiguous) which is subject to the same memory management
  * regime.  Multiple spaces (instances of this class or its
  * descendants) may have the same policy (eg there could be numerous
  * instances of CopySpace, each with different roles). Spaces are

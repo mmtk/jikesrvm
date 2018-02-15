@@ -118,7 +118,7 @@ public final class MonotonePageResource extends PageResource {
    * bump the cursor, and fail if we hit the sentinel.<p>
    *
    * If the request can be satisfied, then ensure the pages are
-   * mmpapped and zeroed before returning the address of the start of
+   * mmapped and zeroed before returning the address of the start of
    * the region.  If the request cannot be satisfied, return zero.
    *
    * @param reservedPages The number of pages reserved due to the initial request.
