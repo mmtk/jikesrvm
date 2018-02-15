@@ -239,8 +239,10 @@ EXTERNAL void sysSyncCache(void *address, size_t size);
 
 //sysMMTk
 EXTERNAL void sysHelloWorld();
-//EXTERNAL void test_stack_alignment();
-//EXTERNAL void test_stack_alignment1(int a, int b, int c, int d, int e);
+#ifdef RUST_BUILD
+EXTERNAL void test_stack_alignment();
+EXTERNAL void test_stack_alignment1(int a, int b, int c, int d, int e);
+#endif
 EXTERNAL void* alignedSysAlloc(MMTk_Mutator mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void* alignedSysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
 
