@@ -209,7 +209,7 @@ class GeneratedFileWriter {
    * @throws IOException
    */
   void processAlignedMethod(ExecutableElement method) throws IOException {
-    generateMethodImplementation(method);
+    generateAlignedMethodImplementation(method);
     generateAlignedPrivateNativeStub(method);
   }
 
@@ -246,6 +246,51 @@ class GeneratedFileWriter {
     methodBody.append(getMethodName(method) +
         "(BootRecord.the_boot_record.");
     methodBody.append(getMethodName(method) + "IP");
+
+    generateParameterList(parameters, methodBody, false);
+
+    methodBody.append(");");
+    writeLine(methodBody.toString());
+
+    decreaseIndentation();
+    writeLine("}");
+
+    writeEmptyLine();
+  }
+
+  private void generateAlignedMethodImplementation(ExecutableElement method)
+          throws IOException {
+
+    List<? extends VariableElement> parameters = method.getParameters();
+
+    StringBuilder firstLineOfMethod = new StringBuilder();
+    preserveNecessaryAnnotations(method,
+            SysCallProcessor.SYSCALL_TEMPLATE_ANNOTATION);
+    addOverrideAnnotation();
+
+    firstLineOfMethod.append(getModifierString(method));
+
+    TypeMirror returnType = method.getReturnType();
+    firstLineOfMethod.append(returnType.toString());
+    firstLineOfMethod.append(" ");
+    firstLineOfMethod.append(getMethodName(method));
+    firstLineOfMethod.append("(");
+    firstLineOfMethod.append(getParameterString(method.getParameters()));
+    firstLineOfMethod.append(") {");
+
+    writeLine(firstLineOfMethod.toString());
+    increaseIndentation();
+
+    StringBuilder methodBody = new StringBuilder();
+
+    boolean needsReturn = !returnType.getKind().equals(TypeKind.VOID);
+    if (needsReturn) {
+      methodBody.append("return ");
+    }
+
+    methodBody.append(getMethodName(method) +
+            "(BootRecord.the_boot_record.");
+    methodBody.append(getMethodName(method) + "RIP");
 
     generateParameterList(parameters, methodBody, false);
 
@@ -364,6 +409,49 @@ class GeneratedFileWriter {
     }
   }
 
+  /**
+   * Generate a parameter list.
+   *
+   * @param parameters
+   *            the parameters
+   * @param stringBuilder
+   *            a builder the list will be appended to
+   * @param methodDeclaration
+   *            <code>true</code> true if the list is used in a method
+   *            declaration, <code>false</code> if it is used in a method call
+   */
+  private void generateRustParameterList(
+          List<? extends VariableElement> parameters,
+          StringBuilder stringBuilder, boolean methodDeclaration) {
+    Iterator<? extends VariableElement> parametersIt;
+    VariableElement parameter;
+    parametersIt = parameters.iterator();
+
+    if (!parameters.isEmpty()) {
+      stringBuilder.append(", ");
+    }
+
+    while (parametersIt.hasNext()) {
+      parameter = parametersIt.next();
+
+      if (methodDeclaration) {
+        Set<Modifier> modifiers = parameter.getModifiers();
+        for (Modifier m : modifiers) {
+          stringBuilder.append(m.toString());
+          stringBuilder.append(" ");
+        }
+        stringBuilder.append(parameter.asType().toString());
+        stringBuilder.append(" ");
+      }
+      String varName = parameter.getSimpleName().toString();
+      varName = varName.substring(0,varName.length() - 2) + "RIP";
+      stringBuilder.append(varName);
+      if (parametersIt.hasNext()) {
+        stringBuilder.append(", ");
+      }
+    }
+  }
+
   private void decreaseIndentation() {
     currentIndentationLevel--;
   }
@@ -404,6 +492,7 @@ class GeneratedFileWriter {
     stubDeclaration.append(returnType);
 
     stubDeclaration.append(" ");
+
     stubDeclaration.append(getMethodName(method));
     stubDeclaration.append("(org.vmmagic.unboxed.Address nativeIP");
 

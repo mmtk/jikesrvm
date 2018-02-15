@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.runtime;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.annotations.GenerateImplementation;
 import org.jikesrvm.annotations.SysCallAlignedTemplate;
 import org.jikesrvm.annotations.SysCallTemplate;
@@ -110,7 +111,7 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysMemmove(Address dst, Address src, Extent cnt);
 
-  @SysCallAlignedTemplate
+  @SysCallTemplate
   public abstract void sysHelloWorld();
 
    /**
@@ -614,19 +615,24 @@ public abstract class SysCall {
 
   @Inline
   public void sysTestStackAlignment() {
-  //  test_stack_alignment();
+    if (VM.BuildWithRustMMTk) {
+      test_stack_alignment();
+    }
   }
-//  @SysCallAlignedTemplate
-//  public abstract void test_stack_alignment();
+
+  @SysCallAlignedTemplate
+  public abstract void test_stack_alignment();
 
   @Inline
   public int sysTestStackAlignment1(int a, int b, int c, int d, int e) {
+    if (VM.BuildWithRustMMTk) {
+      return test_stack_alignment1(a, b, c, d, e);
+    }
     return 0;
-    //return test_stack_alignment1(a, b, c, d, e);
   }
 
-//  @SysCallAlignedTemplate
-//  public abstract int test_stack_alignment1(int a, int b, int c, int d, int e);
+  @SysCallAlignedTemplate
+  public abstract int test_stack_alignment1(int a, int b, int c, int d, int e);
 
   @SysCallTemplate
   public abstract void sysArgumentPassingTest(long firstLong, long secondLong, long thirdLong, long fourthLong,

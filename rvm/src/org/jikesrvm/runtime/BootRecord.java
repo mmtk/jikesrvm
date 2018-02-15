@@ -250,20 +250,20 @@ public class BootRecord {
   public Address alignedSysAllocSlowIP;
 
   //mmtk.h - Rust Functions
-  public Address jikesrvm_gc_initIP;
+  public Address jikesrvm_gc_initRIP;
   public Address test_stack_alignmentRIP;
   public Address test_stack_alignment1RIP;
-  public Address allocIP;
-  public Address bind_mutatorIP;
-  public Address alloc_slowIP;
-  public Address start_control_collectorIP;
-  public Address will_never_moveIP;
-  public Address report_delayed_root_edgeIP;
-  public Address will_not_move_in_current_collectionIP;
-  public Address process_interior_edgeIP;
-  public Address start_workerIP;
-  public Address enable_collectionIP;
-  public Address processIP;
+  public Address allocRIP;
+  public Address bind_mutatorRIP;
+  public Address alloc_slowRIP;
+  public Address start_control_collectorRIP;
+  public Address will_never_moveRIP;
+  public Address report_delayed_root_edgeRIP;
+  public Address will_not_move_in_current_collectionRIP;
+  public Address process_interior_edgeRIP;
+  public Address start_workerRIP;
+  public Address enable_collectionRIP;
+  public Address processRIP;
 
 
 
