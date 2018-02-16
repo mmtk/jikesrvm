@@ -409,48 +409,6 @@ class GeneratedFileWriter {
     }
   }
 
-  /**
-   * Generate a parameter list.
-   *
-   * @param parameters
-   *            the parameters
-   * @param stringBuilder
-   *            a builder the list will be appended to
-   * @param methodDeclaration
-   *            <code>true</code> true if the list is used in a method
-   *            declaration, <code>false</code> if it is used in a method call
-   */
-  private void generateRustParameterList(
-          List<? extends VariableElement> parameters,
-          StringBuilder stringBuilder, boolean methodDeclaration) {
-    Iterator<? extends VariableElement> parametersIt;
-    VariableElement parameter;
-    parametersIt = parameters.iterator();
-
-    if (!parameters.isEmpty()) {
-      stringBuilder.append(", ");
-    }
-
-    while (parametersIt.hasNext()) {
-      parameter = parametersIt.next();
-
-      if (methodDeclaration) {
-        Set<Modifier> modifiers = parameter.getModifiers();
-        for (Modifier m : modifiers) {
-          stringBuilder.append(m.toString());
-          stringBuilder.append(" ");
-        }
-        stringBuilder.append(parameter.asType().toString());
-        stringBuilder.append(" ");
-      }
-      String varName = parameter.getSimpleName().toString();
-      varName = varName.substring(0,varName.length() - 2) + "RIP";
-      stringBuilder.append(varName);
-      if (parametersIt.hasNext()) {
-        stringBuilder.append(", ");
-      }
-    }
-  }
 
   private void decreaseIndentation() {
     currentIndentationLevel--;
