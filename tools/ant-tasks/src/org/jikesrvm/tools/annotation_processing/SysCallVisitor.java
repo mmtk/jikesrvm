@@ -227,7 +227,7 @@ class SysCallVisitor extends SimpleElementVisitor6<Void, Void> {
     }
     try {
       if (sysCallAlignedAnnotation != null) {
-        generatedFileWriter.processAlignedMethod(e);
+        generatedFileWriter.processRustMethod(e);
       } else {
         generatedFileWriter.processMethod(e);
       }

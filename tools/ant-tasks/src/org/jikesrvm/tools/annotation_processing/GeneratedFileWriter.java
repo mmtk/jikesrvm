@@ -208,9 +208,9 @@ class GeneratedFileWriter {
    * @param method
    * @throws IOException
    */
-  void processAlignedMethod(ExecutableElement method) throws IOException {
-    generateAlignedMethodImplementation(method);
-    generateAlignedPrivateNativeStub(method);
+  void processRustMethod(ExecutableElement method) throws IOException {
+    generateRustMethodImplementation(method);
+    generateRustPrivateNativeStub(method);
   }
 
   private void generateMethodImplementation(ExecutableElement method)
@@ -258,7 +258,7 @@ class GeneratedFileWriter {
     writeEmptyLine();
   }
 
-  private void generateAlignedMethodImplementation(ExecutableElement method)
+  private void generateRustMethodImplementation(ExecutableElement method)
           throws IOException {
 
     List<? extends VariableElement> parameters = method.getParameters();
@@ -438,7 +438,7 @@ class GeneratedFileWriter {
     writeEmptyLine();
   }
 
-  private void generateAlignedPrivateNativeStub(ExecutableElement method)
+  private void generateRustPrivateNativeStub(ExecutableElement method)
           throws IOException {
     writeLine("@org.vmmagic.pragma.SysCallNative");
     writeLine("@org.vmmagic.pragma.StackAlignment");
