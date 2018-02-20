@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.rustgc;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.junit.runners.RequiresBootstrapVM;
 import org.jikesrvm.junit.runners.RequiresBuiltJikesRVM;
 import org.jikesrvm.junit.runners.VMRequirements;
@@ -26,7 +25,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(VMRequirements.class)
-public class ExampleTest {
+public class SysCallTest {
 
   @Test
   @Category(RequiresBuiltJikesRVM.class)
@@ -46,6 +45,7 @@ public class ExampleTest {
   }
 
   @Test
+  @Category(RequiresBuiltJikesRVM.class)
   public void testSyscalls() {
     for (int i = 0; i < 4; i++) {
       int a = (int) (Math.random() * 50);
@@ -54,10 +54,9 @@ public class ExampleTest {
       int d = (int) (Math.random() * 50);
       int e = (int) (Math.random() * 50);
       int result = SysCall.sysCall.sysTestStackAlignment1(a, b, c, d, e);
-      assertTrue(true);
-      //assertTrue("Returned incorrect result on syscall parameter passing. Returned " + result
-      //                + " when expecting " + (a + 2 * b + 3 * c + 4 * d + 5 * e)
-      //        ,result == a + 2 * b + 3 * c + 4 * d + 5 * e);
+      assertTrue("Returned incorrect result on syscall parameter passing. Returned " + result
+                      + " when expecting " + (a + 2 * b + 3 * c + 4 * d + 5 * e)
+              ,result == a + 2 * b + 3 * c + 4 * d + 5 * e);
     }
   }
 }
