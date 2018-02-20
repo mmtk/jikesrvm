@@ -118,6 +118,21 @@
   <!-- Default heap layout -->
   <property name="target.heap-layout" value="32BIT"/>
 
+  <!-- Decide to compile unit tests -->
+  <target name="check-compilation-required">
+    <if>
+    <conditions>
+      <or>
+        <equals arg1="${require.unit-tests}" arg2="true"/>
+        <equals arg1="${require.rvm-unit-tests}" arg2="true"/>
+      </or>
+    </conditions>
+    <sequential>
+      <property name="requires.compile.unit-tests" value="true"/>
+    </sequential>
+  </if>
+  </target>
+
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *             Property initialization section of the build                 * -->
@@ -1435,7 +1450,7 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
   </target>
 
-  <target name="compile-unit-tests" depends="compile" if="${require.unit-tests}">
+  <target name="compile-unit-tests" depends="compile, check-compilation-required" if="require.compile.unit-tests">
 
     <delete dir="${build.test-classes}"/>
     <mkdir dir="${build.test-classes}"/>
@@ -1459,7 +1474,7 @@ Check to make sure all required properties are specified. This includes properti
     </javac>
   </target>
 
-  <target name="bootstrap-unit-tests" description="Run unit tests on the boostrap VM" depends="compile-unit-tests" if="${require.unit-tests}">
+  <target name="bootstrap-unit-tests" description="Run unit tests on the bootstrap VM" depends="compile-unit-tests" if="${require.unit-tests}">
 
     <delete dir="${junit.reports.bootstrap}"/>
     <mkdir dir="${junit.reports.bootstrap}"/>
@@ -1682,22 +1697,15 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
 
-  <target name="compile-rust-mmtk" depends="gen-asm">
-    <if>
-      <conditions>
-      <equals arg1="${rust.build}" arg2="true"/>
-      </conditions>
-      <sequential>
-        <exec executable="cargo" dir="mmtk" failonerror="true">
-          <arg value="+nightly"/>
-          <arg value="build"/>
-          <arg value="--target=i686-unknown-linux-gnu"/>
-          <arg value="--features=jikesrvm ${rust.features}"/>
-          <arg value="--no-default-features"/>
-          <arg line="${rust.args}"/>
-        </exec>
-      </sequential>
-    </if>
+  <target name="compile-rust-mmtk" depends="gen-asm" if="${rust.build}">
+    <exec executable="cargo" dir="mmtk" failonerror="true">
+      <arg value="+nightly"/>
+      <arg value="build"/>
+      <arg value="--target=i686-unknown-linux-gnu"/>
+      <arg value="--features=jikesrvm ${rust.features}"/>
+      <arg value="--no-default-features"/>
+      <arg line="${rust.args}"/>
+    </exec>
   </target>
 
 
