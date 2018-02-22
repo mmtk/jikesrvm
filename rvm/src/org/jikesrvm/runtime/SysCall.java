@@ -152,10 +152,10 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract Address bind_mutator(int thread_id);
 
-  @SysCallTemplate
+  @SysCallAlignedTemplate
   public abstract Address alignedSysAllocSlow(Address mutator, int size, int align, int offset, int allocator);
 
-  @SysCallTemplate
+  @SysCallAlignedTemplate
   public abstract Address alignedSysAlloc(Address mutator, int size, int align, int offset, int allocator);
 
   /**

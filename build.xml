@@ -1239,15 +1239,37 @@ Check to make sure all required properties are specified. This includes properti
            </not>
          </conditions>
         <sequential>
-          <exec executable="${c.exe}" failonerror="true">
-            <arg line="${c.args} ${shared.flag}"/>
-            <arg line="-Xlinker --version-script=@{srcdir}/${target.dll-prefix}@{dllname}.exp"/>
-            <arg line="-o @{outdir}/${target.dll-prefix}@{dllname}@{suffix}"/>
-            <ObjectFiles/>
-						<arg line="-lmmtk"/>
-						<arg line="-L${mmtk.path}"/>
-						<arg line="-Wl,-rpath,${mmtk.path}"/>
-          </exec>
+          <if>
+            <conditions>
+              <equals arg1="${rust.build}" arg2="true"/>
+            </conditions>
+            <sequential>
+              <exec executable="${c.exe}" failonerror="true">
+                <arg line="${c.args} ${shared.flag}"/>
+                <arg line="-Xlinker --version-script=@{srcdir}/${target.dll-prefix}@{dllname}.exp"/>
+                <arg line="-o @{outdir}/${target.dll-prefix}@{dllname}@{suffix}"/>
+                <ObjectFiles/>
+                <arg line="-lmmtk"/>
+                <arg line="-L${mmtk.path}"/>
+                <arg line="-Wl,-rpath,${mmtk.path}"/>
+              </exec>
+            </sequential>
+          </if>
+          <if>
+            <conditions>
+              <not>
+                <equals arg1="${rust.build}" arg2="true"/>
+              </not>
+            </conditions>
+            <sequential>
+              <exec executable="${c.exe}" failonerror="true">
+                <arg line="${c.args} ${shared.flag}"/>
+                <arg line="-Xlinker --version-script=@{srcdir}/${target.dll-prefix}@{dllname}.exp"/>
+                <arg line="-o @{outdir}/${target.dll-prefix}@{dllname}@{suffix}"/>
+                <ObjectFiles/>
+              </exec>
+             </sequential>
+          </if>
         </sequential>
       </if>
     </sequential>
