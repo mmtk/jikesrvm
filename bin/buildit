@@ -118,6 +118,7 @@ Testing Options:
      --ext-lib-dir    Specify the benchmarks directory for testing.
      --processors     Specify the number of processors to use.
  -z, --skip-build     Run tests without building
+ -v, --skip-jikesrvm  Build Rust MMTk without building jikesrvm
      --save-space     Keep only archived results on the local machine and throw away the rest
 
 ";
@@ -190,6 +191,7 @@ my $with_perfevent;
 my $with_acheck;
 my $skip_build;
 my $save_space;
+my $skip_jikesrvm;
 my $help;
 my $x87;
 my $m32;
@@ -236,6 +238,7 @@ GetOptions(
   "with-perfevent" => \$with_perfevent,
   "a|with-acheck" => \$with_acheck,
   "z|skip-build" => \$skip_build,
+  "v|skip-jikesrvm" => \$skip_jikesrvm,
   "save-space" => \$save_space,
   "h|help" => \$help,
   "x87" => \$x87,
@@ -841,6 +844,9 @@ if ($ok) {
 
     if ($skip_build) {
       $build .= "echo Skipping build ";
+    } elsif ($skip_jikesrvm) {
+      $build .= " ant check-config-properties compile-rust-mmtk ".
+                "$hostdefs ";
     } else {
       $build .= "$sshHostCmdT '$shell \"$ulimit ".
                "  cd $hostRoot &&".
