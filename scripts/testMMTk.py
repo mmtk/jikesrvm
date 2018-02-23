@@ -22,7 +22,7 @@ parser.add_argument("-a", dest="args", default="Xms1024M", help="Specifies which
                     type=str)
 parser.add_argument("--build-only", dest="build_only", action="store_true",
                     help="Only build the compiler but do not test it")
-parser.add_argument("-b", dest="build_args", help="Specifies which arguments to pass when building JikesRVM", type=str)
+parser.add_argument("-b", dest="build_args", default="", help="Specifies which arguments to pass when building JikesRVM", type=str)
 parser.add_argument("--test-only", dest="test_only", action="store_true",
                     help="Do not build the compiler, only test it")
 
@@ -77,12 +77,14 @@ if args.test_run != "":
 if args.test != "":
     args.test = " -t " + args.test
 
-args.args = args.args.replace(" ", " -")
-args.args = "-" + args.args
+if args.args != "":
+    args.args = args.args.replace(" ", " -")
+    args.args = "-" + args.args
 
-args.build_args = args.build_args.replace(" ", " -")
-args.build_args = "-" + args.build_args + " "
-print (args.build_args)
+if args.build_args != "":
+    args.build_args = args.build_args.replace(" ", " -")
+    args.build_args = "-" + args.build_args + " "
+    print (args.build_args)
 
 passes = 0
 
