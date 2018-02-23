@@ -15,6 +15,7 @@ parser.add_argument("-T", dest="test_run", default="", help="Specifies what grou
 parser.add_argument("-t", dest="test", default="", help="Specifies what specific test to run when building. This one requires a specific garbage collector to run the tests on", type=str)
 parser.add_argument("-a", dest="args", default="Xms1024M", help="Specifies which arguments to pass when testing MMTk", type=str)
 parser.add_argument("--build-only", dest="build_only", action="store_true", help="Only build the compiler but do not test it")
+parser.add_argument("-b", dest="build_args", help="Specifies which arguments to pass when building JikesRVM", type=str)
 parser.add_argument("--test-only", dest="test_only",action="store_true", help="Do not build the compiler, only test it")
 
 args = parser.parse_args()
@@ -48,7 +49,7 @@ for file in glob.glob(os.path.join("build", "configs", "*.properties")):
     garbage_collector_list.append(fname)
 
 b = os.path.abspath(os.path.join(__file__, "..", ".." ))  # files in directory
-os.chdir(b)  
+os.chdir(b)
 
 # Check arguments passed are correct
 if not args.collector in garbage_collector_list:
@@ -66,9 +67,13 @@ if args.test_run != "":
 if args.test != "":
 	args.test = " -t " + args.test
 
+
 args.args = args.args.replace(" ", " -")
 args.args = "-" + args.args
-print (args.args)
+
+args.build_args = args.build_args.replace(" ", " -")
+args.build_args = "-" + args.build_args + " "
+print (args.build_args)
 
 passes = 0
 
@@ -82,7 +87,7 @@ for _ in range(0, args.tests):
         # All other build errors return errors as usual
         for _ in range(0, 3):
             rc = exe(("bin/buildit localhost -j /usr/lib/jvm/default-java --answer-yes " +
-                      args.collector + args.test + args.test_run + " --nuke").split())
+                      args.build_args + args.collector + args.test + args.test_run + " --nuke").split())
             if rc != 3:
                 build = rc == 0
                 break
@@ -102,7 +107,7 @@ for _ in range(0, args.tests):
             exit(1)
         passes += 1  # Check if the script has passed
 if args.collector=="":
-    print ("Tests performed.")    
+    print ("Tests performed.")
 elif passes == args.tests:
     print ("Tests passed.")
 elif build:
