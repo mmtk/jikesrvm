@@ -220,17 +220,17 @@ class SysCallVisitor extends SimpleElementVisitor6<Void, Void> {
 
     AnnotationMirror sysCallAnnotation = getMatchingAnnotationsFromElement(
         e, SysCallProcessor.SYSCALL_TEMPLATE_ANNOTATION);
+    AnnotationMirror rustSysCallAnnotation = getMatchingAnnotationsFromElement(
+            e, SysCallProcessor.RUST_SYSCALL_ANNOTATION);
     AnnotationMirror sysCallAlignedAnnotation = getMatchingAnnotationsFromElement(
         e, SysCallProcessor.SYSCALL_ALIGNED_TEMPLATE_ANNOTATION);
     if (sysCallAnnotation == null && sysCallAlignedAnnotation == null) {
       return null;
     }
     try {
-      if (sysCallAlignedAnnotation != null) {
-        generatedFileWriter.processRustMethod(e);
-      } else {
-        generatedFileWriter.processMethod(e);
-      }
+      boolean aligned = sysCallAlignedAnnotation != null;
+      boolean rust = rustSysCallAnnotation != null;
+      generatedFileWriter.processMethod(e, aligned, rust);
     } catch (IOException ioException) {
       Name methodName = e.getSimpleName();
       messager.printMessage(Kind.ERROR,

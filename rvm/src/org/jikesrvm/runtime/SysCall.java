@@ -14,6 +14,7 @@ package org.jikesrvm.runtime;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.annotations.GenerateImplementation;
+import org.jikesrvm.annotations.RustSysCall;
 import org.jikesrvm.annotations.SysCallAlignedTemplate;
 import org.jikesrvm.annotations.SysCallTemplate;
 import org.jikesrvm.scheduler.RVMThread;
@@ -123,6 +124,7 @@ public abstract class SysCall {
     start_control_collector(threadId);
   }
 
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract void start_control_collector(int threadId);
 
@@ -136,6 +138,7 @@ public abstract class SysCall {
     jikesrvm_gc_init(pointer,size);
   }
 
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract void jikesrvm_gc_init(Address pointer, int size);
 
@@ -149,12 +152,15 @@ public abstract class SysCall {
     return bind_mutator(id);
   }
 
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract Address bind_mutator(int thread_id);
 
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract Address alignedSysAllocSlow(Address mutator, int size, int align, int offset, int allocator);
 
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract Address alignedSysAlloc(Address mutator, int size, int align, int offset, int allocator);
 
@@ -171,6 +177,7 @@ public abstract class SysCall {
     return alloc_slow(mutator,size,align,offset,allocator);
   }
 
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract Address alloc_slow(Address mutator, int size, int align, int offset, int allocator);
 
@@ -187,6 +194,7 @@ public abstract class SysCall {
   public Address sysAlloc(Address mutator, int size, int align, int offset, int allocator) {
     return alloc(mutator, size, align, offset, allocator);
   }
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract Address alloc(Address mutator, int size, int align, int offset, int allocator);
 
@@ -194,6 +202,7 @@ public abstract class SysCall {
   public boolean sysProcess(byte[] name, byte[] value) {
     return process(name, value);
   }
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract boolean process(byte[] name, byte[] value);
 
@@ -202,6 +211,7 @@ public abstract class SysCall {
   public void sysReportDelayedRootEdge(Address trace_local, Address addr) {
     report_delayed_root_edge(trace_local,addr);
   }
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract void report_delayed_root_edge(Address trace_local, Address addr);
 
@@ -209,6 +219,7 @@ public abstract class SysCall {
   public boolean sysWillNotMoveInCurrentCollection(Address trace_local, ObjectReference obj) {
     return will_not_move_in_current_collection(trace_local, obj);
   }
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract boolean will_not_move_in_current_collection(Address trace_local, ObjectReference obj);
 
@@ -216,6 +227,7 @@ public abstract class SysCall {
   public void sysProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root) {
     process_interior_edge(trace_local, target, slot, root);
   }
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract void process_interior_edge(Address trace_local, ObjectReference target, Address slot, boolean root);
 
@@ -223,6 +235,7 @@ public abstract class SysCall {
   public void sysStartWorker(int threadId, Address workerInstance) {
     start_worker(threadId, workerInstance);
   }
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract void start_worker(int threadId, Address workerInstance);
 
@@ -230,6 +243,7 @@ public abstract class SysCall {
   public void sysEnableCollection(int threadId) {
     enable_collection(threadId);
   }
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract void enable_collection(int threadId);
 
@@ -237,6 +251,7 @@ public abstract class SysCall {
   public boolean sysWillNeverMove(ObjectReference object) {
     return will_never_move(object);
   }
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract boolean will_never_move(ObjectReference object);
 
@@ -620,6 +635,7 @@ public abstract class SysCall {
     }
   }
 
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract void test_stack_alignment();
 
@@ -631,6 +647,7 @@ public abstract class SysCall {
     return 0;
   }
 
+  @RustSysCall
   @SysCallAlignedTemplate
   public abstract int test_stack_alignment1(int a, int b, int c, int d, int e);
 

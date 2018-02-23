@@ -196,24 +196,22 @@ class GeneratedFileWriter {
    * @param method
    * @throws IOException
    */
-  void processMethod(ExecutableElement method) throws IOException {
-    generateMethodImplementation(method);
-    generatePrivateNativeStub(method);
+  void processMethod(ExecutableElement method, boolean aligned, boolean rust) throws IOException {
+    generateMethodImplementation(method, rust);
+    generatePrivateNativeStub(method, aligned);
   }
 
   /**
-   * Generate an implementation for an aligned method. The implementation will call a
+   * Generate an implementation for a method. The implementation will call a
    * private native stub that will also be generated.
    *
    * @param method
    * @throws IOException
    */
   void processRustMethod(ExecutableElement method) throws IOException {
-    generateRustMethodImplementation(method);
-    generateRustPrivateNativeStub(method);
   }
 
-  private void generateMethodImplementation(ExecutableElement method)
+  private void generateMethodImplementation(ExecutableElement method, boolean rust)
       throws IOException {
 
     List<? extends VariableElement> parameters = method.getParameters();
@@ -245,53 +243,7 @@ class GeneratedFileWriter {
 
     methodBody.append(getMethodName(method) +
         "(BootRecord.the_boot_record.");
-    methodBody.append(getMethodName(method) + "IP");
-
-    generateParameterList(parameters, methodBody, false);
-
-    methodBody.append(");");
-    writeLine(methodBody.toString());
-
-    decreaseIndentation();
-    writeLine("}");
-
-    writeEmptyLine();
-  }
-
-  private void generateRustMethodImplementation(ExecutableElement method)
-          throws IOException {
-
-    List<? extends VariableElement> parameters = method.getParameters();
-
-    StringBuilder firstLineOfMethod = new StringBuilder();
-    preserveNecessaryAnnotations(method,
-            SysCallProcessor.SYSCALL_TEMPLATE_ANNOTATION);
-    addOverrideAnnotation();
-
-    firstLineOfMethod.append(getModifierString(method));
-
-    TypeMirror returnType = method.getReturnType();
-    firstLineOfMethod.append(returnType.toString());
-    firstLineOfMethod.append(" ");
-    firstLineOfMethod.append(getMethodName(method));
-    firstLineOfMethod.append("(");
-    firstLineOfMethod.append(getParameterString(method.getParameters()));
-    firstLineOfMethod.append(") {");
-
-    writeLine(firstLineOfMethod.toString());
-    increaseIndentation();
-
-    StringBuilder methodBody = new StringBuilder();
-
-    boolean needsReturn = !returnType.getKind().equals(TypeKind.VOID);
-    if (needsReturn) {
-      methodBody.append("return ");
-    }
-
-    methodBody.append(getMethodName(method) +
-            "(BootRecord.the_boot_record.");
-    methodBody.append(getMethodName(method) + "RIP");
-
+    methodBody.append(getMethodName(method) + (rust ? "RIP" : "IP"));
     generateParameterList(parameters, methodBody, false);
 
     methodBody.append(");");
@@ -414,9 +366,12 @@ class GeneratedFileWriter {
     currentIndentationLevel--;
   }
 
-  private void generatePrivateNativeStub(ExecutableElement method)
+  private void generatePrivateNativeStub(ExecutableElement method, boolean aligned)
       throws IOException {
     writeLine("@org.vmmagic.pragma.SysCallNative");
+    if (aligned) {
+      writeLine("@org.vmmagic.pragma.StackAlignment");
+    }
 
     StringBuilder stubDeclaration = new StringBuilder();
     stubDeclaration.append("private static native ");
@@ -425,32 +380,6 @@ class GeneratedFileWriter {
     stubDeclaration.append(returnType);
 
     stubDeclaration.append(" ");
-    stubDeclaration.append(getMethodName(method));
-    stubDeclaration.append("(org.vmmagic.unboxed.Address nativeIP");
-
-    List<? extends VariableElement> parameters = method.getParameters();
-    generateParameterList(parameters, stubDeclaration, true);
-
-    stubDeclaration.append(")");
-    stubDeclaration.append(";");
-
-    writeLine(stubDeclaration.toString());
-    writeEmptyLine();
-  }
-
-  private void generateRustPrivateNativeStub(ExecutableElement method)
-          throws IOException {
-    writeLine("@org.vmmagic.pragma.SysCallNative");
-    writeLine("@org.vmmagic.pragma.StackAlignment");
-
-    StringBuilder stubDeclaration = new StringBuilder();
-    stubDeclaration.append("private static native ");
-
-    TypeMirror returnType = method.getReturnType();
-    stubDeclaration.append(returnType);
-
-    stubDeclaration.append(" ");
-
     stubDeclaration.append(getMethodName(method));
     stubDeclaration.append("(org.vmmagic.unboxed.Address nativeIP");
 
