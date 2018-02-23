@@ -157,11 +157,11 @@ public abstract class SysCall {
   public abstract Address bind_mutator(int thread_id);
 
   @RustSysCall
-  @SysCallAlignedTemplate
+  @SysCallTemplate
   public abstract Address alignedSysAllocSlow(Address mutator, int size, int align, int offset, int allocator);
 
   @RustSysCall
-  @SysCallAlignedTemplate
+  @SysCallTemplate
   public abstract Address alignedSysAlloc(Address mutator, int size, int align, int offset, int allocator);
 
   /**
