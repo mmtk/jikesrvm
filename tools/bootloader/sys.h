@@ -30,8 +30,9 @@
 #include <string.h> // for strcmp
 #include <jni.h>
 #include <signal.h> // for siginfo
-#include "../../mmtk/api/mmtk.h" // the api of the GC
-
+#ifdef RUST_BUILD
+    #include "../../mmtk/api/mmtk.h" // the api of the GC
+#endif
 #ifdef __MACH__
 #include <mach/mach_time.h>
 #endif
