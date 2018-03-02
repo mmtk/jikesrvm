@@ -18,9 +18,6 @@ import org.jikesrvm.mm.mmtk.ScanBootImage;
 import org.jikesrvm.mm.mmtk.ScanThread;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.BootRecord;
-import org.jikesrvm.scheduler.RVMThread;
-import org.mmtk.plan.CollectorContext;
-import org.mmtk.plan.TraceLocal;
 import org.mmtk.utility.Log;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
@@ -31,7 +28,6 @@ import org.vmmagic.unboxed.Offset;
 
 import static org.jikesrvm.mm.mmtk.ScanBootImage.checkReference;
 import static org.jikesrvm.mm.mmtk.ScanBootImage.isAddressAligned;
-import static org.mmtk.utility.Constants.BITS_IN_BYTE;
 import static org.mmtk.utility.Constants.BYTES_IN_ADDRESS;
 
 public class RustScanning {

@@ -20,7 +20,6 @@ import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.scheduler.RVMThread;
-import org.mmtk.plan.TraceLocal;
 
 /**
  * Fields and methods of the virtual machine that are needed by
