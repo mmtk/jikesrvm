@@ -1627,7 +1627,6 @@ Check to make sure all required properties are specified. This includes properti
       <include name="sun/**"/>
       <include name="gnu/**"/>
     </zip>
-    <antcall target="compile-rust-mmtk"/>
   </target>
 
   <!-- **************************************************************************** -->
@@ -1715,7 +1714,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
 
-  <target name="compile-rust-mmtk" if="${rust.build}">
+  <target name="compile-rust-mmtk" if="${rust.build}" depends="gen-asm">
     <exec executable="cargo" dir="mmtk" failonerror="true">
       <arg value="+nightly"/>
       <arg value="build"/>
