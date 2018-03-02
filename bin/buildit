@@ -106,6 +106,7 @@ Building Options:
                         Use in conjunction with --target-name.
      --target-name    Use the argument for target.name instead of reading it from the config file
                         Use in conjunction with --host-name.
+		 --unit-tests			Run unit tests on each individual component. This is separate to the unit tests on the built RVM image. Fail the build if the test fails.
 
 Testing Options:
  -t, --test           Specify a test to run (overriden by --test-run)
@@ -117,6 +118,7 @@ Testing Options:
      --ext-lib-dir    Specify the benchmarks directory for testing.
      --processors     Specify the number of processors to use.
  -z, --skip-build     Run tests without building
+ -v, --skip-jikesrvm  Build Rust MMTk without building jikesrvm
      --save-space     Keep only archived results on the local machine and throw away the rest
 
 ";
@@ -189,6 +191,7 @@ my $with_perfevent;
 my $with_acheck;
 my $skip_build;
 my $save_space;
+my $skip_jikesrvm;
 my $help;
 my $x87;
 my $m32;
@@ -198,6 +201,7 @@ my $javaHomeCmd;
 my $clearcc;
 my $timestampfile;
 my $email_report;
+my $unit_tests;
 
 GetOptions(
   "s|suffix=s" => \$suffix,
@@ -209,6 +213,7 @@ GetOptions(
   "c|cross-to=s" => \$target,
   "checkstyle" => \$checkstyle,
   "test-image" => \$test_image,
+	"unit-tests" => \$unit_tests,
   "p|profile" => \$profile,
   "u|user=s" => \$cmd_user,
   "build-user=s" => \$cmd_hostUser,
@@ -233,6 +238,7 @@ GetOptions(
   "with-perfevent" => \$with_perfevent,
   "a|with-acheck" => \$with_acheck,
   "z|skip-build" => \$skip_build,
+  "v|skip-jikesrvm" => \$skip_jikesrvm,
   "save-space" => \$save_space,
   "h|help" => \$help,
   "x87" => \$x87,
@@ -548,7 +554,7 @@ if ($test_set && !$checkstyle) {
   }
 }
 if ($test_set && !$test_image) {
-  $test_image = `grep ^require.rvm-unit-tests=false\$ $localRoot/build/test-runs/$test_set.properties`;
+  $test_image = `grep ^require.rvm-unit-tests=true\$ $localRoot/build/test-runs/$test_set.properties`;
   chomp($test_image);
   if ($test_image ne "") {
     $test_image = 1;
@@ -785,7 +791,7 @@ if ($ok) {
       $defs .= "-Drequire.checkstyle=true ";
     }
     if (defined $test_image && $test_image ne "") {
-      $defs .= "-Drequire.rvm-unit-tests=false ";
+      $defs .= "-Drequire.rvm-unit-tests=true ";
     }
     if (defined $x87) {
       $defs .= "-Dtarget.arch.sse2=none ";
@@ -814,6 +820,9 @@ if ($ok) {
     if (defined $bc_args && $bc_args ne "") {
       $defs       = $defs."-Dconfig.bootimage.compiler.args=\\\"$bc_args\\\" ";
     }
+		if (defined $unit_tests) {
+			$defs 			= $defs."-Drequire.unit-tests=true ";
+		}
 
     my $hostdefs   = $defs."-Dhost.name=$hostConfig ";
     my $targetdefs = $defs."-Dhost.name=$targetConfig ";
@@ -835,6 +844,9 @@ if ($ok) {
 
     if ($skip_build) {
       $build .= "echo Skipping build ";
+    } elsif ($skip_jikesrvm) {
+      $build .= " ant check-config-properties compile-rust-mmtk ".
+                "$hostdefs ";
     } else {
       $build .= "$sshHostCmdT '$shell \"$ulimit ".
                "  cd $hostRoot &&".

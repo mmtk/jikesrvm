@@ -310,16 +310,28 @@ public class GenerateInterfaceDeclarations {
       if (fieldName.indexOf("gcspy") > -1 && !VM.BuildWithGCSpy) {
         continue;  // ugh.  NOTE: ugly hack to side-step unconditional inclusion of GCSpy stuff
       }
+
       int suffixIndex = fieldName.indexOf("IP");
+
       if (suffixIndex > 0) {
         // java field "xxxIP" corresponds to C function "xxx"
-        String functionName = fieldName.substring(0, suffixIndex);
+        String functionName;
+        if (VM.BuildWithRustMMTk && fieldName.indexOf("RIP") > -1) {
+          functionName = fieldName.substring(0,suffixIndex - 1);
+        } else {
+          functionName = fieldName.substring(0, suffixIndex);
+        }
         // e. g.,
         //sysFOOIP = (int) sysFOO;
-        pln("  br->" + fieldName + " = (Address)" + functionName + ";");
+        if (!VM.BuildWithRustMMTk && fieldName.indexOf("RIP") > -1) {
+          pln("  br->" + fieldName + " = (Address) 0;");
+        } else {
+          pln("  br->" + fieldName + " = (Address)" + functionName + ";");
+        }
       } else if (fieldName.equals("sysJavaVM")) {
         pln("  br->" + fieldName + " = (Address)&" + fieldName + ";");
       }
+
     }
 
     pln("}");
