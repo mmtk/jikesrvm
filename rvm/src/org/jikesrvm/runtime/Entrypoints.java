@@ -20,6 +20,7 @@ import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.scheduler.RVMThread;
+import org.mmtk.plan.TraceLocal;
 
 /**
  * Fields and methods of the virtual machine that are needed by
@@ -129,6 +130,8 @@ public class Entrypoints {
   public static final NormalMethod prepareMutatorMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "prepareMutator",
                   "(Lorg/jikesrvm/scheduler/RVMThread;)V");
+  public static final NormalMethod scanBootImageMethod =
+          getMethod(org.jikesrvm.mm.mminterface.RustScanning.class, "scanBootImage", "(Lorg/vmmagic/unboxed/Address;)V");
   public static final NormalMethod testMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test", "(I)I");
   public static final NormalMethod test1Method =

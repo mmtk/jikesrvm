@@ -104,7 +104,7 @@ public class ScanBootImage {
    */
   @Inline
   @Uninterruptible
-  private static void processChunk(Address chunkStart, Address imageStart,
+  public static void processChunk(Address chunkStart, Address imageStart,
       Address mapStart, Address mapEnd, TraceLocal trace) {
     int value;
     Offset offset = Offset.zero();
@@ -155,7 +155,7 @@ public class ScanBootImage {
    * @param refaddr The address of the reference in question.
    */
   @Uninterruptible
-  private static void checkReference(Address refaddr) {
+  public static void checkReference(Address refaddr) {
     ObjectReference ref = org.mmtk.vm.VM.activePlan.global().loadObjectReference(refaddr);
     if (!MemoryManager.validRef(ref)) {
       Log.writeln();
@@ -178,7 +178,7 @@ public class ScanBootImage {
    * @return true if the offset is address aligned.
    */
   @Uninterruptible
-  private static boolean isAddressAligned(Offset offset) {
+  public static boolean isAddressAligned(Offset offset) {
     return (offset.toLong() >> LOG_BYTES_IN_ADDRESS) << LOG_BYTES_IN_ADDRESS == offset.toLong();
   }
 
@@ -188,7 +188,7 @@ public class ScanBootImage {
    * @return true if the address is address aligned.
    */
   @Uninterruptible
-  private static boolean isAddressAligned(Address address) {
+  public static boolean isAddressAligned(Address address) {
     return (address.toLong() >> LOG_BYTES_IN_ADDRESS) << LOG_BYTES_IN_ADDRESS == address.toLong();
   }
 
@@ -347,7 +347,7 @@ public class ScanBootImage {
    */
   @Inline
   @Uninterruptible
-  private static Offset decodeLongEncoding(Address cursor) {
+  public static Offset decodeLongEncoding(Address cursor) {
     int value;
     value  = (cursor.loadByte())                                              & 0x000000fc;
     value |= (cursor.loadByte(Offset.fromIntSignExtend(1)) << BITS_IN_BYTE)     & 0x0000ff00;
