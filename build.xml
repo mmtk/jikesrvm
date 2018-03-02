@@ -1714,7 +1714,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
 
-  <target name="compile-rust-mmtk" if="${rust.build}" depends="gen-asm">
+  <target name="compile-rust-mmtk" if="${rust.build}">
     <exec executable="cargo" dir="mmtk" failonerror="true">
       <arg value="+nightly"/>
       <arg value="build"/>
@@ -1726,7 +1726,8 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
 
-  <target name="build-bootimage-writer" depends="gen-asm, compile-rust-mmtk">
+  <target name="build-bootimage-writer" depends="gen-asm">
+    <antcall target="compile-rust-mmtk"/>
     <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
     <mkdir dir="${build.bootimage-writer.dir}"/>
     <javac srcdir="${basedir}/tools/bootImageWriter/src" destdir="${build.bootimage-writer.dir}" debug="true"
