@@ -44,6 +44,7 @@ public abstract class AbstractRegisters {
   @Untraced
   @Entrypoint(fieldMayBeFinal = true)
   private final double[] fprs;
+  @Untraced // FIXME
   @Entrypoint(fieldMayBeFinal = true)
   private final double[] fprsShadow;
   /** Instruction address register */
