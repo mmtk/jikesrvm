@@ -28,6 +28,7 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.layout.HeapLayout;
+import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -167,6 +168,7 @@ public class DebugUtil {
     return Space.isMappedObject(ref) && HeapLayout.mmapper.objectIsMapped(ref);
   }
 
+  @Entrypoint
   @Uninterruptible
   public static void dumpRef(ObjectReference ref) {
     VM.sysWrite("REF=");
