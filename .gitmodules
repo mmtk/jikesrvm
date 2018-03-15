@@ -1,4 +1,3 @@
-[submodule "mmtk"]
+[submodule "rust_mmtk"]
 	path = mmtk
-	url = ../mmtk.git
-	branch = master
+	url = git@gitlab.anu.edu.au:mmtk/mmtk.git
