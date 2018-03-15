@@ -31,7 +31,7 @@
 #include <jni.h>
 #include <signal.h> // for siginfo
 #ifdef RUST_BUILD
-    #include "../../mmtk/api/mmtk.h" // the api of the GC
+    #include "../../rust_mmtk/api/mmtk.h" // the api of the GC
 #endif
 #ifdef __MACH__
 #include <mach/mach_time.h>
