@@ -93,6 +93,7 @@ public final class MemoryManager {
    */
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
   private static final boolean traceAllocator = false;
+  private static final boolean traceAllocation = false;
 
   /**
    * Has the interface been booted yet?
@@ -588,6 +589,11 @@ public final class MemoryManager {
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = ObjectModel.initializeScalar(region, tib, size);
     mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
+    if (traceAllocation) {
+      VM.sysWrite("as: ", ObjectReference.fromObject(result));
+      VM.sysWrite(" ", region);
+      VM.sysWriteln("-", region.plus(size));
+    }
     return result;
   }
 
@@ -654,6 +660,11 @@ public final class MemoryManager {
     Address region = allocateSpace(mutator, size, align, offset, allocator, site);
     Object result = ObjectModel.initializeArray(region, tib, numElements, size);
     mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
+    if (traceAllocation) {
+      VM.sysWrite("aai: ", ObjectReference.fromObject(result));
+      VM.sysWrite(" ", region);
+      VM.sysWriteln("-", region.plus(size));
+    }
     return result;
   }
 
@@ -968,6 +979,11 @@ public final class MemoryManager {
     /* Now we replace the TIB */
     ObjectModel.setTIB(result, realTib);
 
+    if (traceAllocation) {
+      VM.sysWrite("tib: ", ObjectReference.fromObject(result));
+      VM.sysWrite(" ", region);
+      VM.sysWriteln("-", region.plus(size));
+    }
     return (TIB)result;
   }
 
