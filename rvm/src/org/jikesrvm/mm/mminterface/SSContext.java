@@ -12,17 +12,15 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.vmmagic.Unboxed;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
-import org.jikesrvm.runtime.Memory;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.Plan;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
 @Uninterruptible
-public class SSContext {
+public final class SSContext {
     private SSContext() {}
 
     /*public static void setBlock(Address mmtkHandle, Address src) {
