@@ -21,9 +21,7 @@ import org.mmtk.plan.Plan;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
-@Unboxed
 @Uninterruptible
-@RawStorage(lengthInWords = true, length = 8)
 public class SSContext {
     private SSContext() {}
 

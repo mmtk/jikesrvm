@@ -20,6 +20,7 @@ import org.jikesrvm.runtime.Magic;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
+@Uninterruptible
 public class NoGCContext {
     private NoGCContext() {}
 
