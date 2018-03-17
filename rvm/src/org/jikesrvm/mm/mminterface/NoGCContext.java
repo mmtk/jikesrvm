@@ -20,31 +20,30 @@ import org.jikesrvm.runtime.Magic;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
-@Unboxed
-@Uninterruptible
-@RawStorage(lengthInWords = true, length = 4)
 public class NoGCContext {
-    public void setBlock(Address src) {
-        Memory.memcopy(Magic.objectAsAddress(this), src, 16);
+    private NoGCContext() {}
+
+    /*public static void setBlock(Address mmtkHandle, Address src) {
+        Memory.memcopy(mmtkHandle, src, 16);
+    }*/
+
+    public static void setCursor(Address mmtkHandle, Address value) {
+        Magic.setAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(4), value);
     }
 
-    public void setCursor(Address value) {
-        Magic.setAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(4), value);
+    public static Address getCursor(Address mmtkHandle) {
+        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(4));
     }
 
-    public Address getCursor() {
-        return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(4));
-    }
-
-    public Address getSentinel() {
-        return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(8));
+    public static Address getSentinel(Address mmtkHandle) {
+        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(8));
     }
 
     @Inline
-    public Address alloc(int bytes, int align, int offset, int allocator, int site) {
+    public static Address alloc(Address mmtkHandle, int bytes, int align, int offset, int allocator, int site) {
         Address region;
-        Address cursor = this.getCursor();
-        Address sentinel = this.getSentinel();
+        Address cursor = getCursor(mmtkHandle);
+        Address sentinel = getSentinel(mmtkHandle);
 
         // Align allocation
         Word mask = Word.fromIntSignExtend(align - 1);
@@ -57,10 +56,9 @@ public class NoGCContext {
         Address newCursor = result.plus(bytes);
 
         if (newCursor.GT(sentinel)) {
-            Address handle = Magic.objectAsAddress(this);
-            region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
+            region = sysCall.sysAllocSlow(mmtkHandle, bytes, align, offset, allocator);
         } else {
-            this.setCursor(newCursor);
+            setCursor(mmtkHandle, newCursor);
             region = result;
         }
         return region;

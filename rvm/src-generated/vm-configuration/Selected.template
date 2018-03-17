@@ -66,22 +66,22 @@ public class Selected {
         @Entrypoint
         Address mmtkHandle;
 
-        @_PLAN_NAME_@Context ctx = new @_PLAN_NAME_@Context();
+        //@_PLAN_NAME_@Context ctx = new @_PLAN_NAME_@Context();
 
 @_NO_RUST_MASK_START_@
         @Override
         public void initMutator ( int id){
             if (id != 1) {
                 mmtkHandle = sysCall.sysBindMutator(id);
-                ctx.setBlock(mmtkHandle);
-                mmtkHandle = Magic.objectAsAddress(ctx);
+                //ctx.setBlock(mmtkHandle);
+                //mmtkHandle = Magic.objectAsAddress(ctx);
             }
         }
 
         @Override
         @Inline
         public Address alloc(int bytes, int align, int offset, int allocator, int site) {
-            return ctx.alloc(bytes, align, offset, allocator, site);
+            return @_PLAN_NAME_@Context.alloc(mmtkHandle, bytes, align, offset, allocator, site);
         }
 
         @Override
@@ -92,7 +92,7 @@ public class Selected {
 @_NO_RUST_MASK_END_@
         public void setHandle (Address handle){
             mmtkHandle = handle;
-            ctx.setBlock(mmtkHandle);
+            //ctx.setBlock(mmtkHandle);
         }
 
     public Address getHandle() {

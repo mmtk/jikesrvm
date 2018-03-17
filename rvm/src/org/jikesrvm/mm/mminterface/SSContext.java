@@ -25,45 +25,47 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 @Uninterruptible
 @RawStorage(lengthInWords = true, length = 8)
 public class SSContext {
-    public void setBlock(Address src) {
+    private SSContext() {}
+
+    /*public static void setBlock(Address mmtkHandle, Address src) {
         Memory.memcopy(Magic.objectAsAddress(this), src, 32);
+    }*/
+
+    public static void setCursor(Address mmtkHandle, Address value) {
+        Magic.setAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(4), value);
     }
 
-    public void setCursor(Address value) {
-        Magic.setAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(4), value);
+    public static Address getCursor(Address mmtkHandle) {
+        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(4));
     }
 
-    public Address getCursor() {
-        return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(4));
+    public static Address getSentinel(Address mmtkHandle) {
+        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(8));
     }
 
-    public Address getSentinel() {
-        return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(8));
+    public static void setImmortalCursor(Address mmtkHandle, Address value) {
+        Magic.setAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(20), value);
     }
 
-    public void setImmortalCursor(Address value) {
-        Magic.setAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(20), value);
+    public static Address getImmortalCursor(Address mmtkHandle) {
+        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(20));
     }
 
-    public Address getImmortalCursor() {
-        return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(20));
-    }
-
-    public Address getImmortalSentinel() {
-        return Magic.getAddressAtOffset(Magic.objectAsAddress(this), Offset.fromIntSignExtend(24));
+    public static Address getImmortalSentinel(Address mmtkHandle) {
+        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(24));
     }
 
     @Inline
-    public Address alloc(int bytes, int align, int offset, int allocator, int site) {
+    public static Address alloc(Address mmtkHandle, int bytes, int align, int offset, int allocator, int site) {
         Address region;
         Address cursor;
         Address sentinel;
         if (allocator == Plan.ALLOC_DEFAULT) {
-            cursor = this.getCursor();
-            sentinel = this.getSentinel();
+            cursor = getCursor(mmtkHandle);
+            sentinel = getSentinel(mmtkHandle);
         } else {
-            cursor = this.getImmortalCursor();
-            sentinel = this.getImmortalSentinel();
+            cursor = getImmortalCursor(mmtkHandle);
+            sentinel = getImmortalSentinel(mmtkHandle);
         }
 
         // Align allocation
@@ -77,13 +79,12 @@ public class SSContext {
         Address newCursor = result.plus(bytes);
 
         if (newCursor.GT(sentinel)) {
-            Address handle = Magic.objectAsAddress(this);
-            region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
+            region = sysCall.sysAllocSlow(mmtkHandle, bytes, align, offset, allocator);
         } else {
             if (allocator == Plan.ALLOC_DEFAULT) {
-                this.setCursor(newCursor);
+                setCursor(mmtkHandle, newCursor);
             } else {
-                this.setImmortalCursor(newCursor);
+                setImmortalCursor(mmtkHandle, newCursor);
             }
             region = result;
         }
