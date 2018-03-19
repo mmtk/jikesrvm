@@ -194,9 +194,9 @@ import org.vmmagic.unboxed.Word;
   * we inline into this method since this is already out of line.
   *
   * @param start The start address for the pending allocation
- * @param end The end address for the pending allocation
- * @param align The requested alignment
- * @param offset The offset from the alignment
+  * @param end The end address for the pending allocation
+  * @param align The requested alignment
+  * @param offset The offset from the alignment
   * @return The address of the first byte of the allocated region
   */
   @NoInline
