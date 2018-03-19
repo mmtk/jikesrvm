@@ -17,6 +17,7 @@ import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.utility.Log;
 
 import org.vmmagic.pragma.*;
+
 import org.vmmagic.unboxed.*;
 
 import org.vmmagic.Unboxed;
@@ -32,6 +33,10 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import org.jikesrvm.VM;
 
 import org.jikesrvm.runtime.Memory;
+
+import static org.jikesrvm.runtime.EntrypointHelper.getField;
+
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 
 public class Selected {
     public static final String name = "@_PLAN_@";
@@ -61,27 +66,26 @@ public class Selected {
     }
 
     @Uninterruptible
+@_RUST_MASK_START_@
     public static class Mutator extends @_PLAN_@Mutator {
+        public void setBlock(Address mmtkHandle) {
+            
+        }
+@_RUST_MASK_END_@
+@_NO_RUST_MASK_START_@
+    public static class Mutator extends @_PLAN_NAME_@Context {
+@_NO_RUST_MASK_END_@
 
         @Entrypoint
         Address mmtkHandle;
 
-        //@_PLAN_NAME_@Context ctx = new @_PLAN_NAME_@Context();
-
 @_NO_RUST_MASK_START_@
         @Override
-        public void initMutator ( int id){
+        public void initMutator (int id){
             if (id != 1) {
                 mmtkHandle = sysCall.sysBindMutator(id);
-                //ctx.setBlock(mmtkHandle);
-                //mmtkHandle = Magic.objectAsAddress(ctx);
+                this.setBlock(mmtkHandle);
             }
-        }
-
-        @Override
-        @Inline
-        public Address alloc(int bytes, int align, int offset, int allocator, int site) {
-            return @_PLAN_NAME_@Context.alloc(mmtkHandle, bytes, align, offset, allocator, site);
         }
 
         @Override
@@ -90,23 +94,23 @@ public class Selected {
             return;
         }
 @_NO_RUST_MASK_END_@
-        public void setHandle (Address handle){
+        public void setHandle(Address handle){
             mmtkHandle = handle;
-            //ctx.setBlock(mmtkHandle);
+            this.setBlock(mmtkHandle);
         }
 
-    public Address getHandle() {
-        return mmtkHandle;
-    }
+        public Address getHandle() {
+            return mmtkHandle;
+        }
 
-    @Inline
-    public final RVMThread getThread() {
-        return (RVMThread) this;
-    }
+        @Inline
+        public final RVMThread getThread() {
+            return (RVMThread) this;
+        }
 
-    @Inline
-    public static Mutator get() {
-        return RVMThread.getCurrentThread();
+        @Inline
+        public static Mutator get() {
+            return RVMThread.getCurrentThread();
+        }
     }
-}
 }

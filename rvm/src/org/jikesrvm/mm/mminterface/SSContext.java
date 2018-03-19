@@ -12,56 +12,77 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import org.jikesrvm.VM;
+import org.mmtk.plan.semispace.SSMutator;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.Plan;
 
+import static org.jikesrvm.runtime.EntrypointHelper.getField;
 import static org.jikesrvm.runtime.SysCall.sysCall;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 
 @Uninterruptible
-public final class SSContext {
-    private SSContext() {}
+public class SSContext extends SSMutator {
 
-    /*public static void setBlock(Address mmtkHandle, Address src) {
-        Memory.memcopy(Magic.objectAsAddress(this), src, 32);
-    }*/
+    @Entrypoint
+    Address threadId;
+    @Entrypoint
+    Address cursor;
+    @Entrypoint
+    Address limit;
+    @Entrypoint
+    Address space;
+    @Entrypoint
+    Address threadIdImmortal;
+    @Entrypoint
+    Address cursorImmortal;
+    @Entrypoint
+    Address limitImmortal;
+    @Entrypoint
+    Address spaceImmortal;
 
-    public static void setCursor(Address mmtkHandle, Address value) {
-        Magic.setAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(4), value);
+    static final Offset threadIdOffset = getField(SSContext.class, "threadId", Address.class).getOffset();
+    static final Offset cursorOffset = getField(SSContext.class, "cursor", Address.class).getOffset();
+    static final Offset limitOffset = getField(SSContext.class, "limit", Address.class).getOffset();
+    static final Offset spaceOffset = getField(SSContext.class, "space", Address.class).getOffset();
+    static final Offset threadIdImmortalOffset = getField(SSContext.class, "threadIdImmortal", Address.class).getOffset();
+    static final Offset cursorImmortalOffset = getField(SSContext.class, "cursorImmortal", Address.class).getOffset();
+    static final Offset limitImmortalOffset = getField(SSContext.class, "limitImmortal", Address.class).getOffset();
+    static final Offset spaceImmortalOffset = getField(SSContext.class, "spaceImmortal", Address.class).getOffset();
+
+    public void setBlock(Address mmtkHandle) {
+        if (VM.VerifyAssertions) {
+            VM._assert(cursorOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD));
+            VM._assert(limitOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 2));
+            VM._assert(spaceOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 3));
+            VM._assert(threadIdImmortalOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 4));
+            VM._assert(cursorImmortalOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 5));
+            VM._assert(limitImmortalOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 6));
+            VM._assert(spaceImmortalOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 7));
+        }
+        threadId = mmtkHandle.loadAddress();
+        cursor   = mmtkHandle.plus(BYTES_IN_WORD).loadAddress();
+        limit    = mmtkHandle.plus(BYTES_IN_WORD * 2).loadAddress();
+        space    = mmtkHandle.plus(BYTES_IN_WORD * 3).loadAddress();
+        threadIdImmortal = mmtkHandle.plus(BYTES_IN_WORD * 4).loadAddress();
+        cursorImmortal   = mmtkHandle.plus(BYTES_IN_WORD * 5).loadAddress();
+        limitImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 6).loadAddress();
+        spaceImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 7).loadAddress();
     }
 
-    public static Address getCursor(Address mmtkHandle) {
-        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(4));
-    }
-
-    public static Address getSentinel(Address mmtkHandle) {
-        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(8));
-    }
-
-    public static void setImmortalCursor(Address mmtkHandle, Address value) {
-        Magic.setAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(20), value);
-    }
-
-    public static Address getImmortalCursor(Address mmtkHandle) {
-        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(20));
-    }
-
-    public static Address getImmortalSentinel(Address mmtkHandle) {
-        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(24));
-    }
-
-    @Inline
-    public static Address alloc(Address mmtkHandle, int bytes, int align, int offset, int allocator, int site) {
+    @Override
+    public Address alloc(int bytes, int align, int offset, int allocator, int site) {
         Address region;
         Address cursor;
         Address sentinel;
         if (allocator == Plan.ALLOC_DEFAULT) {
-            cursor = getCursor(mmtkHandle);
-            sentinel = getSentinel(mmtkHandle);
+            cursor = this.cursor;
+            sentinel = this.limit;
         } else {
-            cursor = getImmortalCursor(mmtkHandle);
-            sentinel = getImmortalSentinel(mmtkHandle);
+            cursor = this.cursorImmortal;
+            sentinel = this.limitImmortal;
         }
 
         // Align allocation
@@ -75,12 +96,13 @@ public final class SSContext {
         Address newCursor = result.plus(bytes);
 
         if (newCursor.GT(sentinel)) {
-            region = sysCall.sysAllocSlow(mmtkHandle, bytes, align, offset, allocator);
+            Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+            region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
         } else {
             if (allocator == Plan.ALLOC_DEFAULT) {
-                setCursor(mmtkHandle, newCursor);
+                this.cursor = newCursor;
             } else {
-                setImmortalCursor(mmtkHandle, newCursor);
+                this.cursorImmortal = newCursor;
             }
             region = result;
         }

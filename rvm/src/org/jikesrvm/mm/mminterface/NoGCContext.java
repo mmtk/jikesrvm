@@ -12,37 +12,36 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import org.jikesrvm.VM;
+import org.mmtk.plan.nogc.NoGCMutator;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import org.jikesrvm.runtime.Magic;
 
+import static org.jikesrvm.runtime.EntrypointHelper.getField;
 import static org.jikesrvm.runtime.SysCall.sysCall;
+import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 
 @Uninterruptible
-public final class NoGCContext {
-    private NoGCContext() {}
+public class NoGCContext extends NoGCMutator {
 
-    /*public static void setBlock(Address mmtkHandle, Address src) {
-        Memory.memcopy(mmtkHandle, src, 16);
-    }*/
+    @Entrypoint
+    Address threadId;
+    @Entrypoint
+    Address cursor;
+    @Entrypoint
+    Address limit;
+    @Entrypoint
+    Address space;
 
-    public static void setCursor(Address mmtkHandle, Address value) {
-        Magic.setAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(4), value);
-    }
+    static final Offset threadIdOffset = getField(NoGCContext.class, "threadId", Address.class).getOffset();
+    static final Offset cursorOffset = getField(NoGCContext.class, "cursor", Address.class).getOffset();
+    static final Offset limitOffset = getField(NoGCContext.class, "limit", Address.class).getOffset();
+    static final Offset spaceOffset = getField(NoGCContext.class, "space", Address.class).getOffset();
 
-    public static Address getCursor(Address mmtkHandle) {
-        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(4));
-    }
-
-    public static Address getSentinel(Address mmtkHandle) {
-        return Magic.getAddressAtOffset(mmtkHandle, Offset.fromIntSignExtend(8));
-    }
-
-    @Inline
-    public static Address alloc(Address mmtkHandle, int bytes, int align, int offset, int allocator, int site) {
+    @Override
+    public Address alloc(int bytes, int align, int offset, int allocator, int site) {
         Address region;
-        Address cursor = getCursor(mmtkHandle);
-        Address sentinel = getSentinel(mmtkHandle);
 
         // Align allocation
         Word mask = Word.fromIntSignExtend(align - 1);
@@ -54,12 +53,25 @@ public final class NoGCContext {
 
         Address newCursor = result.plus(bytes);
 
-        if (newCursor.GT(sentinel)) {
-            region = sysCall.sysAllocSlow(mmtkHandle, bytes, align, offset, allocator);
+        if (newCursor.GT(limit)) {
+            Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+            region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
         } else {
-            setCursor(mmtkHandle, newCursor);
+            cursor = newCursor;
             region = result;
         }
         return region;
+    }
+
+    public void setBlock(Address mmtkHandle) {
+        if (VM.VerifyAssertions) {
+            VM._assert(cursorOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(4));
+            VM._assert(limitOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(8));
+            VM._assert(spaceOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(12));
+        }
+        threadId = mmtkHandle.loadAddress();
+        cursor   = mmtkHandle.plus(BYTES_IN_WORD).loadAddress();
+        limit    = mmtkHandle.plus(BYTES_IN_WORD * 2).loadAddress();
+        space    = mmtkHandle.plus(BYTES_IN_WORD * 3).loadAddress();
     }
 }
