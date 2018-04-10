@@ -1,5 +1,7 @@
 #include "sys.h"
-#include "../../rust_mmtk/api/mmtk.h" // the api of the GC
+#ifdef RUST_BUILD
+    #include "../../rust_mmtk/api/mmtk.h" // the api of the GC
+#endif
 #include <stdlib.h> // malloc and others
 #include <errno.h> // error numbers
 #include <string.h> // memcpy & memmove
