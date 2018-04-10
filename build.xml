@@ -36,13 +36,27 @@
   <property name="primordials.dir" location="build/primordials"/>
   <property name="main.java" location="rvm/src"/>
   <property name="test.java" location="rvm/test-src/"/>
-
   <property name="mmtk.java" location="MMTk/src"/>
   <property name="mmtk-harness.java" location="MMTk/harness/src"/>
   <property name="mmtk-harness-vmmagic.java" location="MMTk/harness/vmmagic"/>
   <property name="mmtk-vm-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
   <property name="mmtk-vm-harness.java" location="MMTk/ext/vm/harness"/>
-
+  <condition property="mmtk.java" value="">
+    <equals arg1="${rust.build}" arg2="true"/>
+  </condition>
+  <condition property="mmtk-harness.java" value="">
+    <equals arg1="${rust.build}" arg2="true"/>
+  </condition>
+  <condition property="mmtk-harness-vmmagic.java" value="">
+    <equals arg1="${rust.build}" arg2="true"/>
+  </condition>
+  <condition property="mmtk-vm-rvm.java" value="">
+    <equals arg1="${rust.build}" arg2="true"/>
+  </condition>
+  <condition property="mmtk-vm-harness.java" value="">
+    <equals arg1="${rust.build}" arg2="true"/>
+  </condition>
+  
   <property name="vmmagic-stub.java" location="common/vmmagic/src"/>
   <property name="options.java" location="common/options/src"/>
   <property name="tuningforklib.java" location="external/tuningforklib/src"/>
@@ -465,7 +479,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <!-- we are compiling mmtk independently to ensure that it can build independent of the rvm -->
-  <target name="compile-mmtk" depends="compile-vmmagic-stub,compile-options" description="Compile MMTk toolkit.">
+  <target name="compile-mmtk" depends="compile-vmmagic-stub,compile-options" unless="${rust.build}" description="Compile MMTk toolkit.">
     <property name="build.mmtk.classes" location="${build.dir}/mmtk/classes"/>
     <mkdir dir="${build.mmtk.classes}"/>
     <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source"
@@ -482,7 +496,7 @@ Check to make sure all required properties are specified. This includes properti
     <ant antfile="javacc.xml" dir="${jikesrvm.dir}/build/components" target="ensure"/>
   </target>
 
-  <target name="mmtk-harness" depends="compile-mmtk,ensure-javacc">
+  <target name="mmtk-harness" depends="compile-mmtk,ensure-javacc" unless="${rust.build}">
     <property name="build.mmtk-harness.classes" location="${build.dir}/mmtk/harness/classes"/>
     <property file="${components.file}"/>
     <mkdir dir="${generated.mmtk-harness-parser.java}"/>
