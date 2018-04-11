@@ -131,14 +131,18 @@ public class Entrypoints {
                   "(Lorg/jikesrvm/scheduler/RVMThread;)V");
   public static final NormalMethod scanBootImageMethod =
           getMethod(org.jikesrvm.mm.mminterface.RustScanning.class, "scanBootImage", "(Lorg/vmmagic/unboxed/Address;)V");
-  public static final NormalMethod testMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test", "(I)I");
-  public static final NormalMethod test1Method =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test1", "()V");
-  public static final NormalMethod test2Method =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test2", "(II)I");
-  public static final NormalMethod test3Method =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test3", "(IIII)I");
+  public static final NormalMethod testMethod = VM.BuildWithRustMMTk ?
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test", "(I)I") :
+          getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseIllegalAccessError", "()V");
+  public static final NormalMethod test1Method = VM.BuildWithRustMMTk ?
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test1", "()V") :
+          getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseIllegalAccessError", "()V");
+  public static final NormalMethod test2Method = VM.BuildWithRustMMTk ?
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test2", "(II)I") :
+          getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseIllegalAccessError", "()V");
+  public static final NormalMethod test3Method = VM.BuildWithRustMMTk ?
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test3", "(IIII)I") :
+          getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseIllegalAccessError", "()V");
   public static final NormalMethod getOffsetArrayMethod =
           getMethod(org.jikesrvm.mm.mminterface.RustScanning.class, "getOffsetArray","(Ljava/lang/Object;)[I");
   public static final NormalMethod scanThreadMethod =
