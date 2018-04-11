@@ -56,7 +56,11 @@
   <condition property="mmtk-vm-harness.java" value="">
     <equals arg1="${rust.build}" arg2="true"/>
   </condition>
-  
+  <condition property="main.mm.java" value="rvm/ext/mm/rust-mmtk/src">
+    <equals arg1="${rust.build}" arg2="true"/>
+  </condition>
+  <property name="main.mm.java" location="rvm/ext/mm/java-mmtk/src"/>
+
   <property name="vmmagic-stub.java" location="common/vmmagic/src"/>
   <property name="options.java" location="common/options/src"/>
   <property name="tuningforklib.java" location="external/tuningforklib/src"/>
@@ -1334,7 +1338,6 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="compile" depends="compile-mmtk,compile-options,prepare-source,prepare-config-source,update-eclipse-project,choose-classlib,do-checkstyle">
-
     <condition property="exclude-arch" value="IA" else="PPC">
       <equals arg1="${target.arch}" arg2="ppc"/>
     </condition>
@@ -1364,8 +1367,8 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="${rvm.java.version}"
                target="${rvm.java.version}"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               srcdir="${main.java}:${main.mm.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${main.mm.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
                includeantruntime="false">
           <bootclasspath>
             <pathelement location="${classpath.lib.dir}/classpath.jar"/>
@@ -1399,8 +1402,8 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="${rvm.java.version}"
                target="${rvm.java.version}"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               srcdir="${main.java}:${main.mm.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${main.mm.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
                includeantruntime="false">
           <bootclasspath>
             <pathelement location="${harmony.lib.dir}/luni-kernel-stubs.jar"/>
