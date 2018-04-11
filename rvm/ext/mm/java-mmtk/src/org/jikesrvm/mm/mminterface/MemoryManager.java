@@ -16,7 +16,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.common.CodeArray;
-import org.jikesrvm.mm.mminterface.*;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
@@ -45,7 +44,6 @@ import java.lang.ref.WeakReference;
 import static org.jikesrvm.HeapLayoutConstants.*;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
-import static org.jikesrvm.runtime.SysCall.sysCall;
 import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
 import static org.mmtk.utility.heap.layout.HeapParameters.MAX_SPACES;
 
@@ -125,31 +123,6 @@ public final class MemoryManager extends AbstractMemoryManager {
     t.monitor().unlock();
   }
 
-  @Entrypoint
-  public static int test2(int a, int b) {
-    return a + b;
-  }
-
-  @Entrypoint
-  public static int test3(int a, int b, int c, int d) {
-    VM.sysWriteln(a);
-    VM.sysWriteln(b);
-    VM.sysWriteln(c);
-    VM.sysWriteln(d);
-    return a * b + c + d;
-  }
-
-  @Entrypoint
-  public static void test1() {
-      VM.sysWriteln("testprint");
-  }
-
-  @Entrypoint
-  public static int test(int a) {
-    return a + 10;
-  }
-
-
   /**
    * Suppress default constructor to enforce noninstantiability.
    */
@@ -172,11 +145,6 @@ public final class MemoryManager extends AbstractMemoryManager {
     DebugUtil.boot(theBootRecord);
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
-      RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
-    }
-
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
       @Override
       public void notifyExit(int value) {
@@ -211,11 +179,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Interruptible
   public static void enableCollection() {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysEnableCollection(RVMThread.getCurrentThreadSlot());
-    } else {
-      Selected.Plan.get().enableCollection();
-    }
+    Selected.Plan.get().enableCollection();
     collectionEnabled = true;
   }
 
@@ -686,13 +650,7 @@ public final class MemoryManager extends AbstractMemoryManager {
 
     /* Now make the request */
     Address region;
-    if (VM.BuildWithRustMMTk) {
-      VM.sysFail("Tried to allocate in collector space for non-collecting plan");
-      region = null;
-    } else {
-      region = context.allocCopy(from, bytes, align, offset, allocator);
-    }
-
+    region = context.allocCopy(from, bytes, align, offset, allocator);
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
 
@@ -1055,11 +1013,7 @@ public final class MemoryManager extends AbstractMemoryManager {
   public static boolean willNeverMove(Object obj) {
     // VM.sysWrite("willNeverMove ");
     // VM.sysWriteln(ObjectReference.fromObject(obj).toAddress());
-    if (VM.BuildWithRustMMTk) {
-      return sysCall.sysWillNeverMove(ObjectReference.fromObject(obj));
-    } else {
-      return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
-    }
+    return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
   }
 
   /**

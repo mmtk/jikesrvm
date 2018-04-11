@@ -16,7 +16,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.common.CodeArray;
-import org.jikesrvm.mm.mminterface.*;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
@@ -176,7 +175,6 @@ public final class MemoryManager extends AbstractMemoryManager {
       sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
     }
-
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
       @Override
       public void notifyExit(int value) {
