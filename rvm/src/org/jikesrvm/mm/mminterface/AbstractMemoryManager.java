@@ -12,10 +12,6 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE;
-import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
-import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE;
-import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
@@ -27,16 +23,11 @@ import java.lang.ref.WeakReference;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
-import org.jikesrvm.classloader.RVMArray;
-import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CodeArray;
-import org.jikesrvm.mm.mmtk.FinalizableProcessor;
-import org.jikesrvm.mm.mmtk.ReferenceProcessor;
-import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ITable;
@@ -46,18 +37,7 @@ import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
-import org.jikesrvm.runtime.Callbacks;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
-import org.mmtk.plan.CollectorContext;
-import org.mmtk.plan.Plan;
-import org.mmtk.policy.Space;
-import org.mmtk.utility.Memory;
-import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.gcspy.GCspy;
-import org.mmtk.utility.heap.HeapGrowthManager;
-import org.mmtk.utility.heap.layout.HeapLayout;
-import org.mmtk.utility.options.Options;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
@@ -80,7 +60,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
 @Uninterruptible
-public final class MemoryManager {
+public abstract class AbstractMemoryManager {
 
   /***********************************************************************
    *
@@ -151,36 +131,6 @@ public final class MemoryManager {
     t.monitor().unlock();
   }
 
-  @Entrypoint
-  public static int test2(int a, int b) {
-    return a + b;
-  }
-
-  @Entrypoint
-  public static int test3(int a, int b, int c, int d) {
-    VM.sysWriteln(a);
-    VM.sysWriteln(b);
-    VM.sysWriteln(c);
-    VM.sysWriteln(d);
-    return a * b + c + d;
-  }
-
-  @Entrypoint
-  public static void test1() {
-      VM.sysWriteln("testprint");
-  }
-
-  @Entrypoint
-  public static int test(int a) {
-    return a + 10;
-  }
-
-
-  /**
-   * Suppress default constructor to enforce noninstantiability.
-   */
-  private MemoryManager() {} // This constructor will never be invoked.
-
   /**
    * Initialization that occurs at <i>boot</i> time (runtime
    * initialization).  This is only executed by one processor (the
@@ -190,27 +140,8 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void boot(BootRecord theBootRecord) {
-    Extent pageSize = BootRecord.the_boot_record.bytesInPage;
-    org.jikesrvm.runtime.Memory.setPageSize(pageSize);
-    HeapLayout.mmapper.markAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
-    HeapLayout.mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
-    HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
-    DebugUtil.boot(theBootRecord);
-    Selected.Plan.get().enableAllocation();
-    SynchronizedCounter.boot();
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
-      RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
-    }
-
-    Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
-      @Override
-      public void notifyExit(int value) {
-        Selected.Plan.get().notifyExit(value);
-      }
-    });
-
     booted = true;
+    throw new UnsupportedOperationException("boot() has not been implemented in subclass");
   }
 
   /**
@@ -222,13 +153,9 @@ public final class MemoryManager {
   public static void postBoot() {
     Selected.Plan.get().processOptions();
 
-    if (Options.noReferenceTypes.getValue()) {
-      RVMType.JavaLangRefReferenceReferenceField.makeTraced();
-    }
-
     if (VM.BuildWithGCSpy) {
       // start the GCSpy interpreter server
-      MemoryManager.startGCspyServer();
+      AbstractMemoryManager.startGCspyServer();
     }
   }
 
@@ -237,18 +164,14 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void enableCollection() {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysEnableCollection(RVMThread.getCurrentThreadSlot());
-    } else {
-      Selected.Plan.get().enableCollection();
-    }
     collectionEnabled = true;
+    throw new UnsupportedOperationException("enableCollection() has not been implemented in subclass");
   }
 
   @Interruptible
   @Entrypoint
   public static void spawnCollectorThread(Address workerInstance) {
-    byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
+    byte[] stack = AbstractMemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
     CollectorThread t = new CollectorThread(stack, null);
     t.setWorker(workerInstance);
     t.start();
@@ -291,20 +214,7 @@ public final class MemoryManager {
    */
   @Entrypoint
   public static void modifyCheck(Object object) {
-    /* Make sure that during GC, we don't update on a possibly moving object.
-       Such updates are dangerous because they can be lost.
-     */
-    if (Plan.gcInProgressProper()) {
-      ObjectReference ref = ObjectReference.fromObject(object);
-      if (Space.isMovable(ref)) {
-        VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
-        VM.sysWriteln("  obj = ", ref);
-        RVMType t = Magic.getObjectType(object);
-        VM.sysWrite(" type = ");
-        VM.sysWriteln(t.getDescriptor());
-        VM.sysFail("GC modifying a potentially moving object via Java (i.e. not magic)");
-      }
-    }
+    VM.sysFail("modifyCheck() has not been implemented in subclass");
   }
 
   /***********************************************************************
@@ -323,7 +233,8 @@ public final class MemoryManager {
    * @return The amount of free memory.
    */
   public static Extent freeMemory() {
-    return Plan.freeMemory();
+    VM.sysFail("freeMemory() has not been implemented in subclass");
+    return null;
   }
 
   /**
@@ -332,7 +243,8 @@ public final class MemoryManager {
    * @return The amount of total memory.
    */
   public static Extent totalMemory() {
-    return Plan.totalMemory();
+    VM.sysFail("totalMemory() has not been implemented in subclass");
+    return null;
   }
 
   /**
@@ -341,7 +253,8 @@ public final class MemoryManager {
    * @return The maximum amount of memory VM will attempt to use.
    */
   public static Extent maxMemory() {
-    return HeapGrowthManager.getMaxHeapSize();
+    VM.sysFail("maxMemory() has not been implemented in subclass");
+    return null;
   }
 
   /**
@@ -389,7 +302,8 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean addressInVM(Address address) {
-    return Space.isMappedAddress(address);
+    VM.sysFail("addressInVM() has not been implemented in subclass");
+    return false;
   }
 
   /**
@@ -405,7 +319,8 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean objectInVM(ObjectReference object) {
-    return Space.isMappedObject(object);
+    VM.sysFail("objectInVM() has not been implemented in subclass");
+    return false;
   }
 
   /**
@@ -415,10 +330,8 @@ public final class MemoryManager {
    * @return true if the address is within a space which may contain stacks
    */
   public static boolean mightBeFP(Address address) {
-    // In general we don't know which spaces may hold allocated stacks.
-    // If we want to be more specific than the space being mapped we
-    // will need to add a check in Plan that can be overriden.
-    return Space.isMappedAddress(address);
+    VM.sysFail("mightBeFP() has not been implemented in subclass");
+    return false;
   }
   /***********************************************************************
    *
@@ -434,7 +347,8 @@ public final class MemoryManager {
    * @return an allocation site
    */
   public static int getAllocationSite(boolean compileTime) {
-    return Plan.getAllocationSite(compileTime);
+    VM.sysFail("getAllocationSite() has not been implemented in subclass");
+    return 0;
   }
 
   /**
@@ -489,43 +403,8 @@ public final class MemoryManager {
    */
   @Interruptible
   public static int pickAllocator(RVMType type, RVMMethod method) {
-    if (traceAllocator) {
-      VM.sysWrite("allocator for ");
-      VM.sysWrite(type.getDescriptor());
-      VM.sysWrite(": ");
-    }
-    if (method != null) {
-      // We should strive to be allocation-free here.
-      RVMClass cls = method.getDeclaringClass();
-      byte[] clsBA = cls.getDescriptor().toByteArray();
-      if (Selected.Constraints.get().withGCspy()) {
-        if (isPrefix("Lorg/mmtk/vm/gcspy/", clsBA) || isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
-          if (traceAllocator) {
-            VM.sysWriteln("GCSPY");
-          }
-          return Plan.ALLOC_GCSPY;
-        }
-      }
-      if (isPrefix("Lorg/jikesrvm/mm/mmtk/ReferenceProcessor", clsBA)) {
-        if (traceAllocator) {
-          VM.sysWriteln("DEFAULT");
-        }
-        return Plan.ALLOC_DEFAULT;
-      }
-      if (isPrefix("Lorg/mmtk/", clsBA) || isPrefix("Lorg/jikesrvm/mm/", clsBA)) {
-        if (traceAllocator) {
-          VM.sysWriteln("NONMOVING");
-        }
-        return Plan.ALLOC_NON_MOVING;
-      }
-      if (method.isNonMovingAllocation()) {
-        return Plan.ALLOC_NON_MOVING;
-      }
-    }
-    if (traceAllocator) {
-      VM.sysWriteln(type.getMMAllocator());
-    }
-    return type.getMMAllocator();
+    VM.sysFail("pickAllocator() has not been implemented in subclass");
+    return 0;
   }
 
   /**
@@ -537,30 +416,7 @@ public final class MemoryManager {
    */
   @Interruptible
   private static int pickAllocatorForType(RVMType type) {
-    int allocator = Plan.ALLOC_DEFAULT;
-    if (type.isArrayType()) {
-      RVMType elementType = type.asArray().getElementType();
-      if (elementType.isPrimitiveType() || elementType.isUnboxedType()) {
-        allocator = Plan.ALLOC_NON_REFERENCE;
-      }
-    }
-    if (type.isNonMoving()) {
-      allocator = Plan.ALLOC_NON_MOVING;
-    }
-    byte[] typeBA = type.getDescriptor().toByteArray();
-    if (Selected.Constraints.get().withGCspy()) {
-      if (isPrefix("Lorg/mmtk/vm/gcspy/", typeBA) || isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) {
-        allocator = Plan.ALLOC_GCSPY;
-      }
-    }
-    if (isPrefix("Lorg/jikesrvm/tuningfork", typeBA) || isPrefix("[Lorg/jikesrvm/tuningfork", typeBA) ||
-        isPrefix("Lcom/ibm/tuningfork/", typeBA) || isPrefix("[Lcom/ibm/tuningfork/", typeBA) ||
-        isPrefix("Lorg/mmtk/", typeBA) || isPrefix("[Lorg/mmtk/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/mm/", typeBA) || isPrefix("[Lorg/jikesrvm/mm/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/jni/JNIEnvironment;", typeBA)) {
-      allocator = Plan.ALLOC_NON_MOVING;
-    }
-    return allocator;
+    throw new UnsupportedOperationException("pickAllocatorForType() has not been implemented in subclass");
   }
 
   /***********************************************************************
@@ -688,40 +544,6 @@ public final class MemoryManager {
     Address region;
     region = mutator.alloc(bytes, align, offset, allocator, site);
 
-    /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
-    if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
-    return region;
-  }
-
-  /**
-   * Allocate space for GC-time copying of an object
-   *
-   * @param context The collector context to be used for this allocation
-   * @param bytes The size of the allocation in bytes
-   * @param allocator the allocator associated with this request
-   * @param align The alignment requested; must be a power of 2.
-   * @param offset The offset at which the alignment is desired.
-   * @param from The source object from which this is to be copied
-   * @return The first byte of a suitably sized and aligned region of memory.
-   */
-  @Inline
-  public static Address allocateSpace(CollectorContext context, int bytes, int align, int offset, int allocator,
-                                      ObjectReference from) {
-    /* MMTk requests must be in multiples of MIN_ALIGNMENT */
-    bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
-
-    /* Now make the request */
-    Address region;
-    if (VM.BuildWithRustMMTk) {
-      VM.sysFail("Tried to allocate in collector space for non-collecting plan");
-      region = null;
-    } else {
-      region = context.allocCopy(from, bytes, align, offset, allocator);
-    }
-
-    /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
-    if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
-
     return region;
   }
 
@@ -740,8 +562,8 @@ public final class MemoryManager {
    */
   @Inline
   public static Offset alignAllocation(Offset initialOffset, int align, int offset) {
-    Address region = org.jikesrvm.runtime.Memory.alignUp(initialOffset.toWord().toAddress(), MIN_ALIGNMENT);
-    return Allocator.alignAllocationNoFill(region, align, offset).toWord().toOffset();
+    VM.sysFail("alignAllocation() has not been implemented in subclass");
+    return null;
   }
 
   /**
@@ -756,15 +578,7 @@ public final class MemoryManager {
   @NoInline
   @Interruptible
   public static CodeArray allocateCode(int numInstrs, boolean isHot) {
-    RVMArray type = RVMType.CodeArrayType;
-    int headerSize = ObjectModel.computeArrayHeaderSize(type);
-    int align = ObjectModel.getAlignment(type);
-    int offset = ObjectModel.getOffsetForAlignment(type, false);
-    int width = type.getLogElementSize();
-    TIB tib = type.getTypeInformationBlock();
-    int allocator = isHot ? Plan.ALLOC_HOT_CODE : Plan.ALLOC_COLD_CODE;
-
-    return (CodeArray) allocateArray(numInstrs, width, headerSize, tib, allocator, align, offset, Plan.DEFAULT_SITE);
+    throw new UnsupportedOperationException("allocateCode() has not been implemented in subclass");
   }
 
   /**
@@ -776,36 +590,8 @@ public final class MemoryManager {
   @NoInline
   @Unpreemptible
   public static byte[] newStack(int bytes) {
-    if (bytes <= 0) {
-      if (VM.VerifyAssertions) {
-        VM.sysWrite("Invalid stack size: ");
-        VM.sysWrite(bytes);
-        VM.sysWriteln("!");
-        VM._assert(VM.NOT_REACHED, "Attempted to create stack with size (in bytes) of 0 or smaller!");
-      } else {
-        bytes = StackFrameLayout.getStackSizeNormal();
-      }
-    }
-
-    if (!VM.runningVM) {
-      return new byte[bytes];
-    } else {
-      RVMArray stackType = RVMArray.ByteArray;
-      int headerSize = ObjectModel.computeArrayHeaderSize(stackType);
-      int align = ObjectModel.getAlignment(stackType);
-      int offset = ObjectModel.getOffsetForAlignment(stackType, false);
-      int width = stackType.getLogElementSize();
-      TIB stackTib = stackType.getTypeInformationBlock();
-
-      return (byte[]) allocateArray(bytes,
-                                    width,
-                                    headerSize,
-                                    stackTib,
-                                    Plan.ALLOC_STACK,
-                                    align,
-                                    offset,
-                                    Plan.DEFAULT_SITE);
-    }
+    VM.sysFail("newStack() has not been implemented in subclass");
+    return null;
   }
 
   /**
@@ -817,26 +603,7 @@ public final class MemoryManager {
   @NoInline
   @Interruptible
   public static WordArray newNonMovingWordArray(int size) {
-    if (!VM.runningVM) {
-      return WordArray.create(size);
-    }
-
-    RVMArray arrayType = RVMType.WordArrayType;
-    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
-    int width = arrayType.getLogElementSize();
-    TIB arrayTib = arrayType.getTypeInformationBlock();
-
-    return (WordArray) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
-
+    throw new UnsupportedOperationException("newNonMovingWordArray() has not been implemented in subclass");
   }
 
   /**
@@ -848,26 +615,7 @@ public final class MemoryManager {
   @NoInline
   @Interruptible
   public static double[] newNonMovingDoubleArray(int size) {
-    if (!VM.runningVM) {
-      return new double[size];
-    }
-
-    RVMArray arrayType = RVMArray.DoubleArray;
-    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
-    int width = arrayType.getLogElementSize();
-    TIB arrayTib = arrayType.getTypeInformationBlock();
-
-    return (double[]) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
-
+    throw new UnsupportedOperationException("newNonMovingDoubleArray() has not been implemented in subclass");
   }
 
   /**
@@ -879,26 +627,7 @@ public final class MemoryManager {
   @NoInline
   @Interruptible
   public static int[] newNonMovingIntArray(int size) {
-    if (!VM.runningVM) {
-      return new int[size];
-    }
-
-    RVMArray arrayType = RVMArray.IntArray;
-    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
-    int width = arrayType.getLogElementSize();
-    TIB arrayTib = arrayType.getTypeInformationBlock();
-
-    return (int[]) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
-
+    throw new UnsupportedOperationException("newNonMovingIntArray() has not been implemented in subclass");
   }
 
   /**
@@ -910,26 +639,7 @@ public final class MemoryManager {
   @NoInline
   @Interruptible
   public static short[] newNonMovingShortArray(int size) {
-    if (!VM.runningVM) {
-      return new short[size];
-    }
-
-    RVMArray arrayType = RVMArray.ShortArray;
-    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
-    int width = arrayType.getLogElementSize();
-    TIB arrayTib = arrayType.getTypeInformationBlock();
-
-    return (short[]) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
-
+    throw new UnsupportedOperationException("newNonMovingShortArray() has not been implemented in subclass");
   }
 
   /**
@@ -943,48 +653,7 @@ public final class MemoryManager {
   @NoInline
   @Interruptible
   public static TIB newTIB(int numVirtualMethods, int alignCode) {
-    int elements = TIB.computeSize(numVirtualMethods);
-
-    if (!VM.runningVM) {
-      return TIB.allocate(elements, alignCode);
-    }
-    if (alignCode == AlignmentEncoding.ALIGN_CODE_NONE) {
-      return (TIB)newRuntimeTable(elements, RVMType.TIBType);
-    }
-
-    RVMType type = RVMType.TIBType;
-    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
-
-    TIB realTib = type.getTypeInformationBlock();
-    RVMArray fakeType = RVMType.WordArrayType;
-    TIB fakeTib = fakeType.getTypeInformationBlock();
-    int headerSize = ObjectModel.computeArrayHeaderSize(fakeType);
-    int align = ObjectModel.getAlignment(fakeType);
-    int offset = ObjectModel.getOffsetForAlignment(fakeType, false);
-    int width = fakeType.getLogElementSize();
-    int elemBytes = elements << width;
-    if (elemBytes < 0 || (elemBytes >>> width) != elements) {
-      /* asked to allocate more than Integer.MAX_VALUE bytes */
-      throwLargeArrayOutOfMemoryError();
-    }
-    int size = elemBytes + headerSize + AlignmentEncoding.padding(alignCode);
-    Selected.Mutator mutator = Selected.Mutator.get();
-    Address region = allocateSpace(mutator, size, align, offset, type.getMMAllocator(), Plan.DEFAULT_SITE);
-
-    region = AlignmentEncoding.adjustRegion(alignCode, region);
-
-    Object result = ObjectModel.initializeArray(region, fakeTib, elements, size);
-    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(fakeTib), size, type.getMMAllocator());
-
-    /* Now we replace the TIB */
-    ObjectModel.setTIB(result, realTib);
-
-    if (traceAllocation) {
-      VM.sysWrite("tib: ", ObjectReference.fromObject(result));
-      VM.sysWrite(" ", region);
-      VM.sysWriteln("-", region.plus(size));
-    }
-    return (TIB)result;
+    throw new UnsupportedOperationException("newTIB() has not been implemented in subclass");
   }
 
   /**
@@ -1044,29 +713,7 @@ public final class MemoryManager {
   @NoInline
   @Interruptible
   public static Object newRuntimeTable(int size, RVMType type) {
-    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
-
-    TIB realTib = type.getTypeInformationBlock();
-    RVMArray fakeType = RVMType.WordArrayType;
-    TIB fakeTib = fakeType.getTypeInformationBlock();
-    int headerSize = ObjectModel.computeArrayHeaderSize(fakeType);
-    int align = ObjectModel.getAlignment(fakeType);
-    int offset = ObjectModel.getOffsetForAlignment(fakeType, false);
-    int width = fakeType.getLogElementSize();
-
-    /* Allocate a word array */
-    Object array = allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 fakeTib,
-                                 type.getMMAllocator(),
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
-
-    /* Now we replace the TIB */
-    ObjectModel.setTIB(array, realTib);
-    return array;
+    throw new UnsupportedOperationException("newRuntimeTable() has not been implemented in subclass");
   }
 
   /**
@@ -1094,7 +741,8 @@ public final class MemoryManager {
    */
   @Pure
   public static boolean isImmortal(Object obj) {
-    return Space.isImmortal(ObjectReference.fromObject(obj));
+    VM.sysFail("isImmortal() has not been implemented in subclass");
+    return false;
   }
 
   /***********************************************************************
@@ -1110,7 +758,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addFinalizer(Object object) {
-    FinalizableProcessor.addCandidate(object);
+    throw new UnsupportedOperationException("addFinalizer() has not been implemented in subclass");
   }
 
   /**
@@ -1121,7 +769,8 @@ public final class MemoryManager {
    */
   @Unpreemptible("Non-preemptible but may yield if finalizable table is being grown")
   public static Object getFinalizedObject() {
-    return FinalizableProcessor.getForFinalize();
+    VM.sysFail("getFinalizedObject() has not been implemented in subclass");
+    return null;
   }
 
   /***********************************************************************
@@ -1137,7 +786,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addSoftReference(SoftReference<?> obj, Object referent) {
-    ReferenceProcessor.addSoftCandidate(obj,ObjectReference.fromObject(referent));
+    throw new UnsupportedOperationException("addSoftReference() has not been implemented in subclass");
   }
 
   /**
@@ -1148,7 +797,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj, Object referent) {
-    ReferenceProcessor.addWeakCandidate(obj,ObjectReference.fromObject(referent));
+    throw new UnsupportedOperationException("addWeakReference() has not been implemented in subclass");
   }
 
   /**
@@ -1159,7 +808,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
-    ReferenceProcessor.addPhantomCandidate(obj,ObjectReference.fromObject(referent));
+    throw new UnsupportedOperationException("addPhantomReference() has not been implemented in subclass");
   }
 
   /***********************************************************************
@@ -1178,7 +827,8 @@ public final class MemoryManager {
    * @return The max heap size in bytes (as set by -Xmx).
    */
   public static Extent getMaxHeapSize() {
-    return HeapGrowthManager.getMaxHeapSize();
+    VM.sysFail("getMaxHeapSize() has not been implemented in subclass");
+    return null;
   }
 
   /***********************************************************************
@@ -1206,9 +856,8 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean mightBeTIB(ObjectReference obj) {
-    return !obj.isNull() &&
-           Space.isMappedObject(obj) &&
-           Space.isMappedObject(ObjectReference.fromObject(ObjectModel.getTIB(obj)));
+    VM.sysFail("mightBeTIB() has not been implemented in subclass");
+    return false;
   }
 
   /**
@@ -1217,7 +866,8 @@ public final class MemoryManager {
    * @return True if GC is in progress.
    */
   public static boolean gcInProgress() {
-    return Plan.gcInProgress();
+    VM.sysFail("gcInProgress() has not been implemented in subclass");
+    return false;
   }
 
   /**
@@ -1225,7 +875,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void startGCspyServer() {
-    GCspy.startGCspyServer();
+    throw new UnsupportedOperationException("startGCspyServer() has not been implemented in subclass");
   }
 
   /**
