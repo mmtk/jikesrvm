@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import org.mmtk.vm.VM;
 import org.vmmagic.pragma.Entrypoint;
 
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
@@ -41,5 +42,24 @@ public class MemoryManagerConstants {
   /** {@code true} if the selected plan moves code */
   @Entrypoint(fieldMayBeFinal = true)
   public static final boolean MOVES_CODE = false;
+  /**
+   * log_2 of the maximum number of spaces a Plan can support.
+   */
+  public static final int LOG_MAX_SPACES = 4;
+
+  /**
+   * Maximum number of spaces a Plan can support.
+   */
+  public static final int MAX_SPACES = 1 << LOG_MAX_SPACES;
+  /**
+   * This value specifies the <i>minimum</i> allocation alignment
+   * requirement of the VM.  When making allocation requests, both
+   * <code>align</code> and <code>offset</code> must be multiples of
+   * <code>MIN_ALIGNMENT</code>.
+   *
+   * This value is required to be a power of 2.
+   */
+  public static final byte LOG_MIN_ALIGNMENT = VM.LOG_MIN_ALIGNMENT;
+  public static final int MIN_ALIGNMENT = 1 << LOG_MIN_ALIGNMENT;
 }
 
