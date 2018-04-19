@@ -264,7 +264,10 @@ public class BootRecord {
   public Address start_workerRIP;
   public Address enable_collectionRIP;
   public Address processRIP;
-
+  public Address free_bytesRIP;
+  public Address total_bytesRIP;
+  public Address starting_heap_addressRIP;
+  public Address last_heap_addressRIP;
 
 
   // startup/shutdown

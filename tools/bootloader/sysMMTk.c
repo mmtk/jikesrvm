@@ -14,6 +14,11 @@ EXTERNAL void sysHelloWorld() {
 
 
 #ifdef RUST_BUILD
+/**
+  * This only still exists so that we can have a performance comparison of the manually aligned functions
+  * versus the inbuilt alignment in syscalls.
+  */
+
 EXTERNAL void* alignedSysAlloc(MMTk_Mutator mutator, int size, int align, int offset, int allocator) {
 	return alloc(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
 }
