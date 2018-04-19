@@ -24,13 +24,13 @@ import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.SysCall;
 import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.heap.layout.HeapLayout;
 import org.mmtk.utility.options.Options;
@@ -84,15 +84,6 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
 
   @Entrypoint
-  @Unpreemptible
-  public static void blockForGC() {
-    RVMThread t = RVMThread.getCurrentThread();
-    t.assertAcceptableStates(RVMThread.IN_JAVA, RVMThread.IN_JAVA_TO_BLOCK);
-    RVMThread.observeExecStatusAtSTW(t.getExecStatus());
-    t.block(RVMThread.gcBlockAdapter);
-  }
-
-  @Entrypoint
   public static void prepareMutator(RVMThread t) {
     /*
      * The collector threads of processors currently running threads
@@ -124,6 +115,10 @@ public final class MemoryManager extends AbstractMemoryManager {
     t.monitor().unlock();
   }
 
+
+  /*
+   * This code is just for rust to call into JikesRVM. It is only for debugging purposes.
+   */
   @Entrypoint
   public static int test2(int a, int b) {
     return a + b;
@@ -171,10 +166,8 @@ public final class MemoryManager extends AbstractMemoryManager {
     DebugUtil.boot(theBootRecord);
     Selected.Plan.get().enableAllocation();
     SynchronizedCounter.boot();
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
-      RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
-    }
+    sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
+    RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
       @Override
       public void notifyExit(int value) {
@@ -198,10 +191,6 @@ public final class MemoryManager extends AbstractMemoryManager {
       RVMType.JavaLangRefReferenceReferenceField.makeTraced();
     }
 
-    if (VM.BuildWithGCSpy) {
-      // start the GCSpy interpreter server
-      MemoryManager.startGCspyServer();
-    }
   }
 
   /**
@@ -209,11 +198,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Interruptible
   public static void enableCollection() {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysEnableCollection(RVMThread.getCurrentThreadSlot());
-    } else {
-      Selected.Plan.get().enableCollection();
-    }
+    sysCall.sysEnableCollection(RVMThread.getCurrentThreadSlot());
     collectionEnabled = true;
   }
 
@@ -295,7 +280,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    * @return The amount of free memory.
    */
   public static Extent freeMemory() {
-    return Plan.freeMemory();
+    return Extent.fromIntZeroExtend(SysCall.sysCall.sysFreeBytes());
   }
 
   /**
@@ -304,7 +289,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    * @return The amount of total memory.
    */
   public static Extent totalMemory() {
-    return Plan.totalMemory();
+    return Extent.fromIntZeroExtend(SysCall.sysCall.sysTotalBytes());
   }
 
   /**
@@ -313,16 +298,14 @@ public final class MemoryManager extends AbstractMemoryManager {
    * @return The maximum amount of memory VM will attempt to use.
    */
   public static Extent maxMemory() {
-    return HeapGrowthManager.getMaxHeapSize();
+    return Extent.fromIntZeroExtend(SysCall.sysCall.sysTotalBytes());
   }
 
   /**
    * External call to force a garbage collection.
    */
   @Interruptible
-  public static void gc() {
-    Selected.Plan.handleUserCollectionRequest();
-  }
+  public static void gc() { VM.sysWriteln("Called MM.gc(). This function does nothing.");}
 
   /****************************************************************************
    *
@@ -361,7 +344,8 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Inline
   public static boolean addressInVM(Address address) {
-    return Space.isMappedAddress(address);
+    return (SysCall.sysCall.sysStartingHeapAddress().LE(address) && address.LE(sysCall.sysCall.sysLastHeapAddress())) ||
+            (BOOT_IMAGE_DATA_START.LE(address) && BOOT_IMAGE_END.LE(address));
   }
 
   /**
@@ -470,14 +454,6 @@ public final class MemoryManager extends AbstractMemoryManager {
       // We should strive to be allocation-free here.
       RVMClass cls = method.getDeclaringClass();
       byte[] clsBA = cls.getDescriptor().toByteArray();
-      if (Selected.Constraints.get().withGCspy()) {
-        if (isPrefix("Lorg/mmtk/vm/gcspy/", clsBA) || isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
-          if (traceAllocator) {
-            VM.sysWriteln("GCSPY");
-          }
-          return Plan.ALLOC_GCSPY;
-        }
-      }
       if (isPrefix("Lorg/jikesrvm/mm/mmtk/ReferenceProcessor", clsBA)) {
         if (traceAllocator) {
           VM.sysWriteln("DEFAULT");
@@ -520,11 +496,6 @@ public final class MemoryManager extends AbstractMemoryManager {
       allocator = Plan.ALLOC_NON_MOVING;
     }
     byte[] typeBA = type.getDescriptor().toByteArray();
-    if (Selected.Constraints.get().withGCspy()) {
-      if (isPrefix("Lorg/mmtk/vm/gcspy/", typeBA) || isPrefix("[Lorg/mmtk/vm/gcspy/", typeBA)) {
-        allocator = Plan.ALLOC_GCSPY;
-      }
-    }
     if (isPrefix("Lorg/jikesrvm/tuningfork", typeBA) || isPrefix("[Lorg/jikesrvm/tuningfork", typeBA) ||
         isPrefix("Lcom/ibm/tuningfork/", typeBA) || isPrefix("[Lcom/ibm/tuningfork/", typeBA) ||
         isPrefix("Lorg/mmtk/", typeBA) || isPrefix("[Lorg/mmtk/", typeBA) ||
@@ -684,12 +655,9 @@ public final class MemoryManager extends AbstractMemoryManager {
 
     /* Now make the request */
     Address region;
-    if (VM.BuildWithRustMMTk) {
-      VM.sysFail("Tried to allocate in collector space for non-collecting plan");
-      region = null;
-    } else {
-      region = context.allocCopy(from, bytes, align, offset, allocator);
-    }
+
+    VM.sysFail("Tried to allocate in collector space for non-collecting plan");
+    region = null;
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
@@ -1051,13 +1019,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Pure
   public static boolean willNeverMove(Object obj) {
-    // VM.sysWrite("willNeverMove ");
-    // VM.sysWriteln(ObjectReference.fromObject(obj).toAddress());
-    if (VM.BuildWithRustMMTk) {
-      return sysCall.sysWillNeverMove(ObjectReference.fromObject(obj));
-    } else {
-      return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
-    }
+    return sysCall.sysWillNeverMove(ObjectReference.fromObject(obj));
   }
 
   /**
@@ -1193,18 +1155,10 @@ public final class MemoryManager extends AbstractMemoryManager {
   }
 
   /**
-   * Start the GCspy server
-   */
-  @Interruptible
-  public static void startGCspyServer() {
-    GCspy.startGCspyServer();
-  }
-
-  /**
    * Flush the mutator context.
    */
   public static void flushMutatorContext() {
-    Selected.Mutator.get().flush();
+    VM.sysWriteln("flushMutatorContext() not implemented yet");
   }
 
   /**
@@ -1254,9 +1208,7 @@ public final class MemoryManager extends AbstractMemoryManager {
   @Interruptible
   public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
                                       boolean isScalar) {
-    //    int status = JavaHeader.readAvailableBitsWord(bootImage, ref);
-    byte status = Selected.Plan.get().setBuildTimeGCByte(ref, ObjectReference.fromObject(tib), size);
-    JavaHeader.writeAvailableByte(bootImage, ref, status);
+    VM.sysWriteln("initializeHeader() not implemented.");
   }
 
   /**
@@ -1299,5 +1251,14 @@ public final class MemoryManager extends AbstractMemoryManager {
     return new int[n];
   }
 
+
+  @Entrypoint
+  @Unpreemptible
+  public static void blockForGC() {
+    RVMThread t = RVMThread.getCurrentThread();
+    t.assertAcceptableStates(RVMThread.IN_JAVA, RVMThread.IN_JAVA_TO_BLOCK);
+    RVMThread.observeExecStatusAtSTW(t.getExecStatus());
+    t.block(RVMThread.gcBlockAdapter);
+  }
 }
 
