@@ -98,14 +98,12 @@ public class DebugUtil {
   public static boolean validRef(ObjectReference ref) {
 
     if (ref.isNull()) return true;
-    if (!VM.BuildWithRustMMTk) {
-      if (!Space.isMappedObject(ref)) {
-        VM.sysWrite("validRef: REF outside heap, ref = ");
-        VM.sysWrite(ref);
-        VM.sysWriteln();
-        Space.printVMMap();
-        return false;
-      }
+    if (!Space.isMappedObject(ref)) {
+      VM.sysWrite("validRef: REF outside heap, ref = ");
+      VM.sysWrite(ref);
+      VM.sysWriteln();
+      Space.printVMMap();
+      return false;
     }
     if (MOVES_OBJECTS) {
       /*
@@ -120,16 +118,14 @@ public class DebugUtil {
 
     TIB tib = ObjectModel.getTIB(ref);
     Address tibAddr = Magic.objectAsAddress(tib);
-    if (!VM.BuildWithRustMMTk) {
-      if (!Space.isMappedObject(ObjectReference.fromObject(tib))) {
-        VM.sysWrite("validRef: TIB outside heap, ref = ");
-        VM.sysWrite(ref);
-        VM.sysWrite(" tib = ");
-        VM.sysWrite(tibAddr);
-        VM.sysWriteln();
-        ObjectModel.dumpHeader(ref);
-        return false;
-      }
+    if (!Space.isMappedObject(ObjectReference.fromObject(tib))) {
+      VM.sysWrite("validRef: TIB outside heap, ref = ");
+      VM.sysWrite(ref);
+      VM.sysWrite(" tib = ");
+      VM.sysWrite(tibAddr);
+      VM.sysWriteln();
+      ObjectModel.dumpHeader(ref);
+      return false;
     }
     if (tibAddr.isZero()) {
       VM.sysWrite("validRef: TIB is Zero! ");

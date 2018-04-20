@@ -12,14 +12,11 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.mm.mmtk.ScanThread;
 import org.jikesrvm.scheduler.SystemThread;
 import org.mmtk.plan.CollectorContext;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
-
-import static org.jikesrvm.runtime.SysCall.sysCall;
 
 /**
  * System thread used to perform garbage collection work.
@@ -47,17 +44,11 @@ public final class CollectorThread extends SystemThread {
 
   /** used by collector threads to hold state during stack scanning */
   private final ScanThread threadScanner = new ScanThread();
-  private final RustScanThread rustThreadScanner = new RustScanThread();
 
   /** @return the thread scanner instance associated with this instance */
   @Uninterruptible
   public ScanThread getThreadScanner() {
     return threadScanner;
-  }
-
-  @Uninterruptible
-  public RustScanThread getRustThreadScanner() {
-    return rustThreadScanner;
   }
 
 
@@ -72,11 +63,9 @@ public final class CollectorThread extends SystemThread {
    *  functionality
    */
   public CollectorThread(byte[] stack, CollectorContext context) {
-    super(stack, (VM.BuildWithRustMMTk ? "CollectorThread" : context.getClass().getName()) + " [" + nextId + "]");
-    if (!VM.BuildWithRustMMTk) {
-      rvmThread.collectorContext = context;
-      rvmThread.collectorContext.initCollector(nextId);
-    }
+    super(stack, context.getClass().getName() + " [" + nextId + "]");
+    rvmThread.collectorContext = context;
+    rvmThread.collectorContext.initCollector(nextId);
     nextId++;
   }
 
@@ -95,15 +84,7 @@ public final class CollectorThread extends SystemThread {
   // and store all registers from previous method in prologue, so that we can stack access them while scanning this thread.
   @Unpreemptible
   public void run() {
-    if (VM.BuildWithRustMMTk) {
-      if (workerInstance.EQ(Address.zero())) {
-        sysCall.sysStartControlCollector(rvmThread.threadSlot);
-      } else {
-        sysCall.sysStartWorker(rvmThread.threadSlot, workerInstance);
-      }
-    } else {
-      rvmThread.collectorContext.run();
-    }
+    rvmThread.collectorContext.run();
   }
 }
 
