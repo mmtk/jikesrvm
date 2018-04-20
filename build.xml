@@ -33,14 +33,7 @@
   <setBuildName property="build.name" config="${config.name}"/>
 
   <!-- location of resources -->
-  <property name="primordials.dir" location="build/primordials"/>
-  <property name="main.java" location="rvm/src"/>
-  <property name="test.java" location="rvm/test-src/"/>
-  <property name="mmtk.java" location="MMTk/src"/>
-  <property name="mmtk-harness.java" location="MMTk/harness/src"/>
-  <property name="mmtk-harness-vmmagic.java" location="MMTk/harness/vmmagic"/>
-  <property name="mmtk-vm-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
-  <property name="mmtk-vm-harness.java" location="MMTk/ext/vm/harness"/>
+  <!-- This can't be turned on yet since we still have some dependencies with java MMTk
   <condition property="mmtk.java" value="">
     <equals arg1="${rust.build}" arg2="true"/>
   </condition>
@@ -56,9 +49,19 @@
   <condition property="mmtk-vm-harness.java" value="">
     <equals arg1="${rust.build}" arg2="true"/>
   </condition>
+  -->
   <condition property="main.mm.java" value="rvm/ext/mm/rust-mmtk/src">
     <equals arg1="${rust.build}" arg2="true"/>
   </condition>
+
+  <property name="primordials.dir" location="build/primordials"/>
+  <property name="main.java" location="rvm/src"/>
+  <property name="test.java" location="rvm/test-src/"/>
+  <property name="mmtk.java" location="MMTk/src"/>
+  <property name="mmtk-harness.java" location="MMTk/harness/src"/>
+  <property name="mmtk-harness-vmmagic.java" location="MMTk/harness/vmmagic"/>
+  <property name="mmtk-vm-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
+  <property name="mmtk-vm-harness.java" location="MMTk/ext/vm/harness"/>
   <property name="main.mm.java" location="rvm/ext/mm/java-mmtk/src"/>
 
   <property name="vmmagic-stub.java" location="common/vmmagic/src"/>
@@ -1347,7 +1350,6 @@ Check to make sure all required properties are specified. This includes properti
                else="org/jikesrvm/ppc/MachineSpecificPowerPC.java">
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
-
     <!--
      FIXME: When we can capture the primordials based on reachability
      we will not need to delete class dir here. We will also be able to
