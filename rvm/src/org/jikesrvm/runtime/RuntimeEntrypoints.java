@@ -922,10 +922,6 @@ public class RuntimeEntrypoints {
     BootRecord.the_boot_record.hardwareTrapMethodId = CompiledMethods.createHardwareTrapCompiledMethod().getId();
     BootRecord.the_boot_record.deliverHardwareExceptionOffset =
         Entrypoints.deliverHardwareExceptionMethod.getOffset();
-    BootRecord.the_boot_record.testMethodId = CompiledMethods.createHardwareTrapCompiledMethod().getId();
-    BootRecord.the_boot_record.testMethodOffset = Entrypoints.testMethod.getOffset();
-    BootRecord.the_boot_record.test1MethodOffset = Entrypoints.test1Method.getOffset();
-    BootRecord.the_boot_record.testMethodRandom = Entrypoints.testMethod.getOperandWords();
     // tell the bootloader (sysSignal.c) to set "RVMThread.debugRequested" flag
     // whenever the host operating system detects a debug request signal
     //
