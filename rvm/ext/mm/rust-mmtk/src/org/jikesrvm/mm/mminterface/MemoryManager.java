@@ -206,7 +206,7 @@ public final class MemoryManager extends AbstractMemoryManager {
   @Entrypoint
   public static void spawnCollectorThread(Address workerInstance) {
     byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
-    CollectorThread t = new CollectorThread(stack, null);
+    CollectorThread t = new CollectorThread(stack);
     t.setWorker(workerInstance);
     t.start();
   }

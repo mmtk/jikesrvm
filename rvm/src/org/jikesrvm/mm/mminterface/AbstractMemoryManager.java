@@ -171,10 +171,7 @@ public abstract class AbstractMemoryManager {
   @Interruptible
   @Entrypoint
   public static void spawnCollectorThread(Address workerInstance) {
-    byte[] stack = AbstractMemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
-    CollectorThread t = new CollectorThread(stack, null);
-    t.setWorker(workerInstance);
-    t.start();
+    throw new UnsupportedOperationException("spawnCollectorThread() has not been implemented in subclass");
   }
 
   /**

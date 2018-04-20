@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.mm.mmtk.ScanThread;
 import org.jikesrvm.scheduler.SystemThread;
 import org.mmtk.plan.CollectorContext;
@@ -46,8 +45,8 @@ public final class CollectorThread extends SystemThread {
   }
 
   /** used by collector threads to hold state during stack scanning */
-  private final ScanThread threadScanner = new ScanThread();
   private final RustScanThread rustThreadScanner = new RustScanThread();
+  private final ScanThread threadScanner = new ScanThread();
 
   /** @return the thread scanner instance associated with this instance */
   @Uninterruptible
@@ -55,6 +54,7 @@ public final class CollectorThread extends SystemThread {
     return threadScanner;
   }
 
+  /** @return the thread scanner instance associated with this instance */
   @Uninterruptible
   public RustScanThread getRustThreadScanner() {
     return rustThreadScanner;
@@ -68,15 +68,15 @@ public final class CollectorThread extends SystemThread {
 
   /**
    * @param stack The stack this thread will run on
-   * @param context the context that will provide the thread's
    *  functionality
    */
+  public CollectorThread(byte[] stack) {
+    super(stack, "CollectorThread");
+    nextId++;
+  }
+  /** this is just a dummy constructor **/
   public CollectorThread(byte[] stack, CollectorContext context) {
-    super(stack, (VM.BuildWithRustMMTk ? "CollectorThread" : context.getClass().getName()) + " [" + nextId + "]");
-    if (!VM.BuildWithRustMMTk) {
-      rvmThread.collectorContext = context;
-      rvmThread.collectorContext.initCollector(nextId);
-    }
+    super(stack, "CollectorThread");
     nextId++;
   }
 
@@ -95,14 +95,10 @@ public final class CollectorThread extends SystemThread {
   // and store all registers from previous method in prologue, so that we can stack access them while scanning this thread.
   @Unpreemptible
   public void run() {
-    if (VM.BuildWithRustMMTk) {
-      if (workerInstance.EQ(Address.zero())) {
-        sysCall.sysStartControlCollector(rvmThread.threadSlot);
-      } else {
-        sysCall.sysStartWorker(rvmThread.threadSlot, workerInstance);
-      }
+    if (workerInstance.EQ(Address.zero())) {
+      sysCall.sysStartControlCollector(rvmThread.threadSlot);
     } else {
-      rvmThread.collectorContext.run();
+      sysCall.sysStartWorker(rvmThread.threadSlot, workerInstance);
     }
   }
 }

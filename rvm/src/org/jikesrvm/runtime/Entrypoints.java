@@ -124,7 +124,7 @@ public class Entrypoints {
           getMethod(org.jikesrvm.scheduler.RVMThread.class, "blockAllMutatorsForGC", "()V");
   public static final RVMField threadBySlotField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "threadBySlot", RVMThread[].class);
-  public static final NormalMethod blockForGCMethod =
+/*  public static final NormalMethod blockForGCMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "blockForGC", "()V");
   public static final NormalMethod prepareMutatorMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "prepareMutator",
@@ -153,7 +153,7 @@ public class Entrypoints {
                   "(Lorg/vmmagic/unboxed/ObjectReference;)V");
   public static final NormalMethod spawnCollectorThreadMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "spawnCollectorThread",
-                  "(Lorg/vmmagic/unboxed/Address;)V");
+                  "(Lorg/vmmagic/unboxed/Address;)V");*/
   public static final NormalMethod snipObsoleteCompiledMethodsMethod =
           getMethod(org.jikesrvm.compilers.common.CompiledMethods.class, "snipObsoleteCompiledMethods", "()V");
   public static final NormalMethod getReferenceSlotSizeMethod =
