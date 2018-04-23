@@ -20,7 +20,6 @@ import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.mm.mminterface.BaseEntrypoints;
-import org.jikesrvm.mm.mminterface.RustJTOC;
 
 /**
  * Fields and methods of the virtual machine that are needed by
@@ -539,9 +538,9 @@ public class Entrypoints extends BaseEntrypoints {
       optNew2DArrayMethod = null;
       sysArrayCopy = null;
     }
-    if (VM.BuildWithRustMMTk) {
-      RustJTOC.compileMMTk();
-    }
+    //if (VM.BuildWithRustMMTk) {
+    //  RustJTOC.compileMMTk();
+    //}
   }
 
   public static final RVMField classLoaderDefinedPackages =
@@ -592,5 +591,9 @@ public class Entrypoints extends BaseEntrypoints {
       luni5 = null;
       luni6 = null;
     }
+  }
+
+  static {
+    BaseEntrypoints.postInitialize();
   }
 }

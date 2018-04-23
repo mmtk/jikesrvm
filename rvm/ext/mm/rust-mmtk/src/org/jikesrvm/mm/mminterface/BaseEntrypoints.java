@@ -35,7 +35,6 @@ public class BaseEntrypoints {
   //public static final NormalMethod deliverHardwareExceptionMethod =
   //        getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "deliverHardwareException", "(ILorg/vmmagic/unboxed/Word;)V");
 
-  /* todo */
   public static final NormalMethod unblockAllMutatorsForGCMethod =
     getMethod(org.jikesrvm.scheduler.RVMThread.class, "unblockAllMutatorsForGC", "()V");
   public static final NormalMethod blockAllMutatorsForGCMethod =
@@ -169,9 +168,9 @@ public class BaseEntrypoints {
     getField(org.jikesrvm.classloader.RVMClass.class, "acyclic", boolean.class);
   public static final RVMField rvmClassModifiers =
     getField(org.jikesrvm.classloader.RVMClass.class, "modifiers", short.class);
-  /* todo */
 
-  static {
+  public static void postInitialize() {
     RustJTOC.compileMMTk();
   }
+
 }

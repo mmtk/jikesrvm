@@ -19,13 +19,16 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
-import org.jikesrvm.mm.mminterface.RustJTOC;
 import org.jikesrvm.scheduler.RVMThread;
 
 /**
- * Fields and methods of the virtual machine that are needed by
- * compiler-generated machine code or C runtime code.
+ * This is empty as there are no additional entrypoints that are required for Java MMTk.
  */
 public class BaseEntrypoints {
+
+  // This function is required
+  public static void postInitialize() {
+
+  }
 
 }
