@@ -19,9 +19,8 @@ import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
+import org.jikesrvm.runtime.SysCall;
 import org.jikesrvm.scheduler.RVMThread;
-import org.mmtk.policy.Space;
-import org.mmtk.utility.heap.layout.HeapLayout;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
@@ -60,7 +59,8 @@ public class DebugUtil {
    */
   @Uninterruptible
   public static boolean validType(ObjectReference typeAddress) {
-    if (!Space.isMappedObject(typeAddress)) {
+    if (!SysCall.sysCall.sysStartingHeapAddress().LE(typeAddress.toAddress()) &&
+            !SysCall.sysCall.sysLastHeapAddress().GT(typeAddress.toAddress())) {
       return false;  // type address is outside of heap
     }
 
@@ -142,7 +142,8 @@ public class DebugUtil {
 
   @Uninterruptible
   public static boolean mappedVMRef(ObjectReference ref) {
-    return Space.isMappedObject(ref) && HeapLayout.mmapper.objectIsMapped(ref);
+    return SysCall.sysCall.sysStartingHeapAddress().LE(ref.toAddress()) &&
+           SysCall.sysCall.sysLastHeapAddress().GT(ref.toAddress());
   }
 
   @Entrypoint

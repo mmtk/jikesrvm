@@ -16,24 +16,12 @@ import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.common.CodeArray;
-import org.jikesrvm.mm.mmtk.FinalizableProcessor;
-import org.jikesrvm.mm.mmtk.ReferenceProcessor;
-import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import org.jikesrvm.objectmodel.*;
 import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Callbacks;
-import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.SysCall;
 import org.jikesrvm.scheduler.RVMThread;
-import org.mmtk.plan.CollectorContext;
-import org.mmtk.plan.Plan;
-import org.mmtk.policy.Space;
-import org.mmtk.utility.Memory;
-import org.mmtk.utility.alloc.Allocator;
-import org.mmtk.utility.heap.HeapGrowthManager;
-import org.mmtk.utility.heap.layout.HeapLayout;
-import org.mmtk.utility.options.Options;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -45,9 +33,8 @@ import static org.jikesrvm.HeapLayoutConstants.*;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.jikesrvm.runtime.SysCall.sysCall;
-import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
-import static org.mmtk.utility.heap.layout.HeapParameters.MAX_SPACES;
-
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MIN_ALIGNMENT;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MAX_SPACES;
 
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
@@ -160,12 +147,8 @@ public final class MemoryManager extends AbstractMemoryManager {
   public static void boot(BootRecord theBootRecord) {
     Extent pageSize = BootRecord.the_boot_record.bytesInPage;
     org.jikesrvm.runtime.Memory.setPageSize(pageSize);
-    HeapLayout.mmapper.markAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
-    HeapLayout.mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
-    HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     DebugUtil.boot(theBootRecord);
     Selected.Plan.get().enableAllocation();
-    SynchronizedCounter.boot();
     sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
     RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
@@ -186,10 +169,6 @@ public final class MemoryManager extends AbstractMemoryManager {
   @Interruptible
   public static void postBoot() {
     Selected.Plan.get().processOptions();
-
-    if (Options.noReferenceTypes.getValue()) {
-      RVMType.JavaLangRefReferenceReferenceField.makeTraced();
-    }
 
   }
 
@@ -248,20 +227,6 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Entrypoint
   public static void modifyCheck(Object object) {
-    /* Make sure that during GC, we don't update on a possibly moving object.
-       Such updates are dangerous because they can be lost.
-     */
-    if (Plan.gcInProgressProper()) {
-      ObjectReference ref = ObjectReference.fromObject(object);
-      if (Space.isMovable(ref)) {
-        VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
-        VM.sysWriteln("  obj = ", ref);
-        RVMType t = Magic.getObjectType(object);
-        VM.sysWrite(" type = ");
-        VM.sysWriteln(t.getDescriptor());
-        VM.sysFail("GC modifying a potentially moving object via Java (i.e. not magic)");
-      }
-    }
   }
 
   /***********************************************************************
@@ -361,7 +326,8 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Inline
   public static boolean objectInVM(ObjectReference object) {
-    return Space.isMappedObject(object);
+    return (SysCall.sysCall.sysStartingHeapAddress().LE(object.toAddress()) && object.toAddress().LE(sysCall.sysCall.sysLastHeapAddress())) ||
+            (BOOT_IMAGE_DATA_START.LE(object.toAddress()) && BOOT_IMAGE_END.LE(object.toAddress()));
   }
 
   /**
@@ -374,7 +340,8 @@ public final class MemoryManager extends AbstractMemoryManager {
     // In general we don't know which spaces may hold allocated stacks.
     // If we want to be more specific than the space being mapped we
     // will need to add a check in Plan that can be overriden.
-    return Space.isMappedAddress(address);
+    return (SysCall.sysCall.sysStartingHeapAddress().LE(address) && address.LE(sysCall.sysCall.sysLastHeapAddress())) ||
+            (BOOT_IMAGE_DATA_START.LE(address) && BOOT_IMAGE_END.LE(address));
   }
   /***********************************************************************
    *
@@ -390,7 +357,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    * @return an allocation site
    */
   public static int getAllocationSite(boolean compileTime) {
-    return Plan.getAllocationSite(compileTime);
+    return Plan.DEFAULT_SITE;
   }
 
   /**
@@ -435,76 +402,6 @@ public final class MemoryManager extends AbstractMemoryManager {
     return true;
   }
 
-  /**
-   * Returns the appropriate allocation scheme/area for the given type
-   * and given method requesting the allocation.
-   *
-   * @param type the type of the object to be allocated
-   * @param method the method requesting the allocation
-   * @return the identifier of the appropriate allocator
-   */
-  @Interruptible
-  public static int pickAllocator(RVMType type, RVMMethod method) {
-    if (traceAllocator) {
-      VM.sysWrite("allocator for ");
-      VM.sysWrite(type.getDescriptor());
-      VM.sysWrite(": ");
-    }
-    if (method != null) {
-      // We should strive to be allocation-free here.
-      RVMClass cls = method.getDeclaringClass();
-      byte[] clsBA = cls.getDescriptor().toByteArray();
-      if (isPrefix("Lorg/jikesrvm/mm/mmtk/ReferenceProcessor", clsBA)) {
-        if (traceAllocator) {
-          VM.sysWriteln("DEFAULT");
-        }
-        return Plan.ALLOC_DEFAULT;
-      }
-      if (isPrefix("Lorg/mmtk/", clsBA) || isPrefix("Lorg/jikesrvm/mm/", clsBA)) {
-        if (traceAllocator) {
-          VM.sysWriteln("NONMOVING");
-        }
-        return Plan.ALLOC_NON_MOVING;
-      }
-      if (method.isNonMovingAllocation()) {
-        return Plan.ALLOC_NON_MOVING;
-      }
-    }
-    if (traceAllocator) {
-      VM.sysWriteln(type.getMMAllocator());
-    }
-    return type.getMMAllocator();
-  }
-
-  /**
-   * Determine the default allocator to be used for a given type.
-   *
-   * @param type The type in question
-   * @return The allocator to use for allocating instances of type
-   * <code>type</code>.
-   */
-  @Interruptible
-  private static int pickAllocatorForType(RVMType type) {
-    int allocator = Plan.ALLOC_DEFAULT;
-    if (type.isArrayType()) {
-      RVMType elementType = type.asArray().getElementType();
-      if (elementType.isPrimitiveType() || elementType.isUnboxedType()) {
-        allocator = Plan.ALLOC_NON_REFERENCE;
-      }
-    }
-    if (type.isNonMoving()) {
-      allocator = Plan.ALLOC_NON_MOVING;
-    }
-    byte[] typeBA = type.getDescriptor().toByteArray();
-    if (isPrefix("Lorg/jikesrvm/tuningfork", typeBA) || isPrefix("[Lorg/jikesrvm/tuningfork", typeBA) ||
-        isPrefix("Lcom/ibm/tuningfork/", typeBA) || isPrefix("[Lcom/ibm/tuningfork/", typeBA) ||
-        isPrefix("Lorg/mmtk/", typeBA) || isPrefix("[Lorg/mmtk/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/mm/", typeBA) || isPrefix("[Lorg/jikesrvm/mm/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/jni/JNIEnvironment;", typeBA)) {
-      allocator = Plan.ALLOC_NON_MOVING;
-    }
-    return allocator;
-  }
 
   /***********************************************************************
    * These methods allocate memory.  Specialized versions are available for
@@ -630,58 +527,7 @@ public final class MemoryManager extends AbstractMemoryManager {
     /* Now make the request */
     Address region;
     region = mutator.alloc(bytes, align, offset, allocator, site);
-
-    /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
-    if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
     return region;
-  }
-
-  /**
-   * Allocate space for GC-time copying of an object
-   *
-   * @param context The collector context to be used for this allocation
-   * @param bytes The size of the allocation in bytes
-   * @param allocator the allocator associated with this request
-   * @param align The alignment requested; must be a power of 2.
-   * @param offset The offset at which the alignment is desired.
-   * @param from The source object from which this is to be copied
-   * @return The first byte of a suitably sized and aligned region of memory.
-   */
-  @Inline
-  public static Address allocateSpace(CollectorContext context, int bytes, int align, int offset, int allocator,
-                                      ObjectReference from) {
-    /* MMTk requests must be in multiples of MIN_ALIGNMENT */
-    bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
-
-    /* Now make the request */
-    Address region;
-
-    VM.sysFail("Tried to allocate in collector space for non-collecting plan");
-    region = null;
-
-    /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
-    if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
-
-    return region;
-  }
-
-  /**
-   * Align an allocation using some modulo arithmetic to guarantee the
-   * following property:<br>
-   * <code>(region + offset) % alignment == 0</code>
-   *
-   * @param initialOffset The initial (unaligned) start value of the
-   * allocated region of memory.
-   * @param align The alignment requested, must be a power of two
-   * @param offset The offset at which the alignment is desired
-   * @return <code>initialOffset</code> plus some delta (possibly 0) such
-   * that the return value is aligned according to the above
-   * constraints.
-   */
-  @Inline
-  public static Offset alignAllocation(Offset initialOffset, int align, int offset) {
-    Address region = org.jikesrvm.runtime.Memory.alignUp(initialOffset.toWord().toAddress(), MIN_ALIGNMENT);
-    return Allocator.alignAllocationNoFill(region, align, offset).toWord().toOffset();
   }
 
   /**
@@ -1028,7 +874,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Pure
   public static boolean isImmortal(Object obj) {
-    return Space.isImmortal(ObjectReference.fromObject(obj));
+    return SysCall.sysCall.is_immortal(ObjectReference.fromObject(obj).toAddress());
   }
 
   /***********************************************************************
@@ -1044,7 +890,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Interruptible
   public static void addFinalizer(Object object) {
-    FinalizableProcessor.addCandidate(object);
+    //FinalizableProcessor.addCandidate(object);
   }
 
   /**
@@ -1055,7 +901,9 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Unpreemptible("Non-preemptible but may yield if finalizable table is being grown")
   public static Object getFinalizedObject() {
-    return FinalizableProcessor.getForFinalize();
+    //return FinalizableProcessor.getForFinalize();
+    VM.sysFail("Have not yet implemented getFinalizedObject for RustMMTk");
+    return null;
   }
 
   /***********************************************************************
@@ -1071,7 +919,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Interruptible
   public static void addSoftReference(SoftReference<?> obj, Object referent) {
-    ReferenceProcessor.addSoftCandidate(obj,ObjectReference.fromObject(referent));
+    //ReferenceProcessor.addSoftCandidate(obj,ObjectReference.fromObject(referent));
   }
 
   /**
@@ -1082,7 +930,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj, Object referent) {
-    ReferenceProcessor.addWeakCandidate(obj,ObjectReference.fromObject(referent));
+    //ReferenceProcessor.addWeakCandidate(obj,ObjectReference.fromObject(referent));
   }
 
   /**
@@ -1093,7 +941,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Interruptible
   public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
-    ReferenceProcessor.addPhantomCandidate(obj,ObjectReference.fromObject(referent));
+    //ReferenceProcessor.addPhantomCandidate(obj,ObjectReference.fromObject(referent));
   }
 
   /***********************************************************************
@@ -1112,7 +960,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    * @return The max heap size in bytes (as set by -Xmx).
    */
   public static Extent getMaxHeapSize() {
-    return HeapGrowthManager.getMaxHeapSize();
+    return Extent.fromIntZeroExtend(SysCall.sysCall.sysTotalBytes());
   }
 
   /***********************************************************************
@@ -1128,7 +976,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Interruptible
   public static void notifyClassResolved(RVMType vmType) {
-    vmType.setMMAllocator(pickAllocatorForType(vmType));
+    //vmType.setMMAllocator(pickAllocatorForType(vmType));
   }
 
   /**
@@ -1140,9 +988,11 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Inline
   public static boolean mightBeTIB(ObjectReference obj) {
-    return !obj.isNull() &&
-           Space.isMappedObject(obj) &&
-           Space.isMappedObject(ObjectReference.fromObject(ObjectModel.getTIB(obj)));
+    return !obj.isNull() && // todo
+            SysCall.sysCall.sysStartingHeapAddress().LE(obj.toAddress()) &&
+            SysCall.sysCall.sysLastHeapAddress().GT(obj.toAddress()) &&
+            SysCall.sysCall.sysStartingHeapAddress().LE(ObjectReference.fromObject(ObjectModel.getTIB(obj)).toAddress()) &&
+            SysCall.sysCall.sysLastHeapAddress().GT(ObjectReference.fromObject(ObjectModel.getTIB(obj)).toAddress());
   }
 
   /**
@@ -1151,7 +1001,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    * @return True if GC is in progress.
    */
   public static boolean gcInProgress() {
-    return Plan.gcInProgress();
+    return false; //todo
   }
 
   /**

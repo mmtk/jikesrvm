@@ -22,11 +22,8 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.SpecializedMethod;
-import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.objectmodel.IMT;
@@ -880,33 +877,6 @@ public abstract class AbstractMemoryManager {
    */
   public static void flushMutatorContext() {
     Selected.Mutator.get().flush();
-  }
-
-  /**
-   * @return the number of specialized methods.
-   */
-  public static int numSpecializedMethods() {
-    return SpecializedScanMethod.ENABLED ? Selected.Constraints.get().numSpecializedScans() : 0;
-  }
-
-  /**
-   * Initialize a specified specialized method.
-   *
-   * @param id the specializedMethod
-   * @return the created specialized scan method
-   */
-  @Interruptible
-  public static SpecializedMethod createSpecializedMethod(int id) {
-    if (VM.VerifyAssertions) {
-      VM._assert(SpecializedScanMethod.ENABLED);
-      VM._assert(id < Selected.Constraints.get().numSpecializedScans());
-    }
-
-    /* What does the plan want us to specialize this to? */
-    Class<?> traceClass = Selected.Plan.get().getSpecializedScanClass(id);
-
-    /* Create the specialized method */
-    return new SpecializedScanMethod(id, TypeReference.findOrCreate(traceClass));
   }
 
   /***********************************************************************

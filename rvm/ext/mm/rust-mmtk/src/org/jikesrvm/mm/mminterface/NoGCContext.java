@@ -13,7 +13,6 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
-import org.mmtk.plan.nogc.NoGCMutator;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import org.jikesrvm.runtime.Magic;
@@ -23,7 +22,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 
 @Uninterruptible
-public class NoGCContext extends NoGCMutator {
+public class NoGCContext {
 
     @Entrypoint
     Address threadId;
@@ -74,4 +73,9 @@ public class NoGCContext extends NoGCMutator {
         limit    = mmtkHandle.plus(BYTES_IN_WORD * 2).loadAddress();
         space    = mmtkHandle.plus(BYTES_IN_WORD * 3).loadAddress();
     }
+
+    public int getId() {
+        return threadId.toInt();
+    }
+
 }

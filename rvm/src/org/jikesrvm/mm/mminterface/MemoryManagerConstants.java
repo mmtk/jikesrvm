@@ -17,7 +17,6 @@ import org.vmmagic.pragma.Entrypoint;
 
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
 
-
 /**
  * This class merely exposes the MMTk constants into the Jikes RVM
  * package space so that they can be accessed by the VM in an
@@ -61,5 +60,11 @@ public class MemoryManagerConstants {
    */
   public static final byte LOG_MIN_ALIGNMENT = VM.LOG_MIN_ALIGNMENT;
   public static final int MIN_ALIGNMENT = 1 << LOG_MIN_ALIGNMENT;
+  public static final int INSTANCE_FIELD = 0;
+  public static final int ARRAY_ELEMENT = 1;
+  public static final byte LOG_BYTES_IN_ADDRESS = VM.LOG_BYTES_IN_ADDRESS;
+  public static final byte LOG_BYTES_IN_INT = 2;
+  public static final byte LOG_BYTES_IN_CHAR = 1;
+  public static final byte LOG_BYTES_IN_SHORT = 1;
 }
 
