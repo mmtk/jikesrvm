@@ -13,6 +13,7 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
+import org.mmtk.utility.alloc.Allocator;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
@@ -103,6 +104,28 @@ public abstract class BaseContext {
    *
    * Allocation.
    */
+
+  /****************************************************************************
+   *
+   * Allocation.
+   */
+
+  /**
+   * Run-time check of the allocator to use for a given allocation<p>
+   *
+   * At the moment this method assumes that allocators will use the simple
+   * (worst) method of aligning to determine if the object is a large object
+   * to ensure that no objects are larger than other allocators can handle.
+   *
+   * @param bytes The number of bytes to be allocated
+   * @param align The requested alignment.
+   * @param allocator The allocator statically assigned to this allocation
+   * @return The allocator dynamically assigned to this allocation
+   */
+  @Inline
+  public int checkAllocator(int bytes, int align, int allocator) {
+    return Plan.DEFAULT_SITE;
+  }
 
   /**
    * Allocate memory for an object.

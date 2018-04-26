@@ -14,8 +14,8 @@ package org.jikesrvm.mm.mminterface;
 
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
-import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
-import static org.mmtk.utility.heap.layout.HeapParameters.MAX_SPACES;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MIN_ALIGNMENT;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MAX_SPACES;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.SoftReference;

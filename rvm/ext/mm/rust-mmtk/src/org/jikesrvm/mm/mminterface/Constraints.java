@@ -274,9 +274,15 @@ public class Constraints {
 
   /** @return The number of header bits that are required. */
   //todo public abstract int gcHeaderBits();
+  public int gcHeaderBits() {
+    return 0;
+  }
 
   /** @return The number of header words that are required. */
   //todo public abstract int gcHeaderWords();
+  public int gcHeaderWords() {
+    return 0;
+  }
 
   /** @return {@code true} if this plan contains GCspy. */
   public boolean withGCspy() {
