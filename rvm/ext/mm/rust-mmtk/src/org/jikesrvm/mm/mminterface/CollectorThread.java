@@ -46,13 +46,6 @@ public final class CollectorThread extends SystemThread {
 
   /** used by collector threads to hold state during stack scanning */
   private final RustScanThread rustThreadScanner = new RustScanThread();
-  private final ScanThread threadScanner = new ScanThread();
-
-  /** @return the thread scanner instance associated with this instance */
-  @Uninterruptible
-  public ScanThread getThreadScanner() {
-    return threadScanner;
-  }
 
   /** @return the thread scanner instance associated with this instance */
   @Uninterruptible

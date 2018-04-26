@@ -23,7 +23,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 
 @Uninterruptible
-public class SSContext {
+public class SSContext extends BaseContext {
 
     @Entrypoint
     Address threadId;

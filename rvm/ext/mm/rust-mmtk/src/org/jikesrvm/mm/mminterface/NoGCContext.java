@@ -22,7 +22,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 
 @Uninterruptible
-public class NoGCContext {
+public class NoGCContext extends BaseContext {
 
     @Entrypoint
     Address threadId;
@@ -74,8 +74,5 @@ public class NoGCContext {
         space    = mmtkHandle.plus(BYTES_IN_WORD * 3).loadAddress();
     }
 
-    public int getId() {
-        return threadId.toInt();
-    }
 
 }
