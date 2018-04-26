@@ -33,7 +33,7 @@
   <setBuildName property="build.name" config="${config.name}"/>
 
   <!-- location of resources -->
-  <!-- todo This can't be turned on yet since we still have some dependencies with java MMTk
+  <!-- todo This can't be turned on yet since we still have some dependencies with java MMTk -->
   <condition property="mmtk.java" value="">
     <equals arg1="${rust.build}" arg2="true"/>
   </condition>
@@ -49,7 +49,7 @@
   <condition property="mmtk-vm-harness.java" value="">
     <equals arg1="${rust.build}" arg2="true"/>
   </condition>
-  -->
+  <!-- -->
   <condition property="main.mm.java" value="rvm/ext/mm/rust-mmtk/src">
     <equals arg1="${rust.build}" arg2="true"/>
   </condition>
