@@ -13,8 +13,9 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.scheduler.RVMThread;
-
+@_RUST_MASK_START_@
 import org.mmtk.utility.Log;
+@_RUST_MASK_END_@
 
 import org.vmmagic.pragma.*;
 
@@ -42,7 +43,12 @@ public class Selected {
     public static final String name = "@_PLAN_@";
 
     @Uninterruptible
+@_RUST_MASK_START_@
     public static final class Plan extends @_PLAN_@ {
+@_RUST_MASK_END_@
+@_NO_RUST_MASK_START_@
+    public static final class Plan extends org.jikesrvm.mm.mminterface.Plan {
+@_NO_RUST_MASK_END_@
         private static final Plan plan = new Plan();
 
         @Inline

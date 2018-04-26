@@ -15,9 +15,10 @@ package org.jikesrvm.mm.mminterface;
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.AbstractRegisters;
 import org.jikesrvm.architecture.StackFrameLayout;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.common.CompiledMethod;
 import org.jikesrvm.compilers.common.CompiledMethods;
-import org.jikesrvm.mm.mmtk.ObjectModel;
+import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.scheduler.RVMThread;
@@ -356,11 +357,28 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
       Offset offset = ip.diff(code.toAddress());
 
       if (offset.sLT(Offset.zero()) ||
-          offset.sGT(Offset.fromIntZeroExtend(ObjectModel.getObjectSize(code)))) {
+          offset.sGT(Offset.fromIntZeroExtend(getObjectSize(code)))) {
         if (!failed) failed = true;
       }
     }
     sysCall.sysProcessInteriorEdge(trace, code, ipLoc, true);
+  }
+
+  /**
+   * FIXME
+   * Return the size of a given object, in bytes
+   *
+   * @param object The object whose size is being queried
+   * @return The size (in bytes) of the given object.
+   */
+  public static int getObjectSize(ObjectReference object) {
+    TIB tib = org.jikesrvm.objectmodel.ObjectModel.getTIB(object);
+    RVMType type = Magic.objectAsType(tib.getType());
+
+    if (type.isClassType())
+      return org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(object.toObject(), type.asClass());
+    else
+      return org.jikesrvm.objectmodel.ObjectModel.bytesRequiredWhenCopied(object.toObject(), type.asArray(), Magic.getArrayLength(object.toObject()));
   }
 
   /***********************************************************************

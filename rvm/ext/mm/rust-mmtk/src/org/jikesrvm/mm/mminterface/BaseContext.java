@@ -13,7 +13,6 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
-import org.mmtk.utility.alloc.Allocator;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
@@ -64,7 +63,6 @@ import org.vmmagic.unboxed.*;
  * empty stubs for write barriers (to be overridden by sub-classes as
  * needed).
  *
- * @see org.mmtk.vm.ActivePlan
  * @see Plan
  */
 @Uninterruptible

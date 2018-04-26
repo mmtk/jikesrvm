@@ -12,9 +12,7 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.jikesrvm.mm.mmtk.ScanThread;
 import org.jikesrvm.scheduler.SystemThread;
-import org.mmtk.plan.CollectorContext;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
 
@@ -64,11 +62,6 @@ public final class CollectorThread extends SystemThread {
    *  functionality
    */
   public CollectorThread(byte[] stack) {
-    super(stack, "CollectorThread");
-    nextId++;
-  }
-  /** this is just a dummy constructor **/
-  public CollectorThread(byte[] stack, CollectorContext context) {
     super(stack, "CollectorThread");
     nextId++;
   }

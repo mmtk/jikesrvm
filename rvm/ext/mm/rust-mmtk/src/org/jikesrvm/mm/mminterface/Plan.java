@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import org.jikesrvm.VM;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -36,7 +37,7 @@ import org.vmmagic.unboxed.*;
  * performance properties of MMTk plans.
  */
 @Uninterruptible
-public abstract class Plan {
+public class Plan {
   /****************************************************************************
    * Constants
    */
@@ -110,7 +111,7 @@ public abstract class Plan {
    */
   @Interruptible
   public void enableAllocation() {
-    HeapLayout.vmMap.boot();
+    VM.sysFail("did not implement enableAllocation");
   }
 
   /**
@@ -123,12 +124,7 @@ public abstract class Plan {
    */
   @Interruptible
   public void processOptions() {
-    VM.statistics.perfEventInit(Options.perfEvents.getValue());
-    if (Options.verbose.getValue() > 2) Space.printVMMap();
-    if (Options.verbose.getValue() > 3) VM.config.printConfig();
-    if (Options.verbose.getValue() > 0) Stats.startAll();
-    if (Options.eagerMmapSpaces.getValue()) Space.eagerlyMmapMMTkSpaces();
-    pretenureThreshold = (int) ((Options.nurserySize.getMaxNursery() << LOG_BYTES_IN_PAGE) * Options.pretenureThresholdFraction.getValue());
+    VM.sysFail("did not implement processOptions");
   }
 
   /**
@@ -138,11 +134,6 @@ public abstract class Plan {
   @Interruptible
   public void enableCollection() {
     int actualThreadCount = determineThreadCount();
-
-    if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(actualThreadCount == VM.activePlan.collectorCount(),
-              "Actual thread count does not match collector count from active plan.");
-    }
 
     preCollectorSpawn();
 
@@ -158,52 +149,12 @@ public abstract class Plan {
    * the active plan.
    *
    * @return number of threads to be used for collection
-   * @see PlanConstraints#maxNumGCThreads() setting only the maximum number
    *  of collectors
    */
   @Interruptible("Options methods and Math.min are interruptible")
   protected int determineThreadCount() {
-    int defaultThreadCount = VM.collection.getDefaultThreads();
-    int maxThreadCount = VM.activePlan.constraints().maxNumGCThreads();
-    int safeDefaultValue = Math.min(defaultThreadCount, maxThreadCount);
-
-    // Make sure that if we have not explicitly set threads, then we use the right default.
-    if (Options.verbose.getValue() > 0) {
-      Log.write("Setting default thread count for MMTk to minimum of ");
-      Log.write("default thread count ");
-      Log.write(defaultThreadCount);
-      Log.write(" and maximal thread count ");
-      Log.write(maxThreadCount);
-      Log.write(" supported by current GC plan.");
-      Log.writeln();
-      Log.write("New default thread count value is ");
-      Log.write(safeDefaultValue);
-      Log.writeln();
-    }
-    Options.threads.updateDefaultValue(safeDefaultValue);
-
-    int desiredThreadCount = Options.threads.getValue();
-    int actualThreadCount = Math.min(desiredThreadCount, maxThreadCount);
-    if (Options.verbose.getValue() > 0) {
-      Log.write("Setting actual thread count for MMTk to minimum of ");
-      Log.write("desired thread count ");
-      Log.write(desiredThreadCount);
-      Log.write(" and maximal thread count ");
-      Log.write(maxThreadCount);
-      Log.write(" supported by current GC plan.");
-      Log.writeln();
-      Log.write("New actual thread count is ");
-      Log.write(actualThreadCount);
-      Log.writeln();
-    }
-    Options.threads.setValue(actualThreadCount);
-
-    if (VM.VERIFY_ASSERTIONS) {
-      VM.assertions._assert(actualThreadCount > 0,
-              "Determining the number of gc threads yieled a result <= 0");
-    }
-
-    return actualThreadCount;
+    VM.sysFail("did not implement determineThreadCount");
+    return 0;
   }
 
   /**
@@ -227,29 +178,13 @@ public abstract class Plan {
    */
   @Interruptible("Spawning collector threads requires allocation")
   protected void spawnCollectorThreads(int numThreads) {
-    // Create our parallel workers
-    parallelWorkers.initGroup(numThreads, defaultCollectorContext);
-
-    // Create the concurrent worker threads.
-    if (VM.activePlan.constraints().needsConcurrentWorkers()) {
-      concurrentWorkers.initGroup(numThreads, defaultCollectorContext);
-    }
-
-    // Create our control thread.
-    VM.collection.spawnCollectorContext(controlCollectorContext);
-
-    // Allow mutators to trigger collection.
-    initialized = true;
+    VM.sysFail("did not implement spawnCollectorThreads");
   }
 
   @Interruptible
   public void fullyBooted() {
-    if (Options.harnessAll.getValue()) harnessBegin();
+    VM.sysFail("did not implement fullyBooted");
   }
-
-  public static final ParallelCollectorGroup parallelWorkers = new ParallelCollectorGroup("ParallelWorkers");
-  public static final ParallelCollectorGroup concurrentWorkers = new ParallelCollectorGroup("ConcurrentWorkers");
-  public static final ControllerCollectorContext controlCollectorContext = new ControllerCollectorContext(parallelWorkers);
 
   /**
    * The VM is about to exit. Perform any clean up operations.
@@ -258,17 +193,7 @@ public abstract class Plan {
    */
   @Interruptible
   public void notifyExit(int value) {
-    if (Options.harnessAll.getValue()) harnessEnd();
-    if (Options.verbose.getValue() == 1) {
-      Log.write("[End ");
-      totalTime.printTotalSecs();
-      Log.writeln(" s]");
-    } else if (Options.verbose.getValue() == 2) {
-      Log.write("[End ");
-      totalTime.printTotalMillis();
-      Log.writeln(" ms]");
-    }
-    if (Options.verboseTiming.getValue()) printDetailedTiming(true);
+    VM.sysFail("did not implement notifyExit");
   }
 
   /**
@@ -301,11 +226,8 @@ public abstract class Plan {
    * @return The new value of the status word
    */
   public byte setBuildTimeGCByte(Address object, ObjectReference typeRef, int size) {
-    if (HeaderByte.NEEDS_UNLOGGED_BIT) {
-      return HeaderByte.UNLOGGED_BIT;
-    } else {
-      return 0;
-    }
+    VM.sysFail("did not implement notifyExit");
+    return 0;
   }
 
   /****************************************************************************
@@ -333,7 +255,7 @@ public abstract class Plan {
    *
    * @param phaseId The unique id of the phase to perform.
    */
-  public abstract void collectionPhase(short phaseId);
+  //todo public abstract void collectionPhase(short phaseId);
 
   /**
    * Replace a phase.
@@ -343,7 +265,7 @@ public abstract class Plan {
    */
   @Interruptible
   public void replacePhase(int oldScheduledPhase, int scheduledPhase) {
-    VM.assertions.fail("replacePhase not implemented for this plan");
+    VM.sysFail("did not implement replacePhase");
   }
 
   /**
@@ -354,8 +276,7 @@ public abstract class Plan {
    */
   @Interruptible
   public void insertPhaseAfter(int markerScheduledPhase, int scheduledPhase) {
-    short tempPhase = Phase.createComplex("auto-gen", null, markerScheduledPhase, scheduledPhase);
-    replacePhase(markerScheduledPhase, Phase.scheduleComplex(tempPhase));
+    VM.sysFail("did not implement insertPhaseAfter");
   }
 
   /**
@@ -402,31 +323,18 @@ public abstract class Plan {
    * @return The expected (root excluded) reference count.
    */
   public int sanityExpectedRC(ObjectReference object, int sanityRootRC) {
-    Space space = Space.getSpaceForObject(object);
-    return space.isReachable(object) ? SanityChecker.ALIVE : SanityChecker.DEAD;
+    VM.sysFail("did not implement sanityExpectedRC");
+    return 0;
   }
 
-  /**
-   * Perform a linear scan of all spaces to check for possible leaks.
-   * This is only called after a full-heap GC.
-   *
-   * @param scanner The scanner callback to use.
-   */
-  public void sanityLinearScan(LinearScan scanner) {
-  }
 
   /**
    * @return {@code true} is a stress test GC is required
    */
   @Inline
   public final boolean stressTestGCRequired() {
-    long pages = Space.cumulativeCommittedPages();
-    if (initialized &&
-            ((pages ^ lastStressPages) > Options.stressFactor.getPages())) {
-      lastStressPages = pages;
-      return true;
-    } else
-      return false;
+    VM.sysFail("did not implement stressTestGCRequired");
+    return false;
   }
 
   /****************************************************************************
@@ -483,119 +391,25 @@ public abstract class Plan {
    * @param s The new GC status.
    */
   public static void setGCStatus(int s) {
-    if (gcStatus == NOT_IN_GC) {
-      /* From NOT_IN_GC to any phase */
-      stacksPrepared = false;
-      // Need to call this method to get a correct collection
-      // count (which we need for JMX). This call won't cause
-      // gathering of additional stats unless stats are enabled.
-      Stats.startGC();
-      if (Stats.gatheringStats()) {
-        VM.activePlan.global().printPreStats();
-      }
-    }
-    VM.memory.combinedLoadBarriers();
-    gcStatus = s;
-    VM.memory.fence();
-    if (gcStatus == NOT_IN_GC) {
-      /* From any phase to NOT_IN_GC */
-      if (Stats.gatheringStats()) {
-        Stats.endGC();
-        VM.activePlan.global().printPostStats();
-      }
-    }
+    VM.sysFail("did not implement setGCStatus");
   }
 
   /**
    * Print pre-collection statistics.
    */
   public void printPreStats() {
-    if ((Options.verbose.getValue() == 1) ||
-            (Options.verbose.getValue() == 2)) {
-      Log.write("[GC ", Stats.gcCount());
-      if (Options.verbose.getValue() == 1) {
-        Log.write(" Start ");
-        Plan.totalTime.printTotalSecs();
-        Log.write(" s");
-      } else {
-        Log.write(" Start ");
-        Plan.totalTime.printTotalMillis();
-        Log.write(" ms");
-      }
-      Log.write("   ");
-      Log.write(Conversions.pagesToKBytes(getPagesUsed()));
-      Log.write("KB ");
-      Log.flush();
-    }
-    if (Options.verbose.getValue() > 2) {
-      Log.write("Collection ", Stats.gcCount());
-      Log.write(":        ");
-      printUsedPages();
-      Log.write("  Before Collection: ");
-      Space.printUsageMB();
-      if (Options.verbose.getValue() >= 4) {
-        Log.write("                     ");
-        Space.printUsagePages();
-      }
-      if (Options.verbose.getValue() >= 5) {
-        Space.printVMMap();
-      }
-    }
+    VM.sysFail("did not implement printPreStats");
   }
 
   /**
    * Print out statistics at the end of a GC
    */
   public final void printPostStats() {
-    if ((Options.verbose.getValue() == 1) ||
-            (Options.verbose.getValue() == 2)) {
-      Log.write("-> ");
-      Log.writeDec(Conversions.pagesToBytes(getPagesUsed()).toWord().rshl(10));
-      Log.write("KB   ");
-      if (Options.verbose.getValue() == 1) {
-        totalTime.printLast();
-        Log.writeln(" ms]");
-      } else {
-        Log.write("End ");
-        totalTime.printTotal();
-        Log.writeln(" ms]");
-      }
-    }
-    if (Options.verbose.getValue() > 2) {
-      Log.write("   After Collection: ");
-      Space.printUsageMB();
-      if (Options.verbose.getValue() >= 4) {
-        Log.write("                     ");
-        Space.printUsagePages();
-      }
-      if (Options.verbose.getValue() >= 5) {
-        Space.printVMMap();
-      }
-      Log.write("                     ");
-      printUsedPages();
-      Log.write("    Collection time: ");
-      totalTime.printLast();
-      Log.writeln(" ms");
-    }
+    VM.sysFail("did not implement printPostStats");
   }
 
   public final void printUsedPages() {
-    Log.write("reserved = ");
-    Log.write(Conversions.pagesToMBytes(getPagesReserved()));
-    Log.write(" MB (");
-    Log.write(getPagesReserved());
-    Log.write(" pgs)");
-    Log.write("      used = ");
-    Log.write(Conversions.pagesToMBytes(getPagesUsed()));
-    Log.write(" MB (");
-    Log.write(getPagesUsed());
-    Log.write(" pgs)");
-    Log.write("      total = ");
-    Log.write(Conversions.pagesToMBytes(getTotalPages()));
-    Log.write(" MB (");
-    Log.write(getTotalPages());
-    Log.write(" pgs)");
-    Log.writeln();
+    VM.sysFail("did not implement printUsedPages");
   }
 
   /**
@@ -603,26 +417,14 @@ public abstract class Plan {
    */
   @Unpreemptible
   public static void handleUserCollectionRequest() {
-    if (Options.ignoreSystemGC.getValue()) {
-      // Ignore the user GC request.
-      return;
-    }
-    // Mark this as a user triggered collection
-    userTriggeredCollection = true;
-    // Request the collection
-    controlCollectorContext.request();
-    // Wait for the collection to complete
-    VM.collection.blockForGC();
+    VM.sysFail("did not implement handleUserCollectionRequest");
   }
 
   /**
    * MMTK has requested stop-the-world activity (e.g., stw within a concurrent gc).
    */
   public static void triggerInternalCollectionRequest() {
-    // Mark this as a user triggered collection
-    internalTriggeredCollection = lastInternalTriggeredCollection = true;
-    // Request the collection
-    controlCollectorContext.request();
+    VM.sysFail("did not implement triggerInternalCollectionRequest");
   }
 
   /**
@@ -666,24 +468,7 @@ public abstract class Plan {
    */
   @Interruptible
   public static void harnessBegin() {
-    // Save old values.
-    boolean oldFullHeap = Options.fullHeapSystemGC.getValue();
-    boolean oldIgnore = Options.ignoreSystemGC.getValue();
-
-    // Set desired values.
-    Options.fullHeapSystemGC.setValue(true);
-    Options.ignoreSystemGC.setValue(false);
-
-    // Trigger a full heap GC.
-    System.gc();
-
-    // Restore old values.
-    Options.ignoreSystemGC.setValue(oldIgnore);
-    Options.fullHeapSystemGC.setValue(oldFullHeap);
-
-    // Start statistics
-    insideHarness = true;
-    Stats.startAll();
+    VM.sysFail("did not implement harnessBegin");
   }
 
   /**
@@ -695,8 +480,7 @@ public abstract class Plan {
    */
   @Interruptible
   public static void harnessEnd()  {
-    Stats.stopAll();
-    insideHarness = false;
+    VM.sysFail("did not implement harnessEnd");
   }
 
   /****************************************************************************
@@ -738,7 +522,8 @@ public abstract class Plan {
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static Extent usedMemory() {
-    return Conversions.pagesToBytes(VM.activePlan.global().getPagesUsed());
+    VM.sysFail("did not implement usedMemory");
+    return Extent.zero();
   }
 
   /**
@@ -749,7 +534,8 @@ public abstract class Plan {
    * @return The amount of <i>memory in use</i>, in bytes.
    */
   public static Extent reservedMemory() {
-    return Conversions.pagesToBytes(VM.activePlan.global().getPagesReserved());
+    VM.sysFail("did not implement reservedMemory");
+    return Extent.zero();
   }
 
   /**
@@ -760,7 +546,8 @@ public abstract class Plan {
    * management system, in bytes.
    */
   public static Extent totalMemory() {
-    return HeapGrowthManager.getCurrentHeapSize();
+    VM.sysFail("did not implement totalMemory");
+    return Extent.zero();
   }
 
   /* Instance methods */
@@ -773,7 +560,8 @@ public abstract class Plan {
    * management system, in pages.
    */
   public final int getTotalPages() {
-    return totalMemory().toWord().rshl(LOG_BYTES_IN_PAGE).toInt();
+    VM.sysFail("did not implement getTotalPages");
+    return 0;
   }
 
   /**
@@ -817,8 +605,8 @@ public abstract class Plan {
    * allocation, excluding space reserved for copying.
    */
   public int getPagesUsed() {
-    return loSpace.reservedPages() + immortalSpace.reservedPages() +
-            metaDataSpace.reservedPages() + nonMovingSpace.reservedPages();
+    VM.sysFail("did not implement getPagesUsed");
+    return 0;
   }
 
   /****************************************************************************
@@ -852,70 +640,6 @@ public abstract class Plan {
    */
 
   /**
-   * This method is called periodically by the allocation subsystem
-   * (by default, each time a page is consumed), and provides the
-   * collector with an opportunity to collect.
-   *
-   * @param spaceFull Space request failed, must recover pages within 'space'.
-   * @param space The space that triggered the poll.
-   * @return <code>true</code> if a collection is required.
-   */
-  public final boolean poll(boolean spaceFull, Space space) {
-    if (collectionRequired(spaceFull, space)) {
-      if (space == metaDataSpace) {
-        /* In general we must not trigger a GC on metadata allocation since
-         * this is not, in general, in a GC safe point.  Instead we initiate
-         * an asynchronous GC, which will occur at the next safe point.
-         */
-        logPoll(space, "Asynchronous collection requested");
-        controlCollectorContext.request();
-        return false;
-      }
-      logPoll(space, "Triggering collection");
-      controlCollectorContext.request();
-      return true;
-    }
-
-    if (concurrentCollectionRequired()) {
-      if (space == metaDataSpace) {
-        logPoll(space, "Triggering async concurrent collection");
-        triggerInternalCollectionRequest();
-        return false;
-      } else {
-        logPoll(space, "Triggering concurrent collection");
-        triggerInternalCollectionRequest();
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  protected void logPoll(Space space, String message) {
-    if (Options.verbose.getValue() >= 5) {
-      Log.write("  [POLL] ");
-      Log.write(space.getName());
-      Log.write(": ");
-      Log.writeln(message);
-    }
-  }
-
-  /**
-   * This method controls the triggering of a GC. It is called periodically
-   * during allocation. Returns <code>true</code> to trigger a collection.
-   *
-   * @param spaceFull Space request failed, must recover pages within 'space'.
-   * @param space TODO
-   * @return <code>true</code> if a collection is requested by the plan.
-   */
-  protected boolean collectionRequired(boolean spaceFull, Space space) {
-    boolean stressForceGC = stressTestGCRequired();
-    boolean heapFull = getPagesReserved() > getTotalPages();
-
-    return spaceFull || stressForceGC || heapFull;
-  }
-
-  /**
    * This method controls the triggering of an atomic phase of a concurrent
    * collection. It is called periodically during allocation.
    *
@@ -933,7 +657,7 @@ public abstract class Plan {
    */
   @Interruptible
   public void startGCspyServer(int port, boolean wait) {
-    VM.assertions.fail("startGCspyServer called on non GCspy plan");
+    VM.sysFail("did not implement startGCspyServer");
   }
 
   /**
@@ -944,24 +668,7 @@ public abstract class Plan {
    * @return <code>true</code> if it is not possible that the object will ever move.
    */
   public boolean willNeverMove(ObjectReference object) {
-    if (!VM.activePlan.constraints().movesObjects())
-      return true;
-    if (Space.isInSpace(LOS, object))
-      return true;
-    if (Space.isInSpace(IMMORTAL, object))
-      return true;
-    if (Space.isInSpace(VM_SPACE, object))
-      return true;
-    if (Space.isInSpace(NON_MOVING, object))
-      return true;
-    if (USE_CODE_SPACE && Space.isInSpace(SMALL_CODE, object))
-      return true;
-    if (USE_CODE_SPACE && Space.isInSpace(LARGE_CODE, object))
-      return true;
-    /*
-     * Default to false- this preserves correctness over efficiency.
-     * Individual plans should override for non-moving spaces they define.
-     */
+    VM.sysFail("did not implement willNeverMove");
     return false;
   }
 
@@ -975,11 +682,4 @@ public abstract class Plan {
   @Interruptible
   protected void registerSpecializedMethods() {}
 
-  /**
-   * @param id the id of the specialized scan class
-   * @return the specialized scan with the given id
-   */
-  public final Class<?> getSpecializedScanClass(int id) {
-    return TransitiveClosure.getSpecializedScanClass(id);
-  }
 }

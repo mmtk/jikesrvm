@@ -247,7 +247,8 @@ public class Constraints {
 
   /** @return Size (in bytes) beyond which new regular objects must be allocated to the LOS */
   public int maxNonLOSDefaultAllocBytes() {
-    return org.mmtk.utility.Constants.MAX_INT;
+    VM.sysFail("Did not implement maxNonLOSDefaultAllocBytes");
+    return 0;
   }
 
   /** @return Size (in bytes) beyond which new non-moving objects must be allocated to the LOS */
@@ -258,7 +259,8 @@ public class Constraints {
 
   /** @return Size (in bytes) beyond which copied objects must be copied to the LOS */
   public int maxNonLOSCopyBytes() {
-    return org.mmtk.utility.Constants.MAX_INT;
+    VM.sysFail("Did not implement maxNonLOSCopyBytes");
+    return 0;
   }
 
   /** @return {@code true} if this object forwards objects <i>after</i>
