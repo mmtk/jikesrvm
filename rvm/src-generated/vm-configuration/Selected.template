@@ -56,8 +56,13 @@ public class Selected {
     }
 
     @Uninterruptible
-    public static final class Constraints extends @_PLAN_@Constraints {
-        private static final Constraints constraints = new Constraints();
+@_RUST_MASK_START_@
+  public static final class Constraints extends @_PLAN_@Constraints {
+@_RUST_MASK_END_@
+@_NO_RUST_MASK_START_@
+  public static class Constraints extends org.jikesrvm.mm.mminterface.Constraints{
+@_NO_RUST_MASK_END_@
+       private static final Constraints constraints = new Constraints();
 
         @Inline
         public static Constraints get () {
@@ -68,9 +73,6 @@ public class Selected {
     @Uninterruptible
 @_RUST_MASK_START_@
     public static class Mutator extends @_PLAN_@Mutator {
-        public void setBlock(Address mmtkHandle) {
-            
-        }
 @_RUST_MASK_END_@
 @_NO_RUST_MASK_START_@
     public static class Mutator extends @_PLAN_NAME_@Context {

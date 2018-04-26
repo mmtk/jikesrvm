@@ -256,18 +256,6 @@ public class Entrypoints extends BaseEntrypoints {
   public static final RVMField lockThreadField =
       getField(org.jikesrvm.mm.mmtk.Lock.class, "thread", org.jikesrvm.scheduler.RVMThread.class);
   */
-  public static final RVMField lockStateField = getField(org.jikesrvm.mm.mmtk.Lock.class, "state", int.class);
-  public static final RVMField SQCFField = getField(org.mmtk.utility.deque.SharedDeque.class, "completionFlag", int.class);
-  public static final RVMField SQNCField = getField(org.mmtk.utility.deque.SharedDeque.class, "numConsumers", int.class);
-  public static final RVMField SQNCWField =
-      getField(org.mmtk.utility.deque.SharedDeque.class, "numConsumersWaiting", int.class);
-  public static final RVMField SQheadField =
-      getField(org.mmtk.utility.deque.SharedDeque.class, "head", org.vmmagic.unboxed.Address.class);
-  public static final RVMField SQtailField =
-      getField(org.mmtk.utility.deque.SharedDeque.class, "tail", org.vmmagic.unboxed.Address.class);
-  public static final RVMField SQBEField = getField(org.mmtk.utility.deque.SharedDeque.class, "bufsenqueued", int.class);
-  public static final RVMField synchronizedCounterField =
-      getField(org.jikesrvm.mm.mmtk.SynchronizedCounter.class, "count", int.class);
 
   public static final NormalMethod booleanFieldWriteBarrierMethod =
     getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "booleanFieldWrite", "(Ljava/lang/Object;ZLorg/vmmagic/unboxed/Offset;I)V");
@@ -538,9 +526,6 @@ public class Entrypoints extends BaseEntrypoints {
       optNew2DArrayMethod = null;
       sysArrayCopy = null;
     }
-    //if (VM.BuildWithRustMMTk) {
-    //  RustJTOC.compileMMTk();
-    //}
   }
 
   public static final RVMField classLoaderDefinedPackages =
