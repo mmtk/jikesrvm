@@ -30,6 +30,7 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 import static org.jikesrvm.HeapLayoutConstants.*;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MAX_ALIGNMENT;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.jikesrvm.runtime.SysCall.sysCall;
@@ -1040,29 +1041,6 @@ public final class MemoryManager extends AbstractMemoryManager {
     /* Create the specialized method */
     return null;
     //return new SpecializedScanMethod(id, TypeReference.findOrCreate(traceClass));
-  }
-
-  /***********************************************************************
-   *
-   * Header initialization
-   */
-
-  /**
-   * Override the boot-time initialization method here, so that
-   * the core MMTk code doesn't need to know about the
-   * BootImageInterface type.
-   *
-   * @param bootImage the bootimage instance
-   * @param ref the object's address
-   * @param tib the object's TIB
-   * @param size the number of bytes allocated by the GC system for
-   *  the object
-   * @param isScalar whether the header belongs to a scalar or an array
-   */
-  @Interruptible
-  public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
-                                      boolean isScalar) {
-    VM.sysWriteln("initializeHeader() not implemented.");
   }
 
   /**
