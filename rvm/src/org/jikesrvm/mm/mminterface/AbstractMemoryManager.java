@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MAX_ALIGNMENT;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MIN_ALIGNMENT;
@@ -22,6 +23,7 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.compilers.common.CodeArray;
@@ -397,8 +399,43 @@ public abstract class AbstractMemoryManager {
    */
   @Interruptible
   public static int pickAllocator(RVMType type, RVMMethod method) {
-    VM.sysFail("pickAllocator() has not been implemented in subclass");
-    return 0;
+    if (traceAllocator) {
+      VM.sysWrite("allocator for ");
+      VM.sysWrite(type.getDescriptor());
+      VM.sysWrite(": ");
+    }
+    if (method != null) {
+      // We should strive to be allocation-free here.
+      RVMClass cls = method.getDeclaringClass();
+      byte[] clsBA = cls.getDescriptor().toByteArray();
+      if (Selected.Constraints.get().withGCspy()) {
+        if (isPrefix("Lorg/mmtk/vm/gcspy/", clsBA) || isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
+          if (traceAllocator) {
+            VM.sysWriteln("GCSPY");
+          }
+          return Plan.ALLOC_GCSPY;
+        }
+      }
+      if (isPrefix("Lorg/jikesrvm/mm/mmtk/ReferenceProcessor", clsBA)) {
+        if (traceAllocator) {
+          VM.sysWriteln("DEFAULT");
+        }
+        return Plan.ALLOC_DEFAULT;
+      }
+      if (isPrefix("Lorg/mmtk/", clsBA) || isPrefix("Lorg/jikesrvm/mm/", clsBA)) {
+        if (traceAllocator) {
+          VM.sysWriteln("NONMOVING");
+        }
+        return Plan.ALLOC_NON_MOVING;
+      }
+      if (method.isNonMovingAllocation()) {
+        return Plan.ALLOC_NON_MOVING;
+      }
+    }
+    if (traceAllocator) {
+      VM.sysWriteln(type.getMMAllocator());
+    }
+    return type.getMMAllocator();
   }
 
   /**
@@ -556,8 +593,18 @@ public abstract class AbstractMemoryManager {
    */
   @Inline
   public static Offset alignAllocation(Offset initialOffset, int align, int offset) {
-    VM.sysFail("alignAllocation() has not been implemented in subclass");
-    return null;
+    Address region = org.jikesrvm.runtime.Memory.alignUp(initialOffset.toWord().toAddress(), MIN_ALIGNMENT);
+
+    // No alignment ever required.
+    if (align <= MIN_ALIGNMENT || MAX_ALIGNMENT <= MIN_ALIGNMENT)
+      return region.toWord().toOffset();
+
+    // May require an alignment
+    Word mask = Word.fromIntSignExtend(align - 1);
+    Word negOff = Word.fromIntSignExtend(-offset);
+    Offset delta = negOff.minus(region.toWord()).and(mask).toOffset();
+
+    return region.plus(delta).toWord().toOffset();
   }
 
   /**
