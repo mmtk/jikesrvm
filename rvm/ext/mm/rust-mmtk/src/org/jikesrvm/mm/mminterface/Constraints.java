@@ -236,7 +236,7 @@ public class Constraints {
 
   /** @return {@code true} if this Plan requires linear scanning. */
   public boolean needsLinearScan() {
-    VM.sysFail("Did not implement needsLinearScan");
+    //FIXME VM.sysFail("Did not implement needsLinearScan");
     return false;
   }
 

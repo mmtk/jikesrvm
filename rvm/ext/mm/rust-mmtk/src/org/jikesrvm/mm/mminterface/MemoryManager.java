@@ -1016,7 +1016,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   public static int numSpecializedMethods() {
     //FIXME
-    VM.sysFail("numSpecializedMethods not implemented yet");
+    //VM.sysFail("numSpecializedMethods not implemented yet");
     return 0;
     //return SpecializedScanMethod.ENABLED ? Selected.Constraints.get().numSpecializedScans() : 0;
   }

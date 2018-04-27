@@ -107,15 +107,15 @@ public class Selected {
         public void postAlloc(ObjectReference object, ObjectReference typeRef, int bytes, int allocator) {
             return;
         }
-@_NO_RUST_MASK_END_@
         public void setHandle(Address handle){
             mmtkHandle = handle;
             this.setBlock(mmtkHandle);
         }
 
         public Address getHandle() {
-            return mmtkHandle;
+              return mmtkHandle;
         }
+@_NO_RUST_MASK_END_@
 
         @Inline
         public final RVMThread getThread() {

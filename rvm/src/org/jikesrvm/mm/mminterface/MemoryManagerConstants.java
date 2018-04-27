@@ -66,5 +66,8 @@ public class MemoryManagerConstants {
   public static final byte LOG_BYTES_IN_INT = 2;
   public static final byte LOG_BYTES_IN_CHAR = 1;
   public static final byte LOG_BYTES_IN_SHORT = 1;
+  public static final byte BYTES_IN_ADDRESS = 1 << LOG_BYTES_IN_ADDRESS;
+  public static final byte LOG_BITS_IN_BYTE = 3;
+  public static final int BITS_IN_BYTE = 1 << LOG_BITS_IN_BYTE;
 }
 
