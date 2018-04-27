@@ -85,15 +85,6 @@ public class Plan {
    * Constructor.
    */
   public Plan() {
-
-    registerSpecializedMethods();
-
-    // Determine the default collector context.
-    Class<? extends Plan> mmtkPlanClass = this.getClass().asSubclass(Plan.class);
-    while (!mmtkPlanClass.getName().startsWith("org.mmtk.plan")) {
-      mmtkPlanClass = mmtkPlanClass.getSuperclass().asSubclass(Plan.class);
-    }
-    String contextClassName = mmtkPlanClass.getName() + "Collector";
   }
 
   /****************************************************************************
@@ -226,8 +217,11 @@ public class Plan {
    * @return The new value of the status word
    */
   public byte setBuildTimeGCByte(Address object, ObjectReference typeRef, int size) {
-    VM.sysFail("did not implement notifyExit");
-    return 0;
+    if (HeaderByte.NEEDS_UNLOGGED_BIT) {
+      return HeaderByte.UNLOGGED_BIT;
+    } else {
+      return 0;
+    }
   }
 
   /****************************************************************************
