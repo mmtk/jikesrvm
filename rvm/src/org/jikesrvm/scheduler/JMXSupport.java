@@ -23,13 +23,13 @@ public class JMXSupport {
 
   private static HashMap<Long, Thread> threadIdToThread;
 
-  private static final org.jikesrvm.mm.mmtk.Lock peakThreadCountLock =
-      new org.jikesrvm.mm.mmtk.Lock("peakThreadCount");
+  private static final org.jikesrvm.mm.mminterface.Lock peakThreadCountLock =
+      new org.jikesrvm.mm.mminterface.Lock("peakThreadCount");
 
   private static int peakThreadCount;
 
-  private static final org.jikesrvm.mm.mmtk.Lock startedThreadCountLock =
-      new org.jikesrvm.mm.mmtk.Lock("startedThreadCount");
+  private static final org.jikesrvm.mm.mminterface.Lock startedThreadCountLock =
+      new org.jikesrvm.mm.mminterface.Lock("startedThreadCount");
 
   private static long startedThreadCount;
 

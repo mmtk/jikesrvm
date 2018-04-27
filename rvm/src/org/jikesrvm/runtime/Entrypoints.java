@@ -20,6 +20,7 @@ import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.mm.mminterface.BaseEntrypoints;
+import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Fields and methods of the virtual machine that are needed by

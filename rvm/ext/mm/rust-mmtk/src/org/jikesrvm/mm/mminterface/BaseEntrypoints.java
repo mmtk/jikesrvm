@@ -32,9 +32,6 @@ public class BaseEntrypoints {
   //  2. the class containing the specified member didn't get compiled
   //
 
-  //public static final NormalMethod deliverHardwareExceptionMethod =
-  //        getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "deliverHardwareException", "(ILorg/vmmagic/unboxed/Word;)V");
-
   public static final NormalMethod unblockAllMutatorsForGCMethod =
     getMethod(org.jikesrvm.scheduler.RVMThread.class, "unblockAllMutatorsForGC", "()V");
   public static final NormalMethod blockAllMutatorsForGCMethod =
@@ -168,6 +165,8 @@ public class BaseEntrypoints {
     getField(org.jikesrvm.classloader.RVMClass.class, "acyclic", boolean.class);
   public static final RVMField rvmClassModifiers =
     getField(org.jikesrvm.classloader.RVMClass.class, "modifiers", short.class);
+
+  public static final RVMField lockStateField = getField(org.jikesrvm.mm.mminterface.Lock.class, "state", int.class);
 
   public static void postInitialize() {
     RustJTOC.compileMMTk();

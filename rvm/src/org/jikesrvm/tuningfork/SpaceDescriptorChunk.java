@@ -14,11 +14,12 @@
 package org.jikesrvm.tuningfork;
 
 import org.jikesrvm.runtime.Memory;
-import org.mmtk.policy.Space;
-import org.mmtk.policy.Space.SpaceVisitor;
+//import org.mmtk.policy.Space;
+//import org.mmtk.policy.Space.SpaceVisitor;
 import com.ibm.tuningfork.tracegen.chunk.Chunk;
 
 /**
+ * TODO fix this class
  * A chunk to encode Space index/Space name mappings.
  */
 public class SpaceDescriptorChunk extends Chunk {
@@ -35,14 +36,14 @@ public class SpaceDescriptorChunk extends Chunk {
     /* Write mapping of space ids to logical space names */
     seek(SPACE_DESCRIPTOR_DATA_OFFSET);
     numSpaces = 0;
-    Space.visitSpaces(new SpaceVisitor() {
-      @Override
-      public void visit(Space s) {
-        numSpaces++;
-        addInt(s.getIndex());
-        addString(s.getName());
-      }
-    });
+    //Space.visitSpaces(new SpaceVisitor() {
+    //  @Override
+    //  public void visit(Space s) {
+    //    numSpaces++;
+    //    addInt(s.getIndex());
+    //    addString(s.getName());
+    //  }
+    //});
     int pos = getPosition();
     seek(SPACE_DESCRIPTOR_COUNT_OFFSET);
     addInt(numSpaces);
@@ -57,8 +58,8 @@ public class SpaceDescriptorChunk extends Chunk {
      *       an int to pass addresses.
      *       MUST FIX BEFORE MERGING TO TRUNK!
      */
-    addInt(org.mmtk.vm.VM.HEAP_START.toInt());
-    addInt(org.mmtk.vm.VM.HEAP_END.toInt());
+    //addInt(org.mmtk.vm.VM.HEAP_START.toInt());
+    //addInt(org.mmtk.vm.VM.HEAP_END.toInt());
 
     close();
   }

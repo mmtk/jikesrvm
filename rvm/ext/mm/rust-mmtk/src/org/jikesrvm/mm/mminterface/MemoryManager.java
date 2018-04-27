@@ -1015,27 +1015,31 @@ public final class MemoryManager extends AbstractMemoryManager {
    * @return the number of specialized methods.
    */
   public static int numSpecializedMethods() {
-    return SpecializedScanMethod.ENABLED ? Selected.Constraints.get().numSpecializedScans() : 0;
+    //FIXME
+    VM.sysFail("numSpecializedMethods not implemented yet");
+    return 0;
+    //return SpecializedScanMethod.ENABLED ? Selected.Constraints.get().numSpecializedScans() : 0;
   }
 
   /**
    * Initialize a specified specialized method.
-   *
+   * FIXME
    * @param id the specializedMethod
    * @return the created specialized scan method
    */
   @Interruptible
   public static SpecializedMethod createSpecializedMethod(int id) {
     if (VM.VerifyAssertions) {
-      VM._assert(SpecializedScanMethod.ENABLED);
+      //VM._assert(SpecializedScanMethod.ENABLED);
       VM._assert(id < Selected.Constraints.get().numSpecializedScans());
     }
 
     /* What does the plan want us to specialize this to? */
-    Class<?> traceClass = Selected.Plan.get().getSpecializedScanClass(id);
+    //Class<?> traceClass = Selected.Plan.get().getSpecializedScanClass(id);
 
     /* Create the specialized method */
-    return new SpecializedScanMethod(id, TypeReference.findOrCreate(traceClass));
+    return null;
+    //return new SpecializedScanMethod(id, TypeReference.findOrCreate(traceClass));
   }
 
   /***********************************************************************

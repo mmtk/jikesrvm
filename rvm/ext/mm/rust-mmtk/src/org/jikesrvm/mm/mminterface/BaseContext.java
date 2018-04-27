@@ -97,12 +97,6 @@ public abstract class BaseContext {
   /** Unique mutator identifier */
   private int id;
 
-
-  /****************************************************************************
-   *
-   * Allocation.
-   */
-
   /****************************************************************************
    *
    * Allocation.
@@ -119,6 +113,7 @@ public abstract class BaseContext {
    * @param align The requested alignment.
    * @param allocator The allocator statically assigned to this allocation
    * @return The allocator dynamically assigned to this allocation
+   * FIXME this should be put in rust-mmtk
    */
   @Inline
   public int checkAllocator(int bytes, int align, int allocator) {

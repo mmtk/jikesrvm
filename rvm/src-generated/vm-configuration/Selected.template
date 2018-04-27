@@ -57,8 +57,14 @@ public class Selected {
         }
     }
 
-    @Uninterruptible
-    public static final class Collector extends @_PLAN_@Collector {
+@Uninterruptible
+@_RUST_MASK_START_@
+  public static final class Collector extends @_PLAN_@Collector {
+@_RUST_MASK_END_@
+@_NO_RUST_MASK_START_@
+  public static final class Collector {
+@_NO_RUST_MASK_END_@
+
     }
 
     @Uninterruptible
