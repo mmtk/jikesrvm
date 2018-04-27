@@ -24,6 +24,21 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_WORD;
  * cyclic class-loading dependencies.
  */
 public class MemoryManagerConstants {
+
+  public static final int INSTANCE_FIELD = 0;
+  public static final int ARRAY_ELEMENT = 1;
+  public static final byte LOG_BYTES_IN_ADDRESS = VM.BuildFor64Addr ? 3 : 2;
+  public static final byte LOG_BYTES_IN_INT = 2;
+  public static final byte LOG_BYTES_IN_CHAR = 1;
+  public static final byte LOG_BYTES_IN_SHORT = 1;
+  public static final byte LOG_BYTES_IN_LONG = 3;
+  public static final int BYTES_IN_LONG = 1 << LOG_BYTES_IN_LONG;
+  public static final byte LOG_BYTES_IN_WORD = LOG_BYTES_IN_ADDRESS;
+  public static final byte BYTES_IN_ADDRESS = 1 << LOG_BYTES_IN_ADDRESS;
+  public static final byte LOG_BITS_IN_BYTE = 3;
+  public static final int BITS_IN_BYTE = 1 << LOG_BITS_IN_BYTE;
+  public static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
+
   /** {@code true} if the selected plan needs support for linearly scanning the heap */
   public static final boolean NEEDS_LINEAR_SCAN = Selected.Constraints.get().needsLinearScan();
   /** Number of bits in the GC header required by the selected plan */
@@ -50,6 +65,7 @@ public class MemoryManagerConstants {
    * Maximum number of spaces a Plan can support.
    */
   public static final int MAX_SPACES = 1 << LOG_MAX_SPACES;
+
   /**
    * This value specifies the <i>minimum</i> allocation alignment
    * requirement of the VM.  When making allocation requests, both
@@ -60,14 +76,8 @@ public class MemoryManagerConstants {
    */
   public static final byte LOG_MIN_ALIGNMENT = 2;
   public static final int MIN_ALIGNMENT = 1 << LOG_MIN_ALIGNMENT;
-  public static final int INSTANCE_FIELD = 0;
-  public static final int ARRAY_ELEMENT = 1;
-  public static final byte LOG_BYTES_IN_ADDRESS = VM.BuildFor64Addr ? 3 : 2;
-  public static final byte LOG_BYTES_IN_INT = 2;
-  public static final byte LOG_BYTES_IN_CHAR = 1;
-  public static final byte LOG_BYTES_IN_SHORT = 1;
-  public static final byte BYTES_IN_ADDRESS = 1 << LOG_BYTES_IN_ADDRESS;
-  public static final byte LOG_BITS_IN_BYTE = 3;
-  public static final int BITS_IN_BYTE = 1 << LOG_BITS_IN_BYTE;
+  public static final int MAX_ALIGNMENT_SHIFT = (VM.BuildForIA32 ? 1 : 0) + LOG_BYTES_IN_LONG - LOG_BYTES_IN_INT;
+  public static final int MAX_ALIGNMENT = MIN_ALIGNMENT << MAX_ALIGNMENT_SHIFT;
+
 }
 
