@@ -579,7 +579,4 @@ public class Entrypoints extends BaseEntrypoints {
     }
   }
 
-  static {
-    BaseEntrypoints.postInitialize();
-  }
 }

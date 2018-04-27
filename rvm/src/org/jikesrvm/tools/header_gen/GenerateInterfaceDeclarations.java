@@ -137,6 +137,7 @@ public class GenerateInterfaceDeclarations {
     }
 
     VM.initForTool();
+    Entrypoints.postInitialize();
 
     emitStuff();
     if (out.checkError()) {
