@@ -17,9 +17,7 @@ import static org.jikesrvm.runtime.EntrypointHelper.getMethod;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
-import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
-import org.jikesrvm.mm.mminterface.RustJTOC;
 import org.jikesrvm.scheduler.RVMThread;
 
 /**
@@ -44,7 +42,7 @@ public class BaseEntrypoints {
     getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "prepareMutator",
             "(Lorg/jikesrvm/scheduler/RVMThread;)V");
   public static final NormalMethod scanBootImageMethod =
-    getMethod(org.jikesrvm.mm.mminterface.RustScanning.class, "scanBootImage", "(Lorg/vmmagic/unboxed/Address;)V");
+    getMethod(RustScanBootImage.class, "scanBootImage", "(Lorg/vmmagic/unboxed/Address;)V");
   public static final NormalMethod testMethod = VM.BuildWithRustMMTk ?
     getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test", "(I)I") :
     getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseIllegalAccessError", "()V");
@@ -58,7 +56,7 @@ public class BaseEntrypoints {
     getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test3", "(IIII)I") :
     getMethod(org.jikesrvm.runtime.RuntimeEntrypoints.class, "raiseIllegalAccessError", "()V");
   public static final NormalMethod getOffsetArrayMethod =
-    getMethod(org.jikesrvm.mm.mminterface.RustScanning.class, "getOffsetArray","(Ljava/lang/Object;)[I");
+    getMethod(RustScanBootImage.class, "getOffsetArray","(Ljava/lang/Object;)[I");
   public static final NormalMethod scanThreadMethod =
     getMethod(org.jikesrvm.mm.mminterface.RustScanThread.class, "scanThread",
             "(Lorg/jikesrvm/scheduler/RVMThread;Lorg/vmmagic/unboxed/Address;ZZ)V");
