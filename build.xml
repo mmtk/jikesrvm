@@ -1731,11 +1731,14 @@ Check to make sure all required properties are specified. This includes properti
   <target name="compile-rust-mmtk" if="${rust.build}">
     <exec executable="cargo" dir="rust_mmtk" failonerror="true">
       <arg value="+nightly"/>
-      <arg value="build"/>
+      <arg value="rustc"/>
       <arg value="--target=i686-unknown-linux-gnu"/>
       <arg value="--features=jikesrvm ${rust.features}"/>
       <arg value="--no-default-features"/>
       <arg line="${rust.args}"/>
+      <arg value="--"/>
+      <arg value="-C"/>
+      <arg value="force-frame-pointers=yes"/>
     </exec>
   </target>
 
