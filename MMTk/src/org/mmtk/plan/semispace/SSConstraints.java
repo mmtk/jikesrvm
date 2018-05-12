@@ -37,4 +37,12 @@ public class SSConstraints extends StopTheWorldConstraints {
   public int numSpecializedScans() {
     return 1;
   }
+  @Override
+  public boolean needsObjectReferenceReadBarrier() {
+    return true;
+  }
+  @Override
+  public boolean needsObjectReferenceNonHeapReadBarrier() {
+    return true;
+  }
 }

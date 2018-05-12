@@ -51,6 +51,7 @@ public class RustScanning {
     public static int[] getOffsetArray(Object object) {
         ObjectReference objectRef = ObjectReference.fromObject(object);
         RVMType type = ObjectModel.getObjectType(objectRef.toObject());
+        //VM.sysWriteln("Type: ", type.getDescriptor());
         return type.getReferenceOffsets();
     }
 

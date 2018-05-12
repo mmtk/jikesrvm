@@ -17,6 +17,7 @@ import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.alloc.Allocator;
 
+import org.mmtk.vm.VM;
 import org.vmmagic.unboxed.*;
 import org.vmmagic.pragma.*;
 
@@ -63,6 +64,22 @@ public class SSMutator extends StopTheWorldMutator {
   public void initMutator(int id) {
     super.initMutator(id);
     ss.rebind(SS.toSpace());
+  }
+
+  @Inline
+  @Override
+  public ObjectReference objectReferenceRead(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
+    Address val = VM.barriers.wordRead(src, metaDataA, metaDataB, mode).toAddress();
+    VM.activePlan.checkRef(src, slot, val);
+    return val.toObjectReference();
+  }
+
+  @Inline
+  @Override
+  public ObjectReference objectReferenceNonHeapRead(Address slot, Word metaDataA, Word metaDataB) {
+    Address val = slot.loadAddress();
+    VM.activePlan.checkRef(Address.zero().toObjectReference(), slot, val);
+    return val.toObjectReference();
   }
 
   /****************************************************************************

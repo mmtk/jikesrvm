@@ -20,6 +20,8 @@ import org.mmtk.plan.PlanConstraints;
 import org.mmtk.utility.Log;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
 
 /**
  * Stub to give access to plan local, constraint and global instances
@@ -59,4 +61,6 @@ import org.vmmagic.pragma.*;
    *  <code>null</code> when all mutators have been done.
    */
   public abstract MutatorContext getNextMutator();
+
+  public abstract void checkRef(ObjectReference src, Address slot, Address val);
 }

@@ -12,6 +12,8 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
@@ -24,6 +26,10 @@ import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.scheduler.RVMThread;
 
 import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
+
+import static org.jikesrvm.runtime.SysCall.sysCall;
 
 /**
  * This class contains interfaces to access the current plan, plan local and
@@ -32,6 +38,24 @@ import org.vmmagic.pragma.*;
 @Uninterruptible public final class ActivePlan extends org.mmtk.vm.ActivePlan {
 
   private static SynchronizedCounter mutatorCounter = new SynchronizedCounter();
+
+  @Override
+  @Inline
+  public void checkRef(ObjectReference src, Address slot, Address val) {
+    if (val.GE(MemoryManager.spaceStart) && val.LE(MemoryManager.spaceEnd)) {
+      complainInvalidRef(src, slot, val);
+    }
+  }
+
+  @NoInline
+  private static void complainInvalidRef(ObjectReference src, Address slot, Address val) {
+    VM.sysWrite("WARN: Invalid ref=", val);
+    VM.sysWrite(" at slot=", slot);
+    VM.sysWrite(" at src=", src);
+    VM.sysWrite(" with ref type=");
+    VM.sysWrite(Magic.getObjectType(val.toObjectReference().toObject()).getDescriptor());
+    VM.sysWriteln(" with src type=", Magic.getObjectType(src.toObject()).getDescriptor());
+  }
 
   @Override
   @Inline

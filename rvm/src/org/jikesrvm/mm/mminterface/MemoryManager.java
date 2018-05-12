@@ -74,6 +74,8 @@ import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
+import static org.mmtk.vm.VM.HEAP_END;
+import static org.mmtk.vm.VM.HEAP_START;
 
 
 /**
@@ -94,6 +96,11 @@ public final class MemoryManager {
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
   private static final boolean traceAllocator = false;
   private static final boolean traceAllocation = false;
+
+  @Entrypoint
+  public static Address spaceStart = Address.fromIntZeroExtend(0);
+  @Entrypoint
+  public static Address spaceEnd = Address.fromIntZeroExtend(0);
 
   /**
    * Has the interface been booted yet?
@@ -125,10 +132,14 @@ public final class MemoryManager {
      * The collector threads of processors currently running threads
      * off in JNI-land cannot run.
      */
+    VM.sysWriteln("1");
     t.monitor().lockNoHandshake();
+    VM.sysWriteln("2");
     // are these the only unexpected states?
     t.assertUnacceptableStates(RVMThread.IN_JNI,RVMThread.IN_NATIVE);
+    VM.sysWriteln("3");
     int execStatus = t.getExecStatus();
+    VM.sysWriteln("4");
     // these next assertions are not redundant given the ability of the
     // states to change asynchronously, even when we're holding the lock, since
     // the thread may change its own state.  of course that shouldn't happen,
@@ -136,6 +147,7 @@ public final class MemoryManager {
     if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_JNI);
     if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_NATIVE);
     if (execStatus == RVMThread.BLOCKED_IN_JNI) {
+      VM.sysWriteln("4.1");
       if (false) {
         VM.sysWriteln("for thread #",t.getThreadSlot()," setting up JNI stack scan");
         VM.sysWriteln("thread #",t.getThreadSlot()," has top java fp = ",t.getJNIEnv().topJavaFP());
@@ -148,7 +160,9 @@ public final class MemoryManager {
        which is where the stack scan starts. */
       t.contextRegisters.setInnermost(Address.zero(), t.getJNIEnv().topJavaFP());
     }
+    VM.sysWriteln("5");
     t.monitor().unlock();
+    VM.sysWriteln("6");
   }
 
   @Entrypoint
@@ -418,7 +432,8 @@ public final class MemoryManager {
     // In general we don't know which spaces may hold allocated stacks.
     // If we want to be more specific than the space being mapped we
     // will need to add a check in Plan that can be overriden.
-    return Space.isMappedAddress(address);
+    //return Space.isMappedAddress(address);
+    return true;
   }
   /***********************************************************************
    *
@@ -489,6 +504,14 @@ public final class MemoryManager {
    */
   @Interruptible
   public static int pickAllocator(RVMType type, RVMMethod method) {
+    /*if (isPrefix("Ljava/lang/Integer", type.getDescriptor().toByteArray())
+             || type == RVMArray.IntArray) {
+      return Plan.ALLOC_DEFAULT;
+    }
+    return Plan.ALLOC_NON_MOVING;*/
+
+    if (type.isArrayType()) return Plan.ALLOC_NON_MOVING;
+
     if (traceAllocator) {
       VM.sysWrite("allocator for ");
       VM.sysWrite(type.getDescriptor());

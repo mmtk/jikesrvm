@@ -193,6 +193,12 @@ public class Entrypoints {
   public static final RVMField functionTableDataField =
           getField(org.jikesrvm.jni.FunctionTable.class, "data",
                   org.jikesrvm.compilers.common.CodeArray[].class);
+  public static final RVMField spaceStartField =
+          getField(org.jikesrvm.mm.mminterface.MemoryManager.class,
+                  "spaceStart", org.vmmagic.unboxed.Address.class);
+  public static final RVMField spaceEndField =
+          getField(org.jikesrvm.mm.mminterface.MemoryManager.class,
+                  "spaceEnd", org.vmmagic.unboxed.Address.class);
 
   public static final RVMField isClassTypeField =
           getField(org.jikesrvm.classloader.RVMType.class, "isClassType", boolean.class);

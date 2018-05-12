@@ -115,6 +115,10 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysHelloWorld();
 
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract boolean is_valid_ref(Address val);
+
    /**
    * Initialises information about the control collector
    * @param threadId thread id of the control collector

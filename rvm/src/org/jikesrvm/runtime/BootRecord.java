@@ -264,6 +264,7 @@ public class BootRecord {
   public Address start_workerRIP;
   public Address enable_collectionRIP;
   public Address processRIP;
+  public Address is_valid_refRIP;
 
 
 
