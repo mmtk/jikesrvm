@@ -13,6 +13,7 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.runtime.SysCall;
 import org.mmtk.plan.nogc.NoGCMutator;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -73,5 +74,12 @@ public class NoGCContext extends NoGCMutator {
         cursor   = mmtkHandle.plus(BYTES_IN_WORD).loadAddress();
         limit    = mmtkHandle.plus(BYTES_IN_WORD * 2).loadAddress();
         space    = mmtkHandle.plus(BYTES_IN_WORD * 3).loadAddress();
+    }
+
+    @Override
+    public void postAlloc(ObjectReference ref, ObjectReference typeRef,
+                          int bytes, int allocator) {
+        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+        sysCall.sysPostAlloc(handle, ref, typeRef, bytes, allocator);
     }
 }

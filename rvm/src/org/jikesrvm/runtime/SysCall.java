@@ -199,6 +199,18 @@ public abstract class SysCall {
   public abstract Address alloc(Address mutator, int size, int align, int offset, int allocator);
 
   @Inline
+  public void sysPostAlloc(Address mutator, ObjectReference ref,
+                           ObjectReference typeRef, int bytes, int allocator) {
+    post_alloc(mutator, ref, typeRef, bytes, allocator);
+    return;
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void post_alloc(Address mutator, ObjectReference ref,
+                                  ObjectReference typeRef, int bytes,
+                                  int allocator);
+
+  @Inline
   public boolean sysProcess(byte[] name, byte[] value) {
     return process(name, value);
   }

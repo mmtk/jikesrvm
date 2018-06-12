@@ -108,4 +108,11 @@ public class SSContext extends SSMutator {
         }
         return region;
     }
+
+    @Override
+    public void postAlloc(ObjectReference ref, ObjectReference typeRef,
+                          int bytes, int allocator) {
+        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+        sysCall.sysPostAlloc(handle, ref, typeRef, bytes, allocator);
+    }
 }

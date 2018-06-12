@@ -87,12 +87,6 @@ public class Selected {
                 this.setBlock(mmtkHandle);
             }
         }
-
-        @Override
-        @Inline
-        public void postAlloc(ObjectReference object, ObjectReference typeRef, int bytes, int allocator) {
-            return;
-        }
 @_NO_RUST_MASK_END_@
         public void setHandle(Address handle){
             mmtkHandle = handle;
