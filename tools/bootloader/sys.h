@@ -241,10 +241,22 @@ EXTERNAL void sysSyncCache(void *address, size_t size);
 //sysMMTk
 EXTERNAL void sysHelloWorld();
 #ifdef RUST_BUILD
+EXTERNAL void alignedJikesrvmGcInit(void* jtoc, size_t heap_size) __attribute__((force_align_arg_pointer));
 EXTERNAL void test_stack_alignment();
 EXTERNAL void test_stack_alignment1(int a, int b, int c, int d, int e);
 EXTERNAL void* alignedSysAlloc(MMTk_Mutator mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
+EXTERNAL MMTk_Mutator alignedSysBindMutator(size_t thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL void* alignedSysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
+EXTERNAL void alignedStartControlCollector(size_t thread_id) __attribute__((force_align_arg_pointer));
+EXTERNAL bool alignedWillNeverMove(void* object) __attribute__((force_align_arg_pointer));
+EXTERNAL void alignedReportDelayedRootEdge(MMTk_TraceLocal trace_local, void* addr) __attribute__((force_align_arg_pointer));
+EXTERNAL bool alignedWillNotMoveInCurrentCollection(MMTk_TraceLocal trace_local, void* obj) __attribute__((force_align_arg_pointer));
+EXTERNAL void alignedProcessInteriorEdge(MMTk_TraceLocal trace_local, void* target, void* slot, bool root) __attribute__((force_align_arg_pointer));
+EXTERNAL void alignedStartWorker(size_t thread_id, void* worker) __attribute__((force_align_arg_pointer));
+EXTERNAL void alignedEnableCollection(size_t thread_id) __attribute__((force_align_arg_pointer));
+EXTERNAL bool alignedProcess(char* name, char* value) __attribute__((force_align_arg_pointer));
+EXTERNAL void alignedPostAlloc(MMTk_Mutator mutator, void* refer, void* type_refer, int bytes, int allocator) __attribute__((force_align_arg_pointer));
+EXTERNAL bool alignedIsValidRef(void* ref) __attribute__((force_align_arg_pointer));
 #endif
 
 // sysMisc

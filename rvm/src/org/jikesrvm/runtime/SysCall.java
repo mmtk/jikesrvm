@@ -115,6 +115,64 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysHelloWorld();
 
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void alignedJikesrvmGcInit(Address pointer, int size);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract Address alignedSysAlloc(Address mutator, int size, int align, int offset, int allocator);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract Address alignedSysBindMutator(int thread_id);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract Address alignedSysAllocSlow(Address mutator, int size, int align, int offset, int allocator);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void alignedStartControlCollector(int threadId);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void alignedWillNeverMove(ObjectReference obj);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void alignedReportDelayedRootEdge(Address trace_local, Address addr);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract boolean alignedWillNotMoveInCurrentCollection(Address trace_local, ObjectReference obj);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void alignedProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void alignedStartWorker(int threadId, Address workerInstance);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void alignedEnableCollection(int threadId);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract boolean alignedProcess(byte[] name, byte[] value);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void alignedPostAlloc(Address mutator, ObjectReference ref, ObjectReference typeRef, int bytes, int allocator);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract boolean alignedIsValidRef(ObjectReference ref);
+
+
+
    /**
    * Initialises information about the control collector
    * @param threadId thread id of the control collector
@@ -155,14 +213,6 @@ public abstract class SysCall {
   @RustSysCall
   @SysCallAlignedTemplate
   public abstract Address bind_mutator(int thread_id);
-
-  @RustSysCall
-  @SysCallTemplate
-  public abstract Address alignedSysAllocSlow(Address mutator, int size, int align, int offset, int allocator);
-
-  @RustSysCall
-  @SysCallTemplate
-  public abstract Address alignedSysAlloc(Address mutator, int size, int align, int offset, int allocator);
 
   /**
    * Allocation slow path

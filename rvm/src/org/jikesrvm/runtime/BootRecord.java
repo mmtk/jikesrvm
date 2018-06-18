@@ -246,8 +246,21 @@ public class BootRecord {
 
   // garbage collector
   public Address sysHelloWorldIP;
+  public Address alignedJikesrvmGcInitRIP;
   public Address alignedSysAllocRIP;
+  public Address alignedSysBindMutatorRIP;
   public Address alignedSysAllocSlowRIP;
+  public Address alignedStartControlCollectorRIP;
+  public Address alignedWillNeverMoveRIP;
+  public Address alignedReportDelayedRootEdgeRIP;
+  public Address alignedWillNotMoveInCurrentCollectionRIP;
+  public Address alignedProcessInteriorEdgeRIP;
+  public Address alignedStartWorkerRIP;
+  public Address alignedEnableCollectionRIP;
+  public Address alignedProcessRIP;
+  public Address alignedPostAllocRIP;
+  public Address alignedIsValidRefRIP;
+
 
   //mmtk.h - Rust Functions
   public Address jikesrvm_gc_initRIP;
