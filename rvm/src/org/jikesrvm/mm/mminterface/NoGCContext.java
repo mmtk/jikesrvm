@@ -13,7 +13,6 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.runtime.SysCall;
 import org.mmtk.plan.nogc.NoGCMutator;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
