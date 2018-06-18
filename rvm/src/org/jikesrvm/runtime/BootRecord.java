@@ -265,7 +265,7 @@ public class BootRecord {
   public Address enable_collectionRIP;
   public Address processRIP;
   public Address post_allocRIP;
-
+  public Address is_valid_refRIP;
 
 
   // startup/shutdown

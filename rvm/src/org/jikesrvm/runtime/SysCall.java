@@ -211,6 +211,15 @@ public abstract class SysCall {
                                   int allocator);
 
   @Inline
+  public boolean sysIsValidRef(ObjectReference ref) {
+    return is_valid_ref(ref);
+  }
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract boolean is_valid_ref(ObjectReference ref);
+
+  @Inline
   public boolean sysProcess(byte[] name, byte[] value) {
     return process(name, value);
   }
