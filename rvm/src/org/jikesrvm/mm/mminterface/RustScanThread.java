@@ -87,7 +87,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
    * MULTIPLE GC THREADS WILL PRODUCE SCRAMBLED OUTPUT so only
    * use these when running with PROCESSORS=1
    */
-  private static final int DEFAULT_VERBOSITY = 0 /*0*/;
+  private static final int DEFAULT_VERBOSITY = 3 /*0*/;
   private static final int FAILURE_VERBOSITY = 4;
 
   // FIXME: GC options
@@ -271,14 +271,14 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
    * @param sentinelFp the frame pointer at which the stack scan should stop
    */
   private void scanThreadInternal(Address gprs, int verbosity, Address sentinelFp) {
-    if (false) {
+    if (true) {
       VM.sysWriteln("Scanning thread ",thread.getThreadSlot()," from thread ",RVMThread.getCurrentThreadSlot());
     }
-    /*if (verbosity >= 2) {
-      Log.writeln("--- Start Of Stack Scan ---\n");
-      Log.write("Thread #");
-      Log.writeln(thread.getThreadSlot());
-    }*/
+    ///*if (verbosity >= 2) {
+      VM.sysWrite("--- Start Of Stack Scan ---\n");
+      VM.sysWrite("Thread #");
+      VM.sysWriteln(thread.getThreadSlot());
+    //}*/
     if (VM.VerifyAssertions) assertImmovableInCurrentCollection();
 
     /* first find any references to exception handlers in the registers */
@@ -297,7 +297,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
          fp -> frame for method invocation being processed
          ip -> instruction pointer in the method (normally a call site) */
       while (Magic.getCallerFramePointer(fp).NE(sentinelFp)) {
-        if (false) {
+        if (true) {
           VM.sysWriteln("Thread ",RVMThread.getCurrentThreadSlot()," at fp = ",fp);
         }
         prevFp = scanFrame(verbosity);
@@ -428,6 +428,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
         VM.sysWrite("Skipping frame, fp=", fp);
         VM.sysWriteln(", ip=", ip);
       }
+      sysCall.sysHelloWorld();
       return false;
     }
 
@@ -482,7 +483,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
          !refaddr.isZero();
          refaddr = iterator.getNextReferenceAddress()) {
       if (VALIDATE_REFS) checkReference(refaddr, verbosity);
-      if (verbosity >= 4) dumpRef(refaddr, verbosity);
+      dumpRef(refaddr, verbosity);
       reportDelayedRootEdge(trace, refaddr);
     }
   }
@@ -626,11 +627,11 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
   private void dumpRef(Address refaddr, int verbosity) {
     ObjectReference ref = refaddr.loadObjectReference();
     VM.sysWrite(refaddr);
-    if (verbosity >= 5) {
+    //if (verbosity >= 5) {
       VM.sysWrite(":");
       MemoryManager.dumpRef(ref);
-    } else
-      VM.sysWriteln();
+    //} else
+    //  VM.sysWriteln();
   }
 
   /**

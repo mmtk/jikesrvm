@@ -26,6 +26,7 @@ import static org.jikesrvm.objectmodel.ThinLockConstants.TL_STAT_THIN;
 import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_MASK;
 import static org.jikesrvm.objectmodel.ThinLockConstants.TL_THREAD_ID_SHIFT;
 import static org.jikesrvm.objectmodel.ThinLockConstants.TL_UNLOCK_MASK;
+import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
@@ -36,6 +37,7 @@ import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.NoNullCheck;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
@@ -172,8 +174,14 @@ public final class ThinLock {
       } else {
         if (VM.VerifyAssertions) VM._assert(stat.EQ(TL_STAT_FAT));
         // lock is fat.  contend on it.
-        if (Lock.getLock(getLockIndex(old)).lockHeavy(o)) {
-          return;
+        try {
+          if (Lock.getLock(getLockIndex(old)).lockHeavy(o)) {
+            return;
+          }
+        } catch (NullPointerException e) {
+          VM.sysWriteln("Bad lock status o: ", ObjectReference.fromObject(o).toAddress());
+          VM.sysWriteln(Magic.getObjectType(o).getDescriptor());
+          sysCall.sysHelloWorld();
         }
       }
 

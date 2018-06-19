@@ -97,7 +97,7 @@ public class SSContext extends SSMutator {
 
         if (newCursor.GT(sentinel)) {
             Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
-            region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
+            region = sysCall.alignedSysAllocSlow(handle, bytes, align, offset, allocator);
         } else {
             if (allocator == Plan.ALLOC_DEFAULT) {
                 this.cursor = newCursor;

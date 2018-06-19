@@ -55,7 +55,7 @@ public class NoGCContext extends NoGCMutator {
 
         if (newCursor.GT(limit)) {
             Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
-            region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
+            region = sysCall.alignedSysAllocSlow(handle, bytes, align, offset, allocator);
         } else {
             cursor = newCursor;
             region = result;

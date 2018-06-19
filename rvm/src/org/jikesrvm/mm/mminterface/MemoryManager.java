@@ -49,6 +49,8 @@ import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.util.PrintContainer;
+import org.jikesrvm.util.PrintLN;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
@@ -663,8 +665,15 @@ public final class MemoryManager {
     if (traceAllocation) {
       VM.sysWrite("aai: ", ObjectReference.fromObject(result));
       VM.sysWrite(" ", region);
-      VM.sysWriteln("-", region.plus(size));
+      VM.sysWrite("-", region.plus(size));
+      VM.sysWriteln(" ", tib.getType().getDescriptor());
     }
+    /*
+    if (ObjectReference.fromObject(result).toAddress().EQ(Address.fromIntZeroExtend(0x980e000c))) {
+      RVMThread.dumpStack();
+      VM.sysExit(42);
+    }
+    */
     return result;
   }
 

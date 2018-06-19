@@ -115,59 +115,59 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void sysHelloWorld();
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract void alignedJikesrvmGcInit(Address pointer, int size);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract Address alignedSysAlloc(Address mutator, int size, int align, int offset, int allocator);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract Address alignedSysBindMutator(int thread_id);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract Address alignedSysAllocSlow(Address mutator, int size, int align, int offset, int allocator);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract void alignedStartControlCollector(int threadId);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract void alignedWillNeverMove(ObjectReference obj);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract void alignedReportDelayedRootEdge(Address trace_local, Address addr);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract boolean alignedWillNotMoveInCurrentCollection(Address trace_local, ObjectReference obj);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract void alignedProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract void alignedStartWorker(int threadId, Address workerInstance);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract void alignedEnableCollection(int threadId);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract boolean alignedProcess(byte[] name, byte[] value);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract void alignedPostAlloc(Address mutator, ObjectReference ref, ObjectReference typeRef, int bytes, int allocator);
 
-  @RustSysCall
+  //@RustSysCall
   @SysCallTemplate
   public abstract boolean alignedIsValidRef(ObjectReference ref);
 

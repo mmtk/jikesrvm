@@ -163,7 +163,7 @@ public final class RVMThread extends ThreadContext {
   protected static final boolean traceBind = false;
 
   /** Trace thread start/stop */
-  protected static final boolean traceAcct = false;
+  protected static final boolean traceAcct = true;
 
   /** Trace execution */
   protected static final boolean trace = false;
