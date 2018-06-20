@@ -12,9 +12,12 @@
  */
 package org.mmtk.plan.semispace;
 
+import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.mmtk.plan.*;
 import org.mmtk.policy.CopyLocal;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.Log;
+import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
 
 import org.vmmagic.unboxed.*;
@@ -137,4 +140,58 @@ public class SSMutator extends StopTheWorldMutator {
     immortal.show();
   }
 
+  @Override
+  public ObjectReference objectReferenceRead(ObjectReference src, Address slot, Word metaDataA, Word metaDataB, int mode) {
+    ObjectReference o = slot.loadObjectReference();
+    Address add = o.toAddress();
+    if (o.isNull() || MemoryManager.numGCFinished == 0) {
+      return o;
+    } else if (add.LT(Address.fromIntZeroExtend(0x68000000)) && add.GE(Address.fromIntZeroExtend(0x60000000))) {
+      // Boot
+      return o;
+    } else if (add.LT(Address.fromIntZeroExtend(0xb0000000)) && add.GE(Address.fromIntZeroExtend(0x98000000))) {
+      // VMSpace
+      return o;
+    } else {
+      if (MemoryManager.numGCFinished % 2 == 0) {
+        if (add.LT(Address.fromIntZeroExtend(0x80000000)) && add.GE(Address.fromIntZeroExtend(0x68000000))) return o;
+        Log.write("heap slot ", slot);
+        Log.writeln(" pointing at ", o);
+        org.mmtk.vm.VM.assertions.fail("Slot not in correct space");
+      } else {
+        if (add.LT(Address.fromIntZeroExtend(0x98000000)) && add.GE(Address.fromIntZeroExtend(0x80000000))) return o;
+        Log.write("heap slot ", slot);
+        Log.writeln(" pointing at ", o);
+        org.mmtk.vm.VM.assertions.fail("Slot not in correct space");
+      }
+    }
+    return o;
+  }
+
+  @Override
+  public ObjectReference objectReferenceNonHeapRead(Address slot, Word metaDataA, Word metaDataB) {
+    ObjectReference o = slot.loadObjectReference();
+    Address add = o.toAddress();
+    if (o.isNull() || MemoryManager.numGCFinished == 0) {
+      return o;
+    } else if (add.LT(Address.fromIntZeroExtend(0x68000000)) && add.GE(Address.fromIntZeroExtend(0x60000000))) {
+      // Boot
+      return o;
+    } else if (add.LT(Address.fromIntZeroExtend(0xb0000000)) && add.GE(Address.fromIntZeroExtend(0x98000000))) {
+      // VMSpace
+      return o;
+    } else {
+      if (MemoryManager.numGCFinished % 2 == 0) {
+        if (add.LT(Address.fromIntZeroExtend(0x80000000)) && add.GE(Address.fromIntZeroExtend(0x68000000))) return o;
+        Log.write("non heap slot ", slot);
+        Log.writeln(" pointing at ", o);
+        org.mmtk.vm.VM.assertions.fail("Slot not in correct space");
+      } else {
+        if (add.LT(Address.fromIntZeroExtend(0x98000000)) && add.GE(Address.fromIntZeroExtend(0x80000000))) return o;
+        Log.write("non heap slot ", slot);
+        Log.writeln(" pointing at ", o);
+        org.mmtk.vm.VM.assertions.fail("Slot not in correct space");
+      }
+    }
+    return o;  }
 }
