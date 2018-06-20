@@ -5629,7 +5629,7 @@ public final class RVMThread extends ThreadContext {
     if (address.EQ(Address.zero()))
       return false; // Avoid hitting assertion failure in MMTk
     else
-      return address.EQ(StackFrameLayout.getStackFrameSentinelFP()) || MemoryManager.mightBeFP(address);
+      return address.EQ(StackFrameLayout.getStackFrameSentinelFP()) || MemoryManager.mightBeFP(address) || sysCall.alignedIsValidRef(address.toObjectReference());
   }
 
   private static void showPrologue(Address fp) {
