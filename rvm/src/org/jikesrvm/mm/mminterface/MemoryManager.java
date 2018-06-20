@@ -95,7 +95,7 @@ public final class MemoryManager {
    */
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
   private static final boolean traceAllocator = false;
-  private static final boolean traceAllocation = false;
+  private static final boolean traceAllocation = true;
 
   /**
    * Has the interface been booted yet?
@@ -106,6 +106,13 @@ public final class MemoryManager {
    * Has garbage collection been enabled yet?
    */
   private static boolean collectionEnabled = false;
+
+
+  /**
+   * Have we completed one GC yet?
+   */
+  @Entrypoint
+  public static int numGCFinished = 0;
 
   /***********************************************************************
    *
@@ -592,7 +599,8 @@ public final class MemoryManager {
     Object result = ObjectModel.initializeScalar(region, tib, size);
     mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     if (traceAllocation) {
-      VM.sysWrite("as: ", ObjectReference.fromObject(result));
+      VM.sysWrite(tib.getType().getDescriptor());
+      VM.sysWrite(" as: ", ObjectReference.fromObject(result));
       VM.sysWrite(" ", region);
       VM.sysWriteln("-", region.plus(size));
     }
@@ -663,7 +671,8 @@ public final class MemoryManager {
     Object result = ObjectModel.initializeArray(region, tib, numElements, size);
     mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
     if (traceAllocation) {
-      VM.sysWrite("aai: ", ObjectReference.fromObject(result));
+      VM.sysWrite(tib.getType().getDescriptor());
+      VM.sysWrite(" aai: ", ObjectReference.fromObject(result));
       VM.sysWrite(" ", region);
       VM.sysWrite("-", region.plus(size));
       VM.sysWriteln(" ", tib.getType().getDescriptor());
@@ -696,6 +705,15 @@ public final class MemoryManager {
     /* Now make the request */
     Address region;
     region = mutator.alloc(bytes, align, offset, allocator, site);
+
+    if (numGCFinished % 2 == 1 && region.LT(Address.fromIntZeroExtend(0x80000000)) && region.GE(Address.fromIntZeroExtend(0x68000000))) {
+      VM.sysFail("Allocated into copyspace0 which is the wrong one");
+    }
+
+    if (numGCFinished % 2 == 0 && region.LT(Address.fromIntZeroExtend(0x98000000)) && region.GE(Address.fromIntZeroExtend(0x80000000))) {
+      VM.sysFail("Allocated into copyspace1 which is the wrong one");
+    }
+
 
     /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.cons.inc(bytes); */
     if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
