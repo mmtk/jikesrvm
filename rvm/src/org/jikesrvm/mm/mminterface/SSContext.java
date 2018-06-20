@@ -42,6 +42,8 @@ public class SSContext extends SSMutator {
     Address limitImmortal;
     @Entrypoint
     Address spaceImmortal;
+    @Entrypoint
+    Address mmtkHandle;
 
     static final Offset threadIdOffset = getField(SSContext.class, "threadId", Address.class).getOffset();
     static final Offset cursorOffset = getField(SSContext.class, "cursor", Address.class).getOffset();
@@ -51,6 +53,7 @@ public class SSContext extends SSMutator {
     static final Offset cursorImmortalOffset = getField(SSContext.class, "cursorImmortal", Address.class).getOffset();
     static final Offset limitImmortalOffset = getField(SSContext.class, "limitImmortal", Address.class).getOffset();
     static final Offset spaceImmortalOffset = getField(SSContext.class, "spaceImmortal", Address.class).getOffset();
+    static final Offset mmtkHandleOffset = getField(SSContext.class, "mmtkHandle", Address.class).getOffset();
 
     public void setBlock(Address mmtkHandle) {
         if (VM.VerifyAssertions) {
@@ -61,6 +64,7 @@ public class SSContext extends SSMutator {
             VM._assert(cursorImmortalOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 5));
             VM._assert(limitImmortalOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 6));
             VM._assert(spaceImmortalOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 7));
+            VM._assert(mmtkHandleOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 8));
         }
         threadId = mmtkHandle.loadAddress();
         cursor   = mmtkHandle.plus(BYTES_IN_WORD).loadAddress();
@@ -70,11 +74,12 @@ public class SSContext extends SSMutator {
         cursorImmortal   = mmtkHandle.plus(BYTES_IN_WORD * 5).loadAddress();
         limitImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 6).loadAddress();
         spaceImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 7).loadAddress();
+        this.mmtkHandle = mmtkHandle;
     }
 
     @Override
     public Address alloc(int bytes, int align, int offset, int allocator, int site) {
-        Address region;
+        /*Address region;
         Address cursor;
         Address sentinel;
         if (allocator == Plan.ALLOC_DEFAULT) {
@@ -107,12 +112,15 @@ public class SSContext extends SSMutator {
             region = result;
         }
         return region;
+        */
+        return sysCall.alignedSysAlloc(this.mmtkHandle, bytes,align,offset,allocator);
     }
 
     @Override
     public void postAlloc(ObjectReference ref, ObjectReference typeRef,
                           int bytes, int allocator) {
-        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+        Address handle = this.mmtkHandle;
+        //Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
         sysCall.sysPostAlloc(handle, ref, typeRef, bytes, allocator);
     }
 }

@@ -16,6 +16,7 @@ import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_END;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_END;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
+import static org.jikesrvm.mm.mminterface.MemoryManager.numGCFinished;
 import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MOVES_OBJECTS;
 
 import org.jikesrvm.VM;
@@ -177,6 +178,18 @@ public class DebugUtil {
       VM.sysWriteln();
       return;
     }
+
+    Address region = ref.toAddress();
+
+    if (numGCFinished % 2 == 1 && region.LT(Address.fromIntZeroExtend(0x80000000)) && region.GE(Address.fromIntZeroExtend(0x68000000))) {
+      VM.sysFail("Bad reference on stack which points to copyspace0");
+    }
+
+    //if (numGCFinished % 2 == 0 && region.LT(Address.fromIntZeroExtend(0x98000000)) && region.GE(Address.fromIntZeroExtend(0x80000000))) {
+    //  VM.sysFail("Bad reference on stack which points to copyspace1");
+    //}
+
+
     VM.sysWrite(ref);
     ObjectModel.dumpHeader(ref);
     ObjectReference tib = ObjectReference.fromObject(ObjectModel.getTIB(ref));

@@ -74,6 +74,10 @@ public abstract class GCMapIterator {
    */
   public abstract Address getNextReferenceAddress();
 
+  public Address getNextReferenceAddress(boolean raiseVerbosity) {
+    return null;
+  }
+
   /**
    * Get address of next JSR return address held by current stackframe.
    *
