@@ -244,6 +244,96 @@ public final class BaselineGCMapIterator extends AbstractBaselineGCMapIterator {
     return Address.zero();
   }
 
+
+  @Override
+  public Address getNextReferenceAddress(boolean verbose) {
+    if (!mapReader.isFinishedWithRegularMap()) {
+      if (counterArrayBase) {
+        counterArrayBase = false;
+        return registerLocations.get(EBX.value());
+      }
+      mapReader.updateMapIndex();
+
+      if (mapReader.currentMapHasMorePointers()) {
+        int mapOffset = convertIndexToOffset(mapReader.getMapIndex());
+        if (VM.TraceStkMaps || TRACE_ALL || verbose) {
+          VM.sysWrite("BaselineGCMapIterator getNextReferenceOffset = ");
+          VM.sysWriteHex(mapOffset);
+          VM.sysWrite(" (= ");
+          VM.sysWrite(mapOffset);
+          VM.sysWrite(")");
+          VM.sysWriteln(".");
+          VM.sysWrite("Reference is ");
+        }
+        if (bridgeData.isBridgeParameterMappingRequired()) {
+          if (VM.TraceStkMaps || TRACE_ALL || verbose) {
+            VM.sysWriteHex(framePtr.plus(mapOffset - BRIDGE_FRAME_EXTRA_SIZE).loadAddress());
+            VM.sysWriteln(".");
+            if (mapReader.currentMapIsForJSR()) {
+              VM.sysWriteln("Offset is a JSR return address ie internal pointer.");
+            }
+          }
+
+          // TODO  clean this
+          return (framePtr.plus(mapOffset - BRIDGE_FRAME_EXTRA_SIZE));
+        } else {
+          if (VM.TraceStkMaps || TRACE_ALL || verbose) {
+            VM.sysWriteHex(framePtr.plus(mapOffset).loadAddress());
+            VM.sysWriteln(".");
+            if (mapReader.currentMapIsForJSR()) {
+              VM.sysWriteln("Offset is a JSR return address ie internal pointer.");
+            }
+          }
+          return (framePtr.plus(mapOffset));
+        }
+      } else {
+        // remember that we are done with the map for future calls, and then
+        //   drop down to the code below
+        mapReader.setFinishedWithRegularMap();
+      }
+    }
+
+    if (bridgeData.isBridgeParameterMappingRequired()) {
+      if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL || verbose) {
+        ((ArchBridgeDataExtractor) bridgeData).traceBridgeTarget();
+      }
+
+      if (bridgeData.needsBridgeRegisterLocationsUpdate()) {
+        // point registerLocations[] to our callers stackframe
+        //
+        registerLocations.set(EDI.value(), framePtr.plus(EDI_SAVE_OFFSET));
+        registerLocations.set(T0.value(), framePtr.plus(T0_SAVE_OFFSET));
+        registerLocations.set(T1.value(), framePtr.plus(T1_SAVE_OFFSET));
+        registerLocations.set(EBX.value(), framePtr.plus(EBX_SAVE_OFFSET));
+
+        bridgeData.setBridgeRegistersLocationUpdated();
+      }
+
+      if (bridgeData.hasUnprocessedImplicitThis()) {
+        return bridgeData.getImplicitThisAddress();
+      }
+
+      // now the remaining parameters
+      while (bridgeData.hasMoreBridgeParameters()) {
+        return bridgeData.getNextBridgeParameterAddress();
+      }
+    } else {
+      // point registerLocations[] to our callers stackframe
+      //
+      registerLocations.set(EDI.value(), framePtr.plus(EDI_SAVE_OFFSET));
+      registerLocations.set(EBX.value(), framePtr.plus(EBX_SAVE_OFFSET));
+      if (currentMethod.hasBaselineSaveLSRegistersAnnotation()) {
+        registerLocations.set(EBP.value(), framePtr.plus(EBP_SAVE_OFFSET));
+      }
+    }
+
+    if (VM.TraceStkMaps || TRACE_ALL || TRACE_DL || verbose) {
+      VM.sysWriteln("BaselineGCMapIterator getNextReferenceOffset: all references processed.");
+    }
+    return Address.zero();
+  }
+
+
   @Override
   public Address getNextReturnAddressAddress() {
     if (!mapReader.currentMapIsForJSR()) {
