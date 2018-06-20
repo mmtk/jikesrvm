@@ -387,6 +387,8 @@ public class Entrypoints {
   public static final RVMField lockThreadField =
       getField(org.jikesrvm.mm.mmtk.Lock.class, "thread", org.jikesrvm.scheduler.RVMThread.class);
   */
+  public static final RVMField numGCFinishedField = getField(org.jikesrvm.mm.mminterface.MemoryManager.class, "numGCFinished", int.class);
+
   public static final RVMField lockStateField = getField(org.jikesrvm.mm.mmtk.Lock.class, "state", int.class);
   public static final RVMField SQCFField = getField(org.mmtk.utility.deque.SharedDeque.class, "completionFlag", int.class);
   public static final RVMField SQNCField = getField(org.mmtk.utility.deque.SharedDeque.class, "numConsumers", int.class);
