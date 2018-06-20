@@ -382,10 +382,15 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
    */
   private Address scanFrame(int verbosity) {
     /* set up iterators etc, and skip the frame if appropriate */
+
+    boolean raiseVerbosity = false;
+
+    if (fp.GT(Address.fromIntZeroExtend(0x98122a80))) raiseVerbosity = true;
+
     if (!setUpFrame(verbosity)) return fp;
 
     /* scan the frame for object pointers */
-    scanFrameForObjects(verbosity);
+    scanFrameForObjects(verbosity, raiseVerbosity);
 
     /* scan the frame for pointers to code */
     if (processCodeLocations && compiledMethodType != CompiledMethod.TRAP)
@@ -427,6 +432,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
       if (verbosity >= 1) {
         VM.sysWrite("Skipping frame, fp=", fp);
         VM.sysWriteln(", ip=", ip);
+        RVMThread.dumpStack(Address.fromIntZeroExtend(0x98120f20));
       }
       sysCall.sysHelloWorld();
       return false;
@@ -478,8 +484,8 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
    * @param verbosity The level of verbosity to be used when
    * performing the scan.
    */
-  private void scanFrameForObjects(int verbosity) {
-    for (Address refaddr = iterator.getNextReferenceAddress();
+  private void scanFrameForObjects(int verbosity, boolean raiseVerbosity) {
+    for (Address refaddr = iterator.getNextReferenceAddress(raiseVerbosity);
          !refaddr.isZero();
          refaddr = iterator.getNextReferenceAddress()) {
       if (VALIDATE_REFS) checkReference(refaddr, verbosity);
