@@ -202,10 +202,11 @@ public final class MemoryManager {
     if (VM.BuildWithRustMMTk) {
       sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
-      VM.sysWriteln("lalalala ",Magic.objectAsAddress(RVMThread.threadBySlot[1]));
-      VM.sysWriteln("threadBySlotFieldAddress ", BootRecord.the_boot_record.tocRegister.plus(Entrypoints.threadBySlotField.getOffset()));
-      sysCall.sysHelloWorld();
     }
+
+    VM.sysWriteln("lalalala ",Magic.objectAsAddress(RVMThread.threadBySlot[1]));
+    VM.sysWriteln("threadBySlotFieldAddress ", BootRecord.the_boot_record.tocRegister.plus(Entrypoints.threadBySlotField.getOffset()));
+    sysCall.sysHelloWorld();
 
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
       @Override

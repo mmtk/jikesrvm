@@ -65,6 +65,7 @@ public class SSContext extends SSMutator {
         }
         VM.sysWriteln("lalalala at: ", Magic.objectAsAddress(this));
         VM.sysWriteln("Setting block starting at: ", Magic.objectAsAddress(this).plus(threadIdOffset));
+
         threadId = mmtkHandle.loadAddress();
         cursor   = mmtkHandle.plus(BYTES_IN_WORD).loadAddress();
         limit    = mmtkHandle.plus(BYTES_IN_WORD * 2).loadAddress();
@@ -73,6 +74,15 @@ public class SSContext extends SSMutator {
         cursorImmortal   = mmtkHandle.plus(BYTES_IN_WORD * 5).loadAddress();
         limitImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 6).loadAddress();
         spaceImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 7).loadAddress();
+
+        VM.sysWriteln("thread id: ", threadId);
+        VM.sysWriteln("cursor: ", cursor);
+        VM.sysWriteln("limit: ", limit);
+        VM.sysWriteln("space: ", space);
+        VM.sysWriteln("threadIdImmortal: ", threadIdImmortal);
+        VM.sysWriteln("cursorImmortal: ", cursorImmortal);
+        VM.sysWriteln("limitImmortal: ", limitImmortal);
+        VM.sysWriteln("spaceImmortal: ", spaceImmortal);
     }
 
     @Override
