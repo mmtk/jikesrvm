@@ -9,7 +9,7 @@
 #include <sys/mman.h> // mmap
 
 EXTERNAL void sysHelloWorld() {
-    printf("Hello World!\n");
+    asm("int $3");
 }
 
 

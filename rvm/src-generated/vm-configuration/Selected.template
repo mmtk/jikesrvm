@@ -82,8 +82,11 @@ public class Selected {
 @_NO_RUST_MASK_START_@
         @Override
         public void initMutator (int id){
-            if (id != 1) {
+                this.id = id;
+                if (id != 1) {
                 mmtkHandle = sysCall.sysBindMutator(id);
+                VM.sysWrite("Initialising a thread with id: ", id);
+                VM.sysWriteln(" with handle: ", mmtkHandle);
                 this.setBlock(mmtkHandle);
             }
         }

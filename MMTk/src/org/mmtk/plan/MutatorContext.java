@@ -105,7 +105,7 @@ public abstract class MutatorContext {
    */
 
   /** Unique mutator identifier */
-  private int id;
+  protected int id;
 
   /** Used for printing log information in a thread safe manner */
   protected final Log log = new Log();

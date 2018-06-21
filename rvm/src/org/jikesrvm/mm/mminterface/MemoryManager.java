@@ -47,6 +47,7 @@ import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Callbacks;
+import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.CollectorContext;
@@ -201,6 +202,9 @@ public final class MemoryManager {
     if (VM.BuildWithRustMMTk) {
       sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
       RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
+      VM.sysWriteln("lalalala ",Magic.objectAsAddress(RVMThread.threadBySlot[1]));
+      VM.sysWriteln("threadBySlotFieldAddress ", BootRecord.the_boot_record.tocRegister.plus(Entrypoints.threadBySlotField.getOffset()));
+      sysCall.sysHelloWorld();
     }
 
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {

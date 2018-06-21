@@ -13,6 +13,7 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.semispace.SSMutator;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -27,7 +28,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 public class SSContext extends SSMutator {
 
     @Entrypoint
-    Address threadId;
+    public Address threadId;
     @Entrypoint
     Address cursor;
     @Entrypoint
@@ -62,6 +63,8 @@ public class SSContext extends SSMutator {
             VM._assert(limitImmortalOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 6));
             VM._assert(spaceImmortalOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 7));
         }
+        VM.sysWriteln("lalalala at: ", Magic.objectAsAddress(this));
+        VM.sysWriteln("Setting block starting at: ", Magic.objectAsAddress(this).plus(threadIdOffset));
         threadId = mmtkHandle.loadAddress();
         cursor   = mmtkHandle.plus(BYTES_IN_WORD).loadAddress();
         limit    = mmtkHandle.plus(BYTES_IN_WORD * 2).loadAddress();
@@ -97,6 +100,21 @@ public class SSContext extends SSMutator {
 
         if (newCursor.GT(sentinel)) {
             Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+
+            if (threadId.isZero()) {
+                VM.sysWriteln("Actual id: ", id);
+                RVMThread.dumpStack();
+                VM.sysWriteln("Thread id address at: ", Magic.objectAsAddress(this).plus(threadIdOffset));
+                VM.sysWriteln("address of object ", Magic.objectAsAddress(RVMThread.threadBySlot[1]));
+            }
+            /*
+            VM.sysWriteln("------ Calling sysAllocSlow with values ------");
+            VM.sysWriteln("threadID: ", threadId);
+            VM.sysWriteln("space: ", space);
+            VM.sysWriteln("spaceImmortal: ", spaceImmortal);
+            VM.sysWriteln("handle: ", handle);
+            VM.sysWriteln("----------------------------------------------");
+            */
             region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
         } else {
             if (allocator == Plan.ALLOC_DEFAULT) {
