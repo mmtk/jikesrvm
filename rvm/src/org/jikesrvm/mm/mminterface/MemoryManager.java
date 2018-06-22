@@ -34,6 +34,7 @@ import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CodeArray;
+import org.jikesrvm.mm.mmtk.Assert;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
@@ -349,6 +350,8 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void gc() {
+    //FIXME RUST
+    VM._assert(!VM.BuildWithRustMMTk, "Have not implemented MM.gc() yet in RMMTk");
     Selected.Plan.handleUserCollectionRequest();
   }
 
