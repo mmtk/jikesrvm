@@ -379,7 +379,11 @@ public final class MemoryManager {
   @Inline
   public static boolean validRef(ObjectReference ref) {
     if (booted) {
-      return DebugUtil.validRef(ref);
+      if (VM.BuildWithRustMMTk) {
+        return sysCall.sysIsValidRef(ref);
+      } else {
+        return DebugUtil.validRef(ref);
+      }
     } else {
       return true;
     }
