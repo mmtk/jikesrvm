@@ -175,7 +175,6 @@ public final class MemoryManager {
     return a + 10;
   }
 
-
   /**
    * Suppress default constructor to enforce noninstantiability.
    */
@@ -220,16 +219,21 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void postBoot() {
-    Selected.Plan.get().processOptions();
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    } else {
+      Selected.Plan.get().processOptions();
 
-    if (Options.noReferenceTypes.getValue()) {
-      RVMType.JavaLangRefReferenceReferenceField.makeTraced();
+      if (Options.noReferenceTypes.getValue()) {
+        RVMType.JavaLangRefReferenceReferenceField.makeTraced();
+      }
+
+      if (VM.BuildWithGCSpy) {
+        // start the GCSpy interpreter server
+        MemoryManager.startGCspyServer();
+      }
     }
 
-    if (VM.BuildWithGCSpy) {
-      // start the GCSpy interpreter server
-      MemoryManager.startGCspyServer();
-    }
   }
 
   /**
@@ -248,6 +252,7 @@ public final class MemoryManager {
   @Interruptible
   @Entrypoint
   public static void spawnCollectorThread(Address workerInstance) {
+    //FIXME RUST
     byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
     CollectorThread t = new CollectorThread(stack, null);
     t.setWorker(workerInstance);
@@ -266,7 +271,11 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void fullyBootedVM() {
-    Selected.Plan.get().fullyBooted();
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    } else {
+      Selected.Plan.get().fullyBooted();
+    }
   }
 
   @Interruptible
@@ -294,15 +303,19 @@ public final class MemoryManager {
     /* Make sure that during GC, we don't update on a possibly moving object.
        Such updates are dangerous because they can be lost.
      */
-    if (Plan.gcInProgressProper()) {
-      ObjectReference ref = ObjectReference.fromObject(object);
-      if (Space.isMovable(ref)) {
-        VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
-        VM.sysWriteln("  obj = ", ref);
-        RVMType t = Magic.getObjectType(object);
-        VM.sysWrite(" type = ");
-        VM.sysWriteln(t.getDescriptor());
-        VM.sysFail("GC modifying a potentially moving object via Java (i.e. not magic)");
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    } else {
+      if (Plan.gcInProgressProper()) {
+        ObjectReference ref = ObjectReference.fromObject(object);
+        if (Space.isMovable(ref)) {
+          VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
+          VM.sysWriteln("  obj = ", ref);
+          RVMType t = Magic.getObjectType(object);
+          VM.sysWrite(" type = ");
+          VM.sysWriteln(t.getDescriptor());
+          VM.sysFail("GC modifying a potentially moving object via Java (i.e. not magic)");
+        }
       }
     }
   }
@@ -323,7 +336,13 @@ public final class MemoryManager {
    * @return The amount of free memory.
    */
   public static Extent freeMemory() {
-    return Plan.freeMemory();
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+      return null;
+      //return Extent.fromIntZeroExtend(SysCall.sysCall.sysFreeBytes());
+    } else {
+      return Plan.freeMemory();
+    }
   }
 
   /**
@@ -332,7 +351,12 @@ public final class MemoryManager {
    * @return The amount of total memory.
    */
   public static Extent totalMemory() {
-    return Plan.totalMemory();
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+      return null;
+    } else {
+      return Plan.totalMemory();
+    }
   }
 
   /**
@@ -341,7 +365,12 @@ public final class MemoryManager {
    * @return The maximum amount of memory VM will attempt to use.
    */
   public static Extent maxMemory() {
-    return HeapGrowthManager.getMaxHeapSize();
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+      return null;
+    } else {
+      return HeapGrowthManager.getMaxHeapSize();
+    }
   }
 
   /**
@@ -378,11 +407,17 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean validRef(ObjectReference ref) {
-    if (booted) {
-      return DebugUtil.validRef(ref);
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+      return false;
     } else {
-      return true;
+      if (booted) {
+        return DebugUtil.validRef(ref);
+      } else {
+        return true;
+      }
     }
+
   }
 
   /**
@@ -393,7 +428,12 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean addressInVM(Address address) {
-    return Space.isMappedAddress(address);
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    } else {
+      return Space.isMappedAddress(address);
+    }
+    return false;
   }
 
   /**
@@ -409,7 +449,12 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean objectInVM(ObjectReference object) {
-    return Space.isMappedObject(object);
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    } else {
+      return Space.isMappedObject(object);
+    }
+    return false;
   }
 
   /**
@@ -422,7 +467,12 @@ public final class MemoryManager {
     // In general we don't know which spaces may hold allocated stacks.
     // If we want to be more specific than the space being mapped we
     // will need to add a check in Plan that can be overriden.
-    return Space.isMappedAddress(address);
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    } else {
+      return Space.isMappedAddress(address);
+    }
+    return false;
   }
   /***********************************************************************
    *
@@ -438,7 +488,12 @@ public final class MemoryManager {
    * @return an allocation site
    */
   public static int getAllocationSite(boolean compileTime) {
-    return Plan.getAllocationSite(compileTime);
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    } else {
+      return Plan.getAllocationSite(compileTime);
+    }
+    return 0;
   }
 
   /**
@@ -455,7 +510,12 @@ public final class MemoryManager {
    */
   @Interruptible
   public static int pickAllocator(RVMType type) {
-    return pickAllocator(type, null);
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    } else {
+      return pickAllocator(type, null);
+    }
+      return 0;
   }
 
   /**
@@ -493,6 +553,9 @@ public final class MemoryManager {
    */
   @Interruptible
   public static int pickAllocator(RVMType type, RVMMethod method) {
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    }
     if (traceAllocator) {
       VM.sysWrite("allocator for ");
       VM.sysWrite(type.getDescriptor());
@@ -541,6 +604,9 @@ public final class MemoryManager {
    */
   @Interruptible
   private static int pickAllocatorForType(RVMType type) {
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    }
     int allocator = Plan.ALLOC_DEFAULT;
     if (type.isArrayType()) {
       RVMType elementType = type.asArray().getElementType();
@@ -744,6 +810,9 @@ public final class MemoryManager {
    */
   @Inline
   public static Offset alignAllocation(Offset initialOffset, int align, int offset) {
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    }
     Address region = org.jikesrvm.runtime.Memory.alignUp(initialOffset.toWord().toAddress(), MIN_ALIGNMENT);
     return Allocator.alignAllocationNoFill(region, align, offset).toWord().toOffset();
   }
@@ -760,6 +829,9 @@ public final class MemoryManager {
   @NoInline
   @Interruptible
   public static CodeArray allocateCode(int numInstrs, boolean isHot) {
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    }
     RVMArray type = RVMType.CodeArrayType;
     int headerSize = ObjectModel.computeArrayHeaderSize(type);
     int align = ObjectModel.getAlignment(type);
@@ -852,6 +924,9 @@ public final class MemoryManager {
   @NoInline
   @Interruptible
   public static double[] newNonMovingDoubleArray(int size) {
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    }
     if (!VM.runningVM) {
       return new double[size];
     }
@@ -883,6 +958,9 @@ public final class MemoryManager {
   @NoInline
   @Interruptible
   public static int[] newNonMovingIntArray(int size) {
+    if (VM.BuildWithRustMMTk) {
+      VM._assert(false, "Not Implemented");
+    }
     if (!VM.runningVM) {
       return new int[size];
     }
