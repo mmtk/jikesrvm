@@ -85,8 +85,6 @@ public class Selected {
       super.initMutator(id);
       if (VM.runningVM) {
         mmtkHandle = sysCall.sysBindMutator(id);
-        VM.sysWrite("Initialising a thread with id: ", id);
-        VM.sysWriteln(" with handle: ", mmtkHandle);
         this.setBlock(mmtkHandle);
       }
     }
