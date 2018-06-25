@@ -242,7 +242,11 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void enableCollection() {
-    Selected.Plan.get().enableCollection();
+    if (VM.BuildWithRustMMTk) {
+      sysCall.sysEnableCollection(RVMThread.getCurrentThreadSlot());
+    } else {
+      Selected.Plan.get().enableCollection();
+    }
     collectionEnabled = true;
   }
 
