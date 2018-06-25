@@ -76,7 +76,6 @@ import org.vmmagic.unboxed.WordArray;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
-
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
@@ -221,11 +220,12 @@ public final class MemoryManager {
   @Interruptible
   public static void postBoot() {
     if (VM.BuildWithRustMMTk) {
-      //FIXME
+      //FIXME RUST
       //VM._assert(false, "Not Implemented: postBoot");
     } else {
+      //FIXME RUST
       Selected.Plan.get().processOptions();
-
+      //FIXME RUST
       if (Options.noReferenceTypes.getValue()) {
         RVMType.JavaLangRefReferenceReferenceField.makeTraced();
       }
@@ -235,7 +235,6 @@ public final class MemoryManager {
         MemoryManager.startGCspyServer();
       }
     }
-
   }
 
   /**
@@ -243,11 +242,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void enableCollection() {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysEnableCollection(RVMThread.getCurrentThreadSlot());
-    } else {
-      Selected.Plan.get().enableCollection();
-    }
+    Selected.Plan.get().enableCollection();
     collectionEnabled = true;
   }
 
@@ -273,11 +268,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void fullyBootedVM() {
-    if (VM.BuildWithRustMMTk) {
-      VM._assert(false, "Not Implemented: fullyBootedVM");
-    } else {
-      Selected.Plan.get().fullyBooted();
-    }
+    Selected.Plan.get().fullyBooted();
   }
 
   @Interruptible
@@ -339,9 +330,7 @@ public final class MemoryManager {
    */
   public static Extent freeMemory() {
     if (VM.BuildWithRustMMTk) {
-      VM._assert(false, "Not Implemented: freeMemory");
-      return null;
-      //return Extent.fromIntZeroExtend(SysCall.sysCall.sysFreeBytes());
+      return Extent.fromIntZeroExtend(SysCall.sysCall.sysFreeBytes());
     } else {
       return Plan.freeMemory();
     }
@@ -354,10 +343,9 @@ public final class MemoryManager {
    */
   public static Extent totalMemory() {
     if (VM.BuildWithRustMMTk) {
-      VM._assert(false, "Not Implemented: totalMemory");
-      return null;
+      return Extent.fromIntZeroExtend(sysCall.sysTotalBytes());
     } else {
-      return Plan.totalMemory();
+        return Plan.totalMemory();
     }
   }
 
@@ -367,12 +355,8 @@ public final class MemoryManager {
    * @return The maximum amount of memory VM will attempt to use.
    */
   public static Extent maxMemory() {
-    if (VM.BuildWithRustMMTk) {
-      VM._assert(false, "Not Implemented: maxMemory");
-      return null;
-    } else {
-      return HeapGrowthManager.getMaxHeapSize();
-    }
+    //FIXME RUST
+    return HeapGrowthManager.getMaxHeapSize();
   }
 
   /**
@@ -411,7 +395,7 @@ public final class MemoryManager {
   public static boolean validRef(ObjectReference ref) {
     if (VM.BuildWithRustMMTk) {
       //FIXME RUST
-      return sysCall.is_valid_ref(ref);
+      return sysCall.sysIsValidRef(ref);
     } else {
       if (booted) {
         return DebugUtil.validRef(ref);
@@ -419,7 +403,6 @@ public final class MemoryManager {
         return true;
       }
     }
-
   }
 
   /**
@@ -470,8 +453,7 @@ public final class MemoryManager {
     // If we want to be more specific than the space being mapped we
     // will need to add a check in Plan that can be overriden.
     if (VM.BuildWithRustMMTk) {
-      // VM._assert(false, "Not Implemented: mightBeFP");
-      // FIXME
+      // FIXME This is not a correct fix.
       sysCall.sysWillNeverMove(address.toObjectReference());
     } else {
       return Space.isMappedAddress(address);
@@ -492,7 +474,6 @@ public final class MemoryManager {
    * @return an allocation site
    */
   public static int getAllocationSite(boolean compileTime) {
-    //FIXME
     return Plan.getAllocationSite(compileTime);
   }
 
@@ -1158,12 +1139,10 @@ public final class MemoryManager {
    */
   @Pure
   public static boolean isImmortal(Object obj) {
-    //FIXME
+    //FIXME NOT CORRECT
     if (VM.BuildWithRustMMTk) {
       sysCall.will_never_move(ObjectReference.fromObject(obj));
-      //VM._assert(false, "Not Implemented: isImmortal");
     }
-
     return Space.isImmortal(ObjectReference.fromObject(obj));
   }
 
@@ -1251,7 +1230,6 @@ public final class MemoryManager {
    * @return The max heap size in bytes (as set by -Xmx).
    */
   public static Extent getMaxHeapSize() {
-
     if (VM.BuildWithRustMMTk) {
       VM._assert(false, "Not Implemented: getMaxHeapSize");
     }
