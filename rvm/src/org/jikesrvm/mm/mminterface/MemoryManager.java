@@ -394,7 +394,6 @@ public final class MemoryManager {
   @Inline
   public static boolean validRef(ObjectReference ref) {
     if (VM.BuildWithRustMMTk) {
-      //FIXME RUST
       return sysCall.sysIsValidRef(ref);
     } else {
       if (booted) {
@@ -1316,9 +1315,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static SpecializedMethod createSpecializedMethod(int id) {
-    if (VM.BuildWithRustMMTk) {
-      VM._assert(false, "Not Implemented: createSpecializedMethod");
-    }
+    //FIXME RUST
     if (VM.VerifyAssertions) {
       VM._assert(SpecializedScanMethod.ENABLED);
       VM._assert(id < Selected.Constraints.get().numSpecializedScans());
