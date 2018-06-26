@@ -326,6 +326,22 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract boolean will_never_move(ObjectReference object);
 
+  @Inline
+  public ObjectReference sysTraceGetForwardedReferent(Address trace, ObjectReference object) {
+    return trace_get_forwarded_referent(trace, object);
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract ObjectReference trace_get_forwarded_referent(Address trace, ObjectReference object);
+
+  @Inline
+  public ObjectReference sysTraceGetForwardedReference(Address trace, ObjectReference object) {
+    return trace_get_forwarded_reference(trace, object);
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract ObjectReference trace_get_forwarded_reference(Address trace, ObjectReference object);
+
   @SysCallTemplate
   public abstract Address sysMalloc(int length);
 

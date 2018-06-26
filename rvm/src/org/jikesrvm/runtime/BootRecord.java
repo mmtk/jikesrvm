@@ -279,6 +279,8 @@ public class BootRecord {
   public Address processRIP;
   public Address post_allocRIP;
   public Address is_valid_refRIP;
+  public Address trace_get_forwarded_referenceRIP;
+  public Address trace_get_forwarded_referentRIP;
 
 
   // startup/shutdown
