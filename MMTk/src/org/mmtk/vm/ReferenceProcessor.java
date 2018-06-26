@@ -14,6 +14,7 @@ package org.mmtk.vm;
 
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.pragma.Uninterruptible;
+import org.vmmagic.unboxed.Address;
 
 /**
  * This class manages SoftReferences, WeakReferences, and
@@ -47,6 +48,8 @@ public abstract class ReferenceProcessor {
    * @param nursery The nursery collection hint
    */
   public abstract void forward(TraceLocal trace, boolean nursery);
+
+  public abstract void forward(Address trace, boolean nursery);
 
   /**
    * @return the number of references objects on the queue

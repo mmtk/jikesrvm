@@ -30,6 +30,7 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.lang.ref.PhantomReference;
 
+import static org.jikesrvm.runtime.SysCall.sysCall;
 
 /**
  * This class manages SoftReferences, WeakReferences, and
@@ -294,6 +295,28 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       if (TRACE_DETAIL) VM.sysWriteln("forwarding ",reference);
       setReferent(reference, trace.getForwardedReferent(getReferent(reference)));
       ObjectReference newReference = trace.getForwardedReference(reference);
+      unforwardedReferences.set(i, newReference.toAddress());
+    }
+    if (TRACE) VM.sysWriteln("Ending ReferenceGlue.forward(",semanticsStr,")");
+    unforwardedReferences = null;
+  }
+
+  @Override
+  public void forward(Address trace, boolean nursery) {
+    if (VM.VerifyAssertions) VM._assert(unforwardedReferences != null);
+    if (TRACE) VM.sysWriteln("Starting ReferenceGlue.forward(",semanticsStr,")");
+    if (TRACE_DETAIL) {
+      VM.sysWrite(semanticsStr," Reference table is ",
+              Magic.objectAsAddress(references));
+      VM.sysWriteln("unforwardedReferences is ",
+              Magic.objectAsAddress(unforwardedReferences));
+    }
+    for (int i = 0; i < maxIndex; i++) {
+      if (TRACE_DETAIL) VM.sysWrite("slot ",i,": ");
+      ObjectReference reference = unforwardedReferences.get(i).toObjectReference();
+      if (TRACE_DETAIL) VM.sysWriteln("forwarding ",reference);
+      setReferent(reference, sysCall.sysTraceGetForwardedReferent(trace, getReferent(reference)));
+      ObjectReference newReference = sysCall.sysTraceGetForwardedReference(trace, reference);
       unforwardedReferences.set(i, newReference.toAddress());
     }
     if (TRACE) VM.sysWriteln("Ending ReferenceGlue.forward(",semanticsStr,")");
