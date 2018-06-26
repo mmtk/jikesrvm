@@ -68,6 +68,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   private static final boolean TRACE = false;
   private static final boolean TRACE_UNREACHABLE = false;
   private static final boolean TRACE_DETAIL = false;
+  private static final boolean TRACE_FORWARD = false;
   private static final boolean STRESS = false || VM.ForceFrequentGC;
 
   /** Initial size of the reference object table */
@@ -316,19 +317,25 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       ObjectReference reference = unforwardedReferences.get(i).toObjectReference();
       if (TRACE_DETAIL) VM.sysWriteln("forwarding ",reference);
       ObjectReference forwardedReferent = sysCall.sysTraceGetForwardedReferent(trace, getReferent(reference));
-      VM.sysWrite("Changing referent: ");
-      VM.sysWrite(reference);
-      VM.sysWrite(" (");
-      VM.sysWrite(getReferent(reference));
+      if (TRACE_FORWARD) {
+        VM.sysWrite("Changing referent: ");
+        VM.sysWrite(reference);
+        VM.sysWrite(" (");
+        VM.sysWrite(getReferent(reference));
+      }
       setReferent(reference, forwardedReferent);
-      VM.sysWrite(" ~> ");
-      VM.sysWrite(forwardedReferent);
-      VM.sysWriteln(")");
+      if (TRACE_FORWARD) {
+        VM.sysWrite(" ~> ");
+        VM.sysWrite(forwardedReferent);
+        VM.sysWriteln(")");
+      }
       ObjectReference newReference = sysCall.sysTraceGetForwardedReference(trace, reference);
-      VM.sysWrite("Changing reference: ");
-      VM.sysWrite(reference);
-      VM.sysWrite(" ~> ");
-      VM.sysWriteln(newReference);
+      if (TRACE_FORWARD) {
+        VM.sysWrite("Changing reference: ");
+        VM.sysWrite(reference);
+        VM.sysWrite(" ~> ");
+        VM.sysWriteln(newReference);
+      }
       unforwardedReferences.set(i, newReference.toAddress());
     }
     if (TRACE) VM.sysWriteln("Ending ReferenceGlue.forward(",semanticsStr,")");
