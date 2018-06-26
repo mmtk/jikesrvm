@@ -315,8 +315,20 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       if (TRACE_DETAIL) VM.sysWrite("slot ",i,": ");
       ObjectReference reference = unforwardedReferences.get(i).toObjectReference();
       if (TRACE_DETAIL) VM.sysWriteln("forwarding ",reference);
-      setReferent(reference, sysCall.sysTraceGetForwardedReferent(trace, getReferent(reference)));
+      ObjectReference forwardedReferent = sysCall.sysTraceGetForwardedReferent(trace, getReferent(reference));
+      VM.sysWrite("Changing referent: ");
+      VM.sysWrite(reference);
+      VM.sysWrite(" (");
+      VM.sysWrite(getReferent(reference));
+      setReferent(reference, forwardedReferent);
+      VM.sysWrite(" ~> ");
+      VM.sysWrite(forwardedReferent);
+      VM.sysWriteln(")");
       ObjectReference newReference = sysCall.sysTraceGetForwardedReference(trace, reference);
+      VM.sysWrite("Changing reference: ");
+      VM.sysWrite(reference);
+      VM.sysWrite(" ~> ");
+      VM.sysWriteln(newReference);
       unforwardedReferences.set(i, newReference.toAddress());
     }
     if (TRACE) VM.sysWriteln("Ending ReferenceGlue.forward(",semanticsStr,")");
@@ -382,6 +394,61 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     if (TRACE) VM.sysWriteln("Ending ReferenceGlue.scan(",semanticsStr,")");
   }
 
+
+  /**
+   * {@inheritDoc} Calls ReferenceProcessor's
+   * processReference method for each reference and builds a new
+   * list of those references still active.
+   * <p>
+   * Depending on the value of <code>nursery</code>, we will either
+   * scan all references, or just those created since the last scan.
+   * <p>
+   * TODO parallelise this code
+   *
+   * @param nursery Scan only the newly created references
+   */
+  @Override
+  public void scan(Address trace, boolean nursery, boolean retain) {
+    unforwardedReferences = references;
+
+    if (TRACE) VM.sysWriteln("Starting ReferenceGlue.scan(",semanticsStr,")");
+    int toIndex = nursery ? nurseryIndex : 0;
+
+    if (TRACE_DETAIL) VM.sysWriteln(semanticsStr," Reference table is ",Magic.objectAsAddress(references));
+    if (retain) {
+      for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {
+        ObjectReference reference = getReference(fromIndex);
+        retainReferent(trace, reference);
+      }
+    } else {
+      for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {
+        ObjectReference reference = getReference(fromIndex);
+
+        /* Determine liveness (and forward if necessary) the reference */
+        ObjectReference newReference = processReference(trace,reference);
+        if (!newReference.isNull()) {
+          setReference(toIndex++,newReference);
+          if (TRACE_DETAIL) {
+            int index = toIndex - 1;
+            VM.sysWrite("SCANNED ",index);
+            VM.sysWrite(" ",references.get(index));
+            VM.sysWrite(" -> ");
+            VM.sysWriteln(getReferent(references.get(index).toObjectReference()));
+          }
+        }
+      }
+      if (Options.verbose.getValue() >= 3) {
+        VM.sysWrite(semanticsStr);
+        VM.sysWriteln(" references: ",maxIndex," -> ",toIndex);
+      }
+      nurseryIndex = maxIndex = toIndex;
+    }
+
+    /* flush out any remset entries generated during the above activities */
+    Selected.Mutator.get().flushRememberedSets();
+    if (TRACE) VM.sysWriteln("Ending ReferenceGlue.scan(",semanticsStr,")");
+  }
+
   /**
    * This method deals only with soft references. It retains the referent
    * if the reference is definitely reachable.
@@ -411,6 +478,40 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
     ObjectReference referent = getReferent(reference);
     if (!referent.isNull())
       trace.retainReferent(referent);
+    if (TRACE_DETAIL) {
+      VM.sysWriteln(" ~> ", referent.toAddress(), " (retained)");
+    }
+  }
+
+  /**
+   * This method deals only with soft references. It retains the referent
+   * if the reference is definitely reachable.
+   * @param reference the address of the reference. This may or may not
+   * be the address of a heap object, depending on the VM.
+   * @param trace the thread local trace element.
+   */
+  protected void retainReferent(Address trace, ObjectReference reference) {
+    if (VM.VerifyAssertions) VM._assert(!reference.isNull());
+    if (VM.VerifyAssertions) VM._assert(semantics == Semantics.SOFT);
+
+    if (TRACE_DETAIL) {
+      VM.sysWrite("Processing reference: ",reference);
+    }
+
+    if (!sysCall.sysTraceIsLive(trace, reference)) {
+      /*
+       * Reference is currently unreachable but may get reachable by the
+       * following trace. We postpone the decision.
+       */
+      return;
+    }
+
+    /*
+     * Reference is definitely reachable.  Retain the referent.
+     */
+    ObjectReference referent = getReferent(reference);
+    if (!referent.isNull())
+      sysCall.sysTraceRetainReferent(trace, referent);
     if (TRACE_DETAIL) {
       VM.sysWriteln(" ~> ", referent.toAddress(), " (retained)");
     }
@@ -552,6 +653,110 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
           VM.sysFail("Invalid reference");
         }
         VM._assert(trace.isLive(newReferent));
+      }
+
+      /*
+       * The reference object stays on the waiting list, and the
+       * referent is untouched. The only thing we must do is
+       * ensure that the former addresses are updated with the
+       * new forwarding addresses in case the collector is a
+       * copying collector.
+       */
+
+      /* Update the referent */
+      setReferent(newReference, newReferent);
+      return newReference;
+    } else {
+      /* Referent is unreachable. Clear the referent and enqueue the reference object. */
+
+      if (TRACE_DETAIL) VM.sysWriteln(" UNREACHABLE");
+      else if (TRACE_UNREACHABLE) VM.sysWriteln(" UNREACHABLE referent:  ",oldReferent);
+
+      clearReferent(newReference);
+      enqueueReference(newReference);
+      return ObjectReference.nullReference();
+    }
+  }
+
+  /**
+   * Processes a reference with the current semantics.
+   * <p>
+   * This method deals with  a soft reference as if it were a weak reference, i.e.
+   * it does not retain the referent. To retain the referent, use
+   * {@link #retainReferent(TraceLocal, ObjectReference)} followed by a transitive
+   * closure phase.
+   *
+   * @param reference the address of the reference. This may or may not
+   * be the address of a heap object, depending on the VM.
+   * @param trace the thread local trace element.
+   * @return an updated reference (e.g. with a new address) if the reference
+   *  is still live, {@code ObjectReference.nullReference()} otherwise
+   */
+  public ObjectReference processReference(Address trace, ObjectReference reference) {
+    if (VM.VerifyAssertions) VM._assert(!reference.isNull());
+
+    if (TRACE_DETAIL) {
+      VM.sysWrite("Processing reference: ",reference);
+    }
+    /*
+     * If the reference is dead, we're done with it. Let it (and
+     * possibly its referent) be garbage-collected.
+     */
+    if (!sysCall.sysTraceIsLive(trace, reference)) {
+      clearReferent(reference);                   // Too much paranoia ...
+      if (TRACE_UNREACHABLE) {
+        VM.sysWriteln(" UNREACHABLE reference:  ",reference);
+      }
+      if (TRACE_DETAIL) {
+        VM.sysWriteln(" (unreachable)");
+      }
+      return ObjectReference.nullReference();
+    }
+
+    /* The reference object is live */
+    ObjectReference newReference = sysCall.sysTraceGetForwardedReference(trace, reference);
+    ObjectReference oldReferent = getReferent(reference);
+
+    if (TRACE_DETAIL) {
+      VM.sysWrite(" ~> ",oldReferent);
+    }
+
+    /*
+     * If the application has cleared the referent the Java spec says
+     * this does not cause the Reference object to be enqueued. We
+     * simply allow the Reference object to fall out of our
+     * waiting list.
+     */
+    if (oldReferent.isNull()) {
+      if (TRACE_DETAIL) VM.sysWriteln(" (null referent)");
+      return ObjectReference.nullReference();
+    }
+
+    if (TRACE_DETAIL)  VM.sysWrite(" => ",newReference);
+
+    if (sysCall.sysTraceIsLive(trace, oldReferent)) {
+      if (VM.VerifyAssertions) {
+        if (!DebugUtil.validRef(oldReferent)) {
+          VM.sysWriteln("Error in old referent.");
+          DebugUtil.dumpRef(oldReferent);
+          VM.sysFail("Invalid reference");
+        }
+      }
+      /*
+       * Referent is still reachable in a way that is as strong as
+       * or stronger than the current reference level.
+       */
+      ObjectReference newReferent = sysCall.sysTraceGetForwardedReferent(trace, oldReferent);
+
+      if (TRACE_DETAIL) VM.sysWriteln(" ~> ",newReferent);
+
+      if (VM.VerifyAssertions) {
+        if (!DebugUtil.validRef(newReferent)) {
+          VM.sysWriteln("Error forwarding reference object.");
+          DebugUtil.dumpRef(oldReferent);
+          VM.sysFail("Invalid reference");
+        }
+        VM._assert(sysCall.sysTraceIsLive(trace, newReferent));
       }
 
       /*
