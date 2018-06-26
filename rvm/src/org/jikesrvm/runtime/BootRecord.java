@@ -281,6 +281,8 @@ public class BootRecord {
   public Address is_valid_refRIP;
   public Address trace_get_forwarded_referenceRIP;
   public Address trace_get_forwarded_referentRIP;
+  public Address trace_is_liveRIP;
+  public Address trace_retain_referentRIP;
 
 
   // startup/shutdown
