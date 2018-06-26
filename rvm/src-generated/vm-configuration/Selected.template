@@ -68,8 +68,8 @@ public class Selected {
     @Uninterruptible
   @_RUST_MASK_START_@
   public static class Mutator extends @_PLAN_@Mutator {
-    public void setBlock(Address mmtkHandle) {
-
+    public Address setBlock(Address mmtkHandle) {
+        return Address.zero();
     }
 @_RUST_MASK_END_@
 @_NO_RUST_MASK_START_@
@@ -85,13 +85,13 @@ public class Selected {
       super.initMutator(id);
       if (VM.runningVM) {
         mmtkHandle = sysCall.sysBindMutator(id);
-        this.setBlock(mmtkHandle);
+        this.mmtkHandle = this.setBlock(mmtkHandle);
       }
     }
 @_NO_RUST_MASK_END_@
     public void setHandle(Address handle){
       mmtkHandle = handle;
-      this.setBlock(mmtkHandle);
+      this.mmtkHandle = this.setBlock(mmtkHandle);
     }
 
     public Address getHandle() {

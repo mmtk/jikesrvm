@@ -63,7 +63,7 @@ public class NoGCContext extends NoGCMutator {
         return region;
     }
 
-    public void setBlock(Address mmtkHandle) {
+    public Address setBlock(Address mmtkHandle) {
         if (VM.VerifyAssertions) {
             VM._assert(cursorOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(4));
             VM._assert(limitOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(8));
@@ -73,6 +73,7 @@ public class NoGCContext extends NoGCMutator {
         cursor   = mmtkHandle.plus(BYTES_IN_WORD).loadAddress();
         limit    = mmtkHandle.plus(BYTES_IN_WORD * 2).loadAddress();
         space    = mmtkHandle.plus(BYTES_IN_WORD * 3).loadAddress();
+        return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
 
     @Override

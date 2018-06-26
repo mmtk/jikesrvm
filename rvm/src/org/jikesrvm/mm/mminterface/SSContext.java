@@ -52,7 +52,7 @@ public class SSContext extends SSMutator {
     static final Offset limitImmortalOffset = getField(SSContext.class, "limitImmortal", Address.class).getOffset();
     static final Offset spaceImmortalOffset = getField(SSContext.class, "spaceImmortal", Address.class).getOffset();
 
-    public void setBlock(Address mmtkHandle) {
+    public Address setBlock(Address mmtkHandle) {
         if (VM.VerifyAssertions) {
             VM._assert(cursorOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD));
             VM._assert(limitOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 2));
@@ -70,6 +70,7 @@ public class SSContext extends SSMutator {
         cursorImmortal   = mmtkHandle.plus(BYTES_IN_WORD * 5).loadAddress();
         limitImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 6).loadAddress();
         spaceImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 7).loadAddress();
+        return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
 
     @Override
