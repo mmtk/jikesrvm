@@ -94,6 +94,7 @@ public final class MemoryManager {
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
   private static final boolean traceAllocator = false;
   private static final boolean traceAllocation = false;
+  private static final boolean rustAssertNotImplemented = false;
 
   /**
    * Has the interface been booted yet?
@@ -158,16 +159,20 @@ public final class MemoryManager {
 
   @Entrypoint
   public static int test3(int a, int b, int c, int d) {
-    VM.sysWriteln(a);
-    VM.sysWriteln(b);
-    VM.sysWriteln(c);
-    VM.sysWriteln(d);
+    if (VM.verboseBoot > 1) {
+      VM.sysWriteln(a);
+      VM.sysWriteln(b);
+      VM.sysWriteln(c);
+      VM.sysWriteln(d);
+    }
     return a * b + c + d;
   }
 
   @Entrypoint
   public static void test1() {
+    if (VM.verboseBoot > 1) {
       VM.sysWriteln("testprint");
+    }
   }
 
   @Entrypoint
@@ -253,7 +258,6 @@ public final class MemoryManager {
   @Interruptible
   @Entrypoint
   public static void spawnCollectorThread(Address workerInstance) {
-    //FIXME RUST
     byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
     CollectorThread t = new CollectorThread(stack, null);
     t.setWorker(workerInstance);
@@ -300,7 +304,7 @@ public final class MemoryManager {
     /* Make sure that during GC, we don't update on a possibly moving object.
        Such updates are dangerous because they can be lost.
      */
-    if (VM.BuildWithRustMMTk) {
+    if (VM.BuildWithRustMMTk && VM.VerifyAssertions) {
       VM._assert(false, "Not Implemented: modifyCheck");
     } else {
       if (Plan.gcInProgressProper()) {
@@ -370,7 +374,10 @@ public final class MemoryManager {
   public static void gc() {
     //FIXME RUST
     if (VM.VerifyAssertions) {
-      VM._assert(!VM.BuildWithRustMMTk, "Have not implemented MM.gc() yet in RMMTk");
+      if (rustAssertNotImplemented) {
+        VM._assert(!VM.BuildWithRustMMTk, "Have not implemented MM.gc() yet in RMMTk");
+      }
+      return;
     }
     Selected.Plan.handleUserCollectionRequest();
   }
@@ -416,7 +423,7 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean addressInVM(Address address) {
-    if (VM.BuildWithRustMMTk) {
+    if (VM.BuildWithRustMMTk && VM.VerifyAssertions) {
       VM._assert(false, "Not Implemented: addressInVM");
     } else {
       return Space.isMappedAddress(address);
@@ -437,7 +444,7 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean objectInVM(ObjectReference object) {
-    if (VM.BuildWithRustMMTk) {
+    if (VM.BuildWithRustMMTk && VM.VerifyAssertions) {
       VM._assert(false, "Not Implemented: objectInVM");
     } else {
       return Space.isMappedObject(object);
@@ -455,7 +462,7 @@ public final class MemoryManager {
     // In general we don't know which spaces may hold allocated stacks.
     // If we want to be more specific than the space being mapped we
     // will need to add a check in Plan that can be overriden.
-    if (VM.BuildWithRustMMTk) {
+    if (VM.BuildWithRustMMTk && VM.VerifyAssertions) {
       // FIXME This is not a correct fix.
       sysCall.sysWillNeverMove(address.toObjectReference());
     } else {
@@ -1055,7 +1062,7 @@ public final class MemoryManager {
   @NoInline
   @Interruptible
   public static ITable newITable(int size) {
-    if (VM.BuildWithRustMMTk) {
+    if (VM.BuildWithRustMMTk && VM.VerifyAssertions) {
       VM._assert(false, "Not Implemented: newITable");
     }
     if (!VM.runningVM) {
@@ -1189,9 +1196,6 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addSoftReference(SoftReference<?> obj, Object referent) {
-    if (VM.BuildWithRustMMTk) {
-      VM._assert(false, "Not Implemented: addSoftReference");
-    }
     ReferenceProcessor.addSoftCandidate(obj,ObjectReference.fromObject(referent));
   }
 
@@ -1233,9 +1237,7 @@ public final class MemoryManager {
    * @return The max heap size in bytes (as set by -Xmx).
    */
   public static Extent getMaxHeapSize() {
-    if (VM.BuildWithRustMMTk) {
-      VM._assert(false, "Not Implemented: getMaxHeapSize");
-    }
+    //FIXME RUST
     return HeapGrowthManager.getMaxHeapSize();
   }
 
@@ -1264,7 +1266,7 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean mightBeTIB(ObjectReference obj) {
-    if (VM.BuildWithRustMMTk) {
+    if (VM.BuildWithRustMMTk && VM.VerifyAssertions) {
       VM._assert(false, "Not Implemented: mightBeTIB");
     }
     return !obj.isNull() &&
@@ -1279,7 +1281,7 @@ public final class MemoryManager {
    */
   public static boolean gcInProgress() {
 
-    if (VM.BuildWithRustMMTk) {
+    if (VM.BuildWithRustMMTk && VM.VerifyAssertions) {
       VM._assert(false, "Not Implemented: gcInProgress");
     }
     return Plan.gcInProgress();
@@ -1298,7 +1300,7 @@ public final class MemoryManager {
    */
   public static void flushMutatorContext() {
 
-    if (VM.BuildWithRustMMTk) {
+    if (VM.BuildWithRustMMTk && VM.VerifyAssertions) {
       VM._assert(false, "Not Implemented: flushMutatorContext");
     }
     Selected.Mutator.get().flush();
