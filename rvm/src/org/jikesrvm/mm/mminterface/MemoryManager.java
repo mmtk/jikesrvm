@@ -52,7 +52,6 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
-import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
