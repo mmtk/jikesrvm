@@ -42,6 +42,16 @@ public abstract class ReferenceProcessor {
   public abstract void scan(TraceLocal trace, boolean nursery, boolean retain);
 
   /**
+   * Scan through the list of references.
+   *
+   * @param trace the thread local trace element.
+   * @param nursery {@code true} if it is safe to only scan new references.
+   * @param retain whether to retain those references whose referents are not
+   *  reachable
+   */
+  public abstract void scan(Address trace, boolean nursery, boolean retain);
+
+  /**
    * Iterate over all references and forward.
    *
    * @param trace The MMTk trace to forward to
