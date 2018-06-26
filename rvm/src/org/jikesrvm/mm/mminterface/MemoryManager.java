@@ -1161,6 +1161,25 @@ public final class MemoryManager {
   }
 
   @Entrypoint
+  public static void scanWeakReferenceType(Address trace, boolean nursery) {
+    // Weak Reference Phase
+    org.mmtk.vm.VM.softReferences.scan(trace, nursery,false);
+    org.mmtk.vm.VM.weakReferences.scan(trace, nursery,false);
+  }
+
+  @Entrypoint
+  public static void scanSoftReferenceType(Address trace, boolean nursery) {
+    // Soft Reference Phase
+    org.mmtk.vm.VM.softReferences.scan(trace, nursery,true);
+  }
+
+  @Entrypoint
+  public static void scanPhantomReferenceType(Address trace, boolean nursery) {
+    // Phantom Reference Phase
+    org.mmtk.vm.VM.phantomReferences.scan(trace, nursery,false);
+  }
+
+  @Entrypoint
   public static void processReferenceTypes(Address trace, boolean nursery) {
     org.mmtk.vm.VM.softReferences.forward(trace, nursery);
     org.mmtk.vm.VM.weakReferences.forward(trace, nursery);
