@@ -52,6 +52,7 @@ import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
+import org.mmtk.plan.TraceLocal;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
@@ -1157,6 +1158,13 @@ public final class MemoryManager {
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj, Object referent) {
     ReferenceProcessor.addWeakCandidate(obj,ObjectReference.fromObject(referent));
+  }
+
+  @Entrypoint
+  public static void processReferenceTypes(Address trace, boolean nursery) {
+    org.mmtk.vm.VM.softReferences.forward(trace, nursery);
+    org.mmtk.vm.VM.weakReferences.forward(trace, nursery);
+    org.mmtk.vm.VM.phantomReferences.forward(trace, nursery);
   }
 
   /**
