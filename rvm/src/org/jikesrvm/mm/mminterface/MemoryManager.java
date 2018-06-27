@@ -158,16 +158,20 @@ public final class MemoryManager {
 
   @Entrypoint
   public static int test3(int a, int b, int c, int d) {
-    VM.sysWriteln(a);
-    VM.sysWriteln(b);
-    VM.sysWriteln(c);
-    VM.sysWriteln(d);
+    if (VM.verboseBoot != 0) {
+      VM.sysWriteln(a);
+      VM.sysWriteln(b);
+      VM.sysWriteln(c);
+      VM.sysWriteln(d);
+    }
     return a * b + c + d;
   }
 
   @Entrypoint
   public static void test1() {
+    if (VM.verboseBoot != 0) {
       VM.sysWriteln("testprint");
+    }
   }
 
   @Entrypoint
