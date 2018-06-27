@@ -4,16 +4,18 @@ import logging, sys
 import glob
 from pathlib import Path
 import os
+import helper
 
 # Set logging level. Levels are debug, info, warning, error, critical
-logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+logging.basicConfig(stream=sys.stderr, level=logging.ERROR)
 
 ##################
 # Base arguments #
 ##################
 
 abs_dir   = Path(os.path.abspath(os.path.dirname(__file__)))
-json_dir  = abs_dir / ".." / "results" / "json"
+results_dir = abs_dir / ".." / "results" 
+json_dir  = results_dir / "json"
 
 ################################
 # Get all build configurations #
@@ -26,24 +28,20 @@ logging.info(("Build configurations available are: {}").format(build_dirs))
 # Specify the json directories to compare #
 ###########################################
 
-while True:
-    first_build = input("Enter a build configuration: ")
-    first_build.replace("/", "")
-    if first_build not in build_dirs:
-        print("Incorrect build configuration")
-    else:
-        logging.info("First config set to: {}".format(first_build))
-        break
+first_build = helper.parse_input(build_dirs, input_message="Enter a build configuration: ",
+                output_message="Incorrect build configuration")
+second_build = helper.parse_input(build_dirs, input_message="Enter a build configuration: ",
+                output_message="Incorrect build configuration", invalid_inputs=[first_build],
+                null_value=("R" + first_build))
 
-# Note should we just make this append R cos im lazy
-while True:
-    second_build = input("Enter a build configuration: ")
-    second_build.replace("/", "")
-    if second_build not in build_dirs or first_build == second_build:
-        print("Incorrect build configuration")
-    else:
-        logging.info("Second config set to: {}".format(second_build))
-        break
+################################
+# Order configs alphabetically #
+################################
+if second_build < first_build:
+    temp_build = first_build
+    first_build = second_build
+    second_build = temp_build
+    logging.info("First: {} | Second: {}".format(first_build, second_build))
 
 ##############################################
 # Retrieve files associated with each config #
@@ -51,38 +49,53 @@ while True:
 
 first_dir  = json_dir / first_build
 second_dir = json_dir / second_build
-
 first_files = list(first_dir.glob("*.json"))
 second_files = list(second_dir.glob("*.json"))
+
 logging.debug("First configuration files found: {}".format(first_files))
 logging.debug("Second configuration files found: {}".format(second_files))
-
-####################################
-# Compare both configuration files #
-####################################
-
 logging.debug("Intersection: {}".format(list(set(first_files) & set(second_files))))
 logging.debug("Union: {}".format(list(set(first_files) | set(second_files))))
 
+############################
+# Create results directory #
+############################
+
+diff_dir = results_dir / (first_build + "_" + second_build)
+diff_dir.mkdir(parents=True, exist_ok=True) 
+
+############################################
+# Compare each test group from each config #
+############################################
+
 for first_file in first_files:
-    logging.debug(("{}: Processing from {}").format(first_build, first_file))
-    # Get equivalent second file
+    logging.info(("{}: Processing from {}").format(first_build, first_file))
+
+    #####################################
+    # Test if corresponding file exists #
+    #####################################
+
     second_file = Path(str(first_file).replace(first_build, second_build))
     if not second_file.is_file():
         logging.info(("File {} not found").format(second_file))
         continue
     else:
         logging.info(("File {} found").format(second_file))
-        with open(first_file) as f1, open(second_file) as f2:
+        output_file  = str(diff_dir / (os.path.splitext(os.path.basename(str(first_file)))[0]))
+        output_file1 = output_file + "-" + first_build + ".txt"
+        output_file2 = output_file + "-" + second_build + ".txt"
+        with open(first_file) as f1, open(second_file) as f2, open(output_file1, 'w+') as o1, open(output_file2, 'w+') as o2:
+            
+            ################################
+            # Compare each individual test #
+            ################################
+        
             d1 = json.load(f1)
             d2 = json.load(f2)
             for (t1, r1), (t2, r2) in zip(d1.items(), d2.items()):
-                logging.debug(("test1:{}, res1:{}, test2:{}, res2:{}").format(t1, r1, t2, r2))
+                logging.debug(("test1: {}, res1: {}, test2: {}, res2: {}").format(t1, r1, t2, r2))
                 assert t1 == t2
-                if (r2["exit-code"] != r1["exit-code"]):
-                    print("=================",t1,"=================")
-                    print("------ {} succeeded: {}, returned exit code {} ------".format(first_build, r1["result"], r1["exit-code"]))
-                    print(r1["output"])
-                    print("------ {} succeeded: {}, returned exit code {} ------".format(first_build, r2["result"], r2["exit-code"]))
-                    print(r2["output"])
+                if (r2["result"] != r1["result"] or r2["exit-code"] != r1["exit-code"]):
+                    helper.write_result(o1, t1, r1, first_build)
+                    helper.write_result(o2, t2, r2, second_build)
                     
