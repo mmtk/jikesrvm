@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 from bs4 import BeautifulSoup
 import json
-from pathlib import Path
+import logging, sys
 import pathlib
+from pathlib import Path
 import os
+import helper
+
+# Set logging level. Levels are debug, info, warning, error, critical
+logging.basicConfig(stream=sys.stderr, level=logging.ERROR)
 
 ##################
 # Base arguments #
@@ -19,13 +24,10 @@ xml_dir   = Path("tests") / "local" / "Results.xml"
 # Specify results directory to parse #
 ######################################
 
-# Specify a directory in the results folder to look at
-result_dir = input("Enter a directory to look at: ")
-# Sanitise '/' characters
-result_dir.replace("/", "")
-# If none is specified, look at the latest
-if result_dir == "":
-    result_dir = "latest"
+result_dirs = os.listdir(build_dir)
+
+result_dir = helper.parse_input(result_dirs, input_message="Enter a directory to parse results: ",
+                output_message="Directory not valid", null_value="latest")
 
 #############################
 # Open Results.xml to parse #
@@ -42,6 +44,7 @@ with open(build_dir / result_dir / xml_dir) as xml:
 
 # Find the configuration which can be tested
 build_config = root.find("build-configuration").contents[0]
+logging.debug("Build configuration: {}".format(build_config))
 
 ########################
 # Find each test group #
@@ -57,9 +60,10 @@ for group in root.find_all("group"):
     # Make the dictionary with all results
     result = {}
     for test in group.find_all("test"):
-        result[test.find("name").contents[0]] = {"result": test.find("test-execution").result.contents[0]=="SUCCESS",
-                                                  "exit-code": test.find("test-execution").find("exit-code").contents[0],
-                                                  "output": test.find("test-execution").find("output").contents[0]}
+        test_result = test.find("test-execution")
+        result[test.find("name").contents[0]] = {"result":test_result.result.contents[0]=="SUCCESS",
+                                                  "exit-code": test_result.find("exit-code").contents[0],
+                                                  "output": test_result.find("output").contents[0]}
 
     ###################################
     # Create and dump results in json #
@@ -68,5 +72,6 @@ for group in root.find_all("group"):
     file_dir = json_dir / build_config
     file_dir.mkdir(parents=True, exist_ok=True) 
     file_name = file_dir / (group.find("name").contents[0] + ".json")
-    with open(file_name, 'w') as fp:
+    logging.debug("Dumping results to file: {}".format(file_name))
+    with open(file_name, 'w+') as fp:
         json.dump(result, fp)
