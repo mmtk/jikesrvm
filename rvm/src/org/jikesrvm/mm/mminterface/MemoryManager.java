@@ -1167,7 +1167,7 @@ public final class MemoryManager {
   public static void scanWeakReferenceType(Address trace, int intNursery) {
     // Weak Reference Phase
     // FIXME
-    boolean nursery = intNursery == 0;
+    boolean nursery = intNursery != 0;
     org.mmtk.vm.VM.softReferences.scan(trace, nursery,false);
     org.mmtk.vm.VM.weakReferences.scan(trace, nursery,false);
   }
@@ -1176,7 +1176,7 @@ public final class MemoryManager {
   public static void scanSoftReferenceType(Address trace, int intNursery) {
     // Soft Reference Phase
     // FIXME
-    boolean nursery = intNursery == 0;
+    boolean nursery = intNursery != 0;
     org.mmtk.vm.VM.softReferences.scan(trace, nursery,true);
   }
 
@@ -1184,13 +1184,13 @@ public final class MemoryManager {
   public static void scanPhantomReferenceType(Address trace, int intNursery) {
     // Phantom Reference Phase
     // FIXME
-    boolean nursery = intNursery == 0;
+    boolean nursery = intNursery != 0;
     org.mmtk.vm.VM.phantomReferences.scan(trace, nursery,false);
   }
 
   @Entrypoint
   public static void processReferenceTypes(Address trace, int intNursery) {
-    boolean nursery = intNursery == 0;
+    boolean nursery = intNursery != 0;
     org.mmtk.vm.VM.softReferences.forward(trace, nursery);
     org.mmtk.vm.VM.weakReferences.forward(trace, nursery);
     org.mmtk.vm.VM.phantomReferences.forward(trace, nursery);
