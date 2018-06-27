@@ -775,6 +775,19 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
        */
 
       /* Update the referent */
+      if (TRACE_FORWARD) {
+        VM.sysWrite("Changing referent: ");
+        VM.sysWrite(newReference);
+        VM.sysWrite(" (");
+        VM.sysWrite(oldReferent);
+        VM.sysWrite(" ~> ");
+        VM.sysWrite(newReferent);
+        VM.sysWriteln(")");
+        VM.sysWrite("Changing reference: ");
+        VM.sysWrite(reference);
+        VM.sysWrite(" ~> ");
+        VM.sysWriteln(newReference);
+      }
       setReferent(newReference, newReferent);
       return newReference;
     } else {
