@@ -62,7 +62,7 @@ logging.debug("Union: {}".format(list(set(first_files) | set(second_files))))
 # Create results directory #
 ############################
 
-diff_dir = results_dir / (first_build + "_" + second_build)
+diff_dir = results_dir / "diff" / (first_build + "_" + second_build)
 diff_dir.mkdir(parents=True, exist_ok=True) 
 
 ################################
@@ -71,7 +71,7 @@ diff_dir.mkdir(parents=True, exist_ok=True)
 
 with open(config_file) as special_cases:
     special = json.load(special_cases)
-print(special)
+
 ############################################
 # Compare each test group from each config #
 ############################################
