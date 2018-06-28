@@ -1,4 +1,5 @@
 import logging
+import math
 
 def parse_input(valid_inputs, input_message="Enter a string: ", output_message="Input not valid",
                 sanitise=True, null_value="", invalid_inputs = []):
@@ -20,6 +21,20 @@ def parse_input(valid_inputs, input_message="Enter a string: ", output_message="
 
 def write_result(file, test_name, result, build):
     """Write data to file"""
-    file.write("================={}=================\n".format(test_name))
-    file.write("---- {} succeeded: {}, returned exit code {} ----\n\n\n".format(build, result["result"], result["exit-code"]))
-    file.write(result["output"]+"\n")
+    name_output, info_output = get_header(test_name, result, build)
+    file.write(name_output + "\n")
+    file.write(info_output + "\n\n")
+    file.write(result["output"] + "\n")
+
+def get_header(test_name, result, build):
+    if result["result"]:
+        success = "SUCCEEDED"
+    else:
+        success = "FAILED"
+    info = "{} {}, returned {}".format(build, success, result["exit-code"])
+    return (append_equals(test_name, max(len(test_name), len(info) + 10)),
+            append_equals(info, max(len(test_name), len(info) + 10)))
+    
+def append_equals(text, length):
+    equals_length = length - len(text)
+    return "=" * math.floor(equals_length / 2) + text + "=" * math.ceil(equals_length / 2)
