@@ -14,6 +14,7 @@ logging.basicConfig(stream=sys.stderr, level=logging.ERROR)
 ##################
 
 abs_dir   = Path(os.path.abspath(os.path.dirname(__file__)))
+config_file = abs_dir / "config.txt"
 results_dir = abs_dir / ".." / "results" 
 json_dir  = results_dir / "json"
 
@@ -64,6 +65,13 @@ logging.debug("Union: {}".format(list(set(first_files) | set(second_files))))
 diff_dir = results_dir / (first_build + "_" + second_build)
 diff_dir.mkdir(parents=True, exist_ok=True) 
 
+################################
+# Load unique cases for builds #
+################################
+
+with open(config_file) as special_cases:
+    special = json.load(special_cases)
+print(special)
 ############################################
 # Compare each test group from each config #
 ############################################
@@ -95,6 +103,10 @@ for first_file in first_files:
             for (t1, r1), (t2, r2) in zip(d1.items(), d2.items()):
                 logging.debug(("test1: {}, res1: {}, test2: {}, res2: {}").format(t1, r1, t2, r2))
                 assert t1 == t2
+                if (r1["result"] == special.get(first_build, {}).get(t1, {}).get("result")) and r1["exit-code"] == special.get(first_build, {}).get(t1, {}).get("exit-code"):
+                    continue
+                if (r2["result"] == special.get(second_build, {}).get(t2, {}).get("result")) and (r2["exit-code"] == str(special.get(second_build, {}).get(t2, {}).get("exit-code"))):
+                    continue
                 if (r2["result"] != r1["result"] or r2["exit-code"] != r1["exit-code"]):
                     helper.write_result(o1, t1, r1, first_build)
                     helper.write_result(o2, t2, r2, second_build)
