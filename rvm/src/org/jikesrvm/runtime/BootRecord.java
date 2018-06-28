@@ -205,14 +205,6 @@ public class BootRecord {
    */
   int hardwareTrapMethodId;
   /**
-   * jtoc offset of test thingy
-   */
-  int testMethodId;
-  public int testMethodRandom;
-  Offset testMethodOffset;
-  int test1MethodId;
-  Offset test1MethodOffset;
-  /**
    * jtoc offset of RuntimeEntrypoints.deliverHardwareException()
    */
   Offset deliverHardwareExceptionOffset;
