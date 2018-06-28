@@ -354,8 +354,8 @@ public final class MemoryManager {
   @Interruptible
   public static void gc() {
     //FIXME RUST
-    if (VM.VerifyAssertions) {
-      VM._assert(!VM.BuildWithRustMMTk, "Have not implemented MM.gc() yet in RMMTk");
+    if (VM.BuildWithRustMMTk) {
+      VM.sysFail("MM.gc() unimplemented");
     }
     Selected.Plan.handleUserCollectionRequest();
   }
