@@ -327,6 +327,38 @@ public abstract class SysCall {
   public abstract boolean will_never_move(ObjectReference object);
 
   @Inline
+  public int sysFreeBytes() {
+    return free_bytes();
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract int free_bytes();
+
+  @Inline
+  public int sysTotalBytes() {
+    return total_bytes();
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract int total_bytes();
+
+  @Inline
+  public Address sysStartingHeapAddress() {
+    return starting_heap_address();
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract Address starting_heap_address();
+
+  @Inline
+  public Address sysLastHeapAddress() {
+    return last_heap_address();
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract Address last_heap_address();
+
+  @Inline
   public ObjectReference sysTraceGetForwardedReferent(Address trace, ObjectReference object) {
     return trace_get_forwarded_referent(trace, object);
   }

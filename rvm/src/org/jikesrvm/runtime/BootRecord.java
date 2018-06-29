@@ -205,14 +205,6 @@ public class BootRecord {
    */
   int hardwareTrapMethodId;
   /**
-   * jtoc offset of test thingy
-   */
-  int testMethodId;
-  public int testMethodRandom;
-  Offset testMethodOffset;
-  int test1MethodId;
-  Offset test1MethodOffset;
-  /**
    * jtoc offset of RuntimeEntrypoints.deliverHardwareException()
    */
   Offset deliverHardwareExceptionOffset;
@@ -279,6 +271,10 @@ public class BootRecord {
   public Address processRIP;
   public Address post_allocRIP;
   public Address is_valid_refRIP;
+  public Address free_bytesRIP;
+  public Address total_bytesRIP;
+  public Address starting_heap_addressRIP;
+  public Address last_heap_addressRIP;
   public Address trace_get_forwarded_referenceRIP;
   public Address trace_get_forwarded_referentRIP;
   public Address trace_is_liveRIP;

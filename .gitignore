@@ -48,3 +48,6 @@ jikesrvm.iml
 JikesRVM x86_64-linux production.iml
 /benchmarks/
 /scratch/
+/venv/
+log
+dacapo/
