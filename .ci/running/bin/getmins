@@ -1,0 +1,8 @@
+#!/bin/bash
+#for b in MarkSweep_P Immix_P SemiSpace_P MarkCompact_P GenImmix_P GenMS_P ImmixGen_P ImmixGen_NCP; do
+#for b in MarkCompact_P SemiSpace_P GenImmix_P GenMS_P ImmixGen_P ImmixGen_NCP; do
+for b in MarkCompact_PF; do
+	out=$b.min
+	./minheap $b > $out
+done
+

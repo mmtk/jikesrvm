@@ -1,0 +1,75 @@
+#!/usr/bin/perl
+#
+# I reserve no legal rights to this software, it is fully in the public
+# domain.  Any company or individual may do whatever they wish with this
+# software.
+#
+# Steve Blackburn May 2005
+#
+# fillin <executable> <levels> [<start>]
+#
+# This little script is intended to be used for benchmarking where it
+# is desirable to fill some paramater space, 0, 1, 2 ... 2^<levels>
+# (of course this space can be normalized etc.).  The advantage of
+# this script is that it fills in the points in the space
+# logarithmically, starting with the ends and middle, and progressing
+# until all 2^<levels> + 1 points are filled in.
+# 
+# The script executes <executable> <levels> times thus:
+#     "<executable> <levels> a0 a1 a2 ..."
+# Where a0 a1 etc, are integers, i, s.t. 0 <= i <= 2^<levels>
+#
+# In the following examples, <executable> is the shell builtin, "echo":
+#
+#   %
+#   % ~/bin/fillin echo 3
+#   8 0 4 8
+#   8 2 6
+#   8 1 3 5 7
+#   %
+#   % ~/bin/fillin echo 4
+#   16 0 8 16
+#   16 4 12
+#   16 2 6 10 14
+#   16 1 3 5 7 9 11 13 15
+#   %
+#   % ~/bin/fillin echo 5
+#   32 0 16 32
+#   32 8 24
+#   32 4 12 20 28
+#   32 2 6 10 14 18 22 26 30
+#   32 1 3 5 7 9 11 13 15 17 19 21 23 25 27 29 31
+#   %
+#
+$start = ($#ARGV == 2) ? pop(@ARGV) : 0;
+$end = pop(@ARGV);
+$executable = pop(@ARGV);
+
+unless ((1<<$end) > $start) {
+    print STDERR "end must be greater than start!\n";
+}
+
+$i = 0;
+if ($start == 0) {
+    $arg = sprintf("%d %d %d %d", 1<<$end, 0, 1<<($end-1), 1<<$end);
+    system("$executable $arg");
+    $i++;
+    $commenced = 1;
+} else {
+    $commenced = 0;
+}
+
+for (; $i < $end; $i++) {
+    $base = 1<<($end - 1 - $i);
+    $step = 1<<($end - $i);
+    $arg = 1<<$end;
+    for ($j = $base; $j < 1<<$end; $j += $step) {
+	    if ($j == $start) { $commenced = 1; }
+	    if ($commenced) {
+	        $arg .= " ".$j;
+	    }
+    }
+    if ($commenced) {
+	     system("$executable $arg");
+    }
+}

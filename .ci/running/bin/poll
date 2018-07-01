@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Anything in this script will be executed by the benchmarking machine while
+# its network interface is up, in between iterations
+# mail -s available you@your.address </dev/null
+# sleep 60
+
