@@ -22,6 +22,9 @@ build:rbasebasenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g RBaseBaseNoGC
+  artifacts:
+    paths:
+      - dist/RBaseBaseNoGC_x86_64-linux
 
 build:rfastadaptivenogc:
   stage: build
@@ -37,6 +40,9 @@ build:basebasenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g BaseBaseNoGC
+  artifacts:
+    paths:
+      - dist/BaseBaseNoGC_x86_64-linux
 
 build:rbasebasesemispace:
   stage: build
@@ -61,7 +67,9 @@ build:basebasesemispace:
 perf-run:
   stage: perf-run
   script:
-    - .ci/perf-run.sh
+    - ln -s "$(realpath dist)" .ci/running/build
+    - cp .ci/RunConfig.pm .ci/running/bin/RunConfig.pm
+    - .ci/running/bin/runbms 16 16
   artifacts:
     paths:
       - .ci/running/results/log
