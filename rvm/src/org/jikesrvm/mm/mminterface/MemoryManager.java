@@ -367,11 +367,11 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void gc() {
-    //FIXME RUST
     if (VM.BuildWithRustMMTk) {
-      VM.sysFail("MM.gc() unimplemented");
+      sysCall.alignedHandleUserCollectionRequest(RVMThread.getCurrentThread().getId());
+    } else {
+      Selected.Plan.handleUserCollectionRequest();
     }
-    Selected.Plan.handleUserCollectionRequest();
   }
 
   /****************************************************************************

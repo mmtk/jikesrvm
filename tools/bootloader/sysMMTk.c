@@ -70,4 +70,8 @@ EXTERNAL void alignedPostAlloc(MMTk_Mutator mutator, void* refer, void* type_ref
 EXTERNAL bool alignedIsValidRef(void* ref) {
     return is_valid_ref(ref);
 }
+
+EXTERNAL void alignedHandleUserCollectionRequest(size_t thread_id) {
+    return handle_user_collection_request(thread_id);
+}
 #endif

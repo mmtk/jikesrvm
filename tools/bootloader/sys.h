@@ -257,6 +257,7 @@ EXTERNAL void alignedEnableCollection(size_t thread_id) __attribute__((force_ali
 EXTERNAL bool alignedProcess(char* name, char* value) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedPostAlloc(MMTk_Mutator mutator, void* refer, void* type_refer, int bytes, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL bool alignedIsValidRef(void* ref) __attribute__((force_align_arg_pointer));
+EXTERNAL void alignedHandleUserCollectionRequest(size_t thread_id) __attribute__((force_align_arg_pointer));
 #endif
 
 // sysMisc

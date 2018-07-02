@@ -171,6 +171,9 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract boolean alignedIsValidRef(ObjectReference ref);
 
+  @RustSysCall
+  @SysCallTemplate
+  public abstract boolean alignedHandleUserCollectionRequest(int thread_id);
 
 
    /**
