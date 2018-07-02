@@ -67,8 +67,11 @@ build:basebasesemispace:
 perf-run:
   stage: perf-run
   script:
+    - git clone git@gitlab.anu.edu.au:plsl/tools/running.git .ci/running -b rust-mmtk
     - ln -s "$(realpath dist)" .ci/running/build
     - cp .ci/RunConfig.pm .ci/running/bin/RunConfig.pm
+    - mkdir -p .ci/running/bin/probes
+    - cp .ci/probes.jar .ci/running/bin/probes/probes.jar
     - .ci/running/bin/runbms 16 16
   artifacts:
     paths:
