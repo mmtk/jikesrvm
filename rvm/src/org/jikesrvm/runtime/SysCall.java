@@ -287,13 +287,6 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract Address last_heap_address();
 
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract boolean is_immortal(Address address);
-
-
-
-
   @SysCallTemplate
   public abstract Address sysMalloc(int length);
 

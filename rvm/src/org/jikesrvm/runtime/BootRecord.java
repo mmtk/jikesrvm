@@ -260,7 +260,6 @@ public class BootRecord {
   public Address total_bytesRIP;
   public Address starting_heap_addressRIP;
   public Address last_heap_addressRIP;
-  public Address is_immortalRIP;
 
 
   // startup/shutdown
