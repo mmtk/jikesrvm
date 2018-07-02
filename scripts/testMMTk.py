@@ -18,6 +18,8 @@ parser.add_argument("-T", dest="test_run", default="",
 parser.add_argument("-t", dest="test", default="",
                     help="Specifies what specific test to run when building. This one requires a specific garbage collector to run the tests on",
                     type=str)
+parser.add_argument("-j", dest="java_home", default="/usr/lib/jvm/default-java",
+                    help="Specifies the location of JAVA_HOME", type=str)
 parser.add_argument("-a", dest="args", default="Xms1024M", help="Specifies which arguments to pass when testing MMTk",
                     type=str)
 parser.add_argument("--build-only", dest="build_only", action="store_true",
@@ -47,6 +49,9 @@ def exe(cmd, env=None):
     p.wait()
     return p.returncode
 
+########################################
+# Generate list of all valid GC schemes#
+########################################
 
 # Generates a list of all garbage collectors supported by MMTk
 if args.test_run != "":
@@ -61,7 +66,11 @@ for file in glob.glob(os.path.join("build", "configs", "*.properties")):
 b = os.path.abspath(os.path.join(__file__, "..", ".."))  # files in directory
 os.chdir(b)
 
-# Check arguments passed are correct
+########################################
+# Check arguments are passed correctly #
+########################################
+
+# Valid GC
 if not args.collector in garbage_collector_list:
     print ("Garbage Collector chosen is not a valid collection scheme")
     exit(1)
@@ -86,18 +95,22 @@ if args.build_args != "":
     args.build_args = "-" + args.build_args + " "
     print (args.build_args)
 
+#############
+# Run tests #
+#############
+
+build = False
 passes = 0
 
 # Run tests
 for _ in range(0, args.tests):
     # Build if not test only
     if not args.test_only:
-        build = False
         # Corrupted zips return an error code of 3.
         # If it corrupts, rerun at most 3 times
         # All other build errors return errors as usual
         for _ in range(0, 3):
-            rc = exe(("bin/buildit localhost -j /usr/lib/jvm/default-java --answer-yes " +
+            rc = exe(("bin/buildit localhost -j " + args.java_home + " --answer-yes " +
                       args.build_args + args.collector + args.test + args.test_run + " --nuke").split())
             if rc != 3:
                 build = rc == 0
@@ -114,7 +127,6 @@ for _ in range(0, args.tests):
                 exit(12)
             else:
                 print ("Test failed.")
-                exit(12)
             exit(1)
         passes += 1  # Check if the script has passed
 if args.collector == "":
