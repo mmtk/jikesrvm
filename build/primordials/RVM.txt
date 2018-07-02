@@ -66,17 +66,17 @@ Lorg/jikesrvm/scheduler/Lock;
 [Lorg/jikesrvm/mm/mminterface/CollectorThread;
 [Lorg/jikesrvm/mm/mminterface/Selected$Mutator;
 
-[Lorg/jikesrvm/mm/mmtk/SynchronizedCounter;
-[Lorg/mmtk/utility/heap/FreeListPageResource;
-[Lorg/mmtk/utility/RawMemoryFreeList;
+# [Lorg/jikesrvm/mm/mmtk/SynchronizedCounter;
+# [Lorg/mmtk/utility/heap/FreeListPageResource;
+# [Lorg/mmtk/utility/RawMemoryFreeList;
 
-[Lorg/mmtk/plan/Phase;
-[Lorg/mmtk/policy/Space;
-[Lorg/mmtk/utility/statistics/Stats;
-[Lorg/mmtk/utility/statistics/Stats$Phase;
-[Lorg/mmtk/utility/statistics/Counter;
-[Lorg/mmtk/utility/statistics/Timer;
-[Lorg/mmtk/vm/ReferenceProcessor$Semantics;
+# [Lorg/mmtk/plan/Phase;
+# [Lorg/mmtk/policy/Space;
+# [Lorg/mmtk/utility/statistics/Stats;
+# [Lorg/mmtk/utility/statistics/Stats$Phase;
+# [Lorg/mmtk/utility/statistics/Counter;
+# [Lorg/mmtk/utility/statistics/Timer;
+# [Lorg/mmtk/vm/ReferenceProcessor$Semantics;
 
 [Lorg/jikesrvm/scheduler/RVMThread$Waiting;
 
