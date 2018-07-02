@@ -26,6 +26,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.objectmodel.IMT;
@@ -67,14 +68,6 @@ public abstract class AbstractMemoryManager {
    */
 
   /**
-   * <code>true</code> if checking of allocated memory to ensure it is
-   * zeroed is desired.
-   */
-  private static final boolean CHECK_MEMORY_IS_ZEROED = false;
-  private static final boolean traceAllocator = false;
-  private static final boolean traceAllocation = false;
-
-  /**
    * Has the interface been booted yet?
    */
   private static boolean booted = false;
@@ -88,15 +81,6 @@ public abstract class AbstractMemoryManager {
    *
    * Initialization
    */
-
-  @Entrypoint
-  @Unpreemptible
-  public static void blockForGC() {
-    RVMThread t = RVMThread.getCurrentThread();
-    t.assertAcceptableStates(RVMThread.IN_JAVA, RVMThread.IN_JAVA_TO_BLOCK);
-    RVMThread.observeExecStatusAtSTW(t.getExecStatus());
-    t.block(RVMThread.gcBlockAdapter);
-  }
 
   /**
    * Initialization that occurs at <i>boot</i> time (runtime
@@ -118,10 +102,7 @@ public abstract class AbstractMemoryManager {
    */
   @Interruptible
   public static void postBoot() {
-    if (VM.BuildWithGCSpy) {
-      // start the GCSpy interpreter server
-      AbstractMemoryManager.startGCspyServer();
-    }
+    throw new UnsupportedOperationException("postBoot() has not been implemented in subclass");
   }
 
   /**
@@ -131,12 +112,6 @@ public abstract class AbstractMemoryManager {
   public static void enableCollection() {
     collectionEnabled = true;
     throw new UnsupportedOperationException("enableCollection() has not been implemented in subclass");
-  }
-
-  @Interruptible
-  @Entrypoint
-  public static void spawnCollectorThread(Address workerInstance) {
-    throw new UnsupportedOperationException("spawnCollectorThread() has not been implemented in subclass");
   }
 
   /**
@@ -151,32 +126,37 @@ public abstract class AbstractMemoryManager {
    */
   @Interruptible
   public static void fullyBootedVM() {
-    Selected.Plan.get().fullyBooted();
+    throw new UnsupportedOperationException("fullyBootedVM() has not been implemented in subclass");
   }
 
   @Interruptible
   public static void processCommandLineArg(String arg) {
-    if (!OptionSet.gc.process(arg)) {
-      VM.sysWriteln("Unrecognized command line argument: \"" + arg + "\"");
-      VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
-    }
+    throw new UnsupportedOperationException("processCommandLineArg() has not been implemented in subclass");
   }
 
   /***********************************************************************
    *
-   * Write barriers
+   * Header initialization
    */
 
   /**
-   * Checks that if a garbage collection is in progress then the given
-   * object is not movable.  If it is movable error messages are
-   * logged and the system exits.
+   * Override the boot-time initialization method here, so that
+   * the core MMTk code doesn't need to know about the
+   * BootImageInterface type.
    *
-   * @param object the object to check
+   * @param bootImage the bootimage instance
+   * @param ref the object's address
+   * @param tib the object's TIB
+   * @param size the number of bytes allocated by the GC system for
+   *  the object
+   * @param isScalar whether the header belongs to a scalar or an array
    */
-  @Entrypoint
-  public static void modifyCheck(Object object) {
-    VM.sysFail("modifyCheck() has not been implemented in subclass");
+  @Interruptible
+  public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
+                                      boolean isScalar) {
+    //    int status = JavaHeader.readAvailableBitsWord(bootImage, ref);
+    byte status = Selected.Plan.get().setBuildTimeGCByte(ref, ObjectReference.fromObject(tib), size);
+    JavaHeader.writeAvailableByte(bootImage, ref, status);
   }
 
   /***********************************************************************
@@ -241,6 +221,7 @@ public abstract class AbstractMemoryManager {
     DebugUtil.dumpRef(ref);
   }
 
+
   /**
    * Checks if a reference is valid.
    *
@@ -269,23 +250,6 @@ public abstract class AbstractMemoryManager {
   }
 
   /**
-   * Checks if a reference refers to an object in an in-use area of
-   * memory.
-   *
-   * <p>References may be addresses just outside the memory region
-   * allocated to the object.
-   *
-   * @param object the reference to be checked
-   * @return <code>true</code> if the object refered to is in an
-   * in-use area
-   */
-  @Inline
-  public static boolean objectInVM(ObjectReference object) {
-    VM.sysFail("objectInVM() has not been implemented in subclass");
-    return false;
-  }
-
-  /**
    * Return true if address is in a space which may contain stacks
    *
    * @param address The address to be checked
@@ -295,6 +259,7 @@ public abstract class AbstractMemoryManager {
     VM.sysFail("mightBeFP() has not been implemented in subclass");
     return false;
   }
+
   /***********************************************************************
    *
    * Allocation
@@ -331,31 +296,6 @@ public abstract class AbstractMemoryManager {
   }
 
   /**
-   * Is string <code>a</code> a prefix of string
-   * <code>b</code>. String <code>b</code> is encoded as an ASCII byte
-   * array.
-   *
-   * @param a prefix string
-   * @param b string which may contain prefix, encoded as an ASCII
-   * byte array.
-   * @return <code>true</code> if <code>a</code> is a prefix of
-   * <code>b</code>
-   */
-  @Interruptible
-  private static boolean isPrefix(String a, byte[] b) {
-    int aLen = a.length();
-    if (aLen > b.length) {
-      return false;
-    }
-    for (int i = 0; i < aLen; i++) {
-      if (a.charAt(i) != ((char) b[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
    * Returns the appropriate allocation scheme/area for the given type
    * and given method requesting the allocation.
    *
@@ -365,44 +305,9 @@ public abstract class AbstractMemoryManager {
    */
   @Interruptible
   public static int pickAllocator(RVMType type, RVMMethod method) {
-    if (traceAllocator) {
-      VM.sysWrite("allocator for ");
-      VM.sysWrite(type.getDescriptor());
-      VM.sysWrite(": ");
-    }
-    if (method != null) {
-      // We should strive to be allocation-free here.
-      RVMClass cls = method.getDeclaringClass();
-      byte[] clsBA = cls.getDescriptor().toByteArray();
-      if (Selected.Constraints.get().withGCspy()) {
-        if (isPrefix("Lorg/mmtk/vm/gcspy/", clsBA) || isPrefix("[Lorg/mmtk/vm/gcspy/", clsBA)) {
-          if (traceAllocator) {
-            VM.sysWriteln("GCSPY");
-          }
-          return Plan.ALLOC_GCSPY;
-        }
-      }
-      if (isPrefix("Lorg/jikesrvm/mm/mmtk/ReferenceProcessor", clsBA)) {
-        if (traceAllocator) {
-          VM.sysWriteln("DEFAULT");
-        }
-        return Plan.ALLOC_DEFAULT;
-      }
-      if (isPrefix("Lorg/mmtk/", clsBA) || isPrefix("Lorg/jikesrvm/mm/", clsBA)) {
-        if (traceAllocator) {
-          VM.sysWriteln("NONMOVING");
-        }
-        return Plan.ALLOC_NON_MOVING;
-      }
-      if (method.isNonMovingAllocation()) {
-        return Plan.ALLOC_NON_MOVING;
-      }
-    }
-    if (traceAllocator) {
-      VM.sysWriteln(type.getMMAllocator());
-    }
-    return type.getMMAllocator();
+    throw new UnsupportedOperationException("pickAllocator() has not been implemented in subclass");
   }
+
 
   /**
    * Determine the default allocator to be used for a given type.
@@ -413,7 +318,7 @@ public abstract class AbstractMemoryManager {
    */
   @Interruptible
   private static int pickAllocatorForType(RVMType type) {
-    throw new UnsupportedOperationException("pickAllocatorForType() has not been implemented in subclass");
+    throw new UnsupportedOperationException("pickAllocatorForType(type) has not been implemented in subclass");
   }
 
   /***********************************************************************
@@ -437,17 +342,7 @@ public abstract class AbstractMemoryManager {
    */
   @Inline
   public static Object allocateScalar(int size, TIB tib, int allocator, int align, int offset, int site) {
-    Selected.Mutator mutator = Selected.Mutator.get();
-    allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
-    Address region = allocateSpace(mutator, size, align, offset, allocator, site);
-    Object result = ObjectModel.initializeScalar(region, tib, size);
-    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
-    if (traceAllocation) {
-      VM.sysWrite("as: ", ObjectReference.fromObject(result));
-      VM.sysWrite(" ", region);
-      VM.sysWriteln("-", region.plus(size));
-    }
-    return result;
+    throw new UnsupportedOperationException("allocateScalar() has not been implemented in subclass");
   }
 
   /**
@@ -470,107 +365,7 @@ public abstract class AbstractMemoryManager {
   @Unpreemptible
   public static Object allocateArray(int numElements, int logElementSize, int headerSize, TIB tib, int allocator,
                                      int align, int offset, int site) {
-    int elemBytes = numElements << logElementSize;
-    if (elemBytes < 0 || (elemBytes >>> logElementSize) != numElements) {
-      /* asked to allocate more than Integer.MAX_VALUE bytes */
-      throwLargeArrayOutOfMemoryError();
-    }
-    int size = elemBytes + headerSize;
-    return allocateArrayInternal(numElements, size, tib, allocator, align, offset, site);
-  }
-
-
-  /**
-   * Throw an out of memory error due to an array allocation request that is
-   * larger than the maximum allowed value. This is in a separate method
-   * so it can be forced out of line.
-   */
-  @NoInline
-  @UnpreemptibleNoWarn
-  private static void throwLargeArrayOutOfMemoryError() {
-    throw new OutOfMemoryError();
-  }
-
-  /**
-   * Allocate an array object.
-   *
-   * @param numElements The number of element bytes
-   * @param size size in bytes of array header
-   * @param tib type information block for array object
-   * @param allocator int that encodes which allocator should be used
-   * @param align the alignment requested; must be a power of 2.
-   * @param offset the offset at which the alignment is desired.
-   * @param site allocation site.
-   * @return array object with header installed and all elements set
-   *         to zero/{@code null}
-   * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
-   */
-  @Inline
-  private static Object allocateArrayInternal(int numElements, int size, TIB tib, int allocator,
-                                              int align, int offset, int site) {
-    Selected.Mutator mutator = Selected.Mutator.get();
-    allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
-    Address region = allocateSpace(mutator, size, align, offset, allocator, site);
-    Object result = ObjectModel.initializeArray(region, tib, numElements, size);
-    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
-    if (traceAllocation) {
-      VM.sysWrite("aai: ", ObjectReference.fromObject(result));
-      VM.sysWrite(" ", region);
-      VM.sysWriteln("-", region.plus(size));
-    }
-    return result;
-  }
-
-  /**
-   * Allocate space for runtime allocation of an object
-   *
-   * @param mutator The mutator instance to be used for this allocation
-   * @param bytes The size of the allocation in bytes
-   * @param align The alignment requested; must be a power of 2.
-   * @param offset The offset at which the alignment is desired.
-   * @param allocator The MMTk allocator to be used (if allocating)
-   * @param site Allocation site.
-   * @return The first byte of a suitably sized and aligned region of memory.
-   */
-  @Inline
-  private static Address allocateSpace(Selected.Mutator mutator, int bytes, int align, int offset, int allocator,
-                                       int site) {
-    /* MMTk requests must be in multiples of MIN_ALIGNMENT */
-    bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
-    /* Now make the request */
-    Address region;
-    region = mutator.alloc(bytes, align, offset, allocator, site);
-
-    return region;
-  }
-
-  /**
-   * Align an allocation using some modulo arithmetic to guarantee the
-   * following property:<br>
-   * <code>(region + offset) % alignment == 0</code>
-   *
-   * @param initialOffset The initial (unaligned) start value of the
-   * allocated region of memory.
-   * @param align The alignment requested, must be a power of two
-   * @param offset The offset at which the alignment is desired
-   * @return <code>initialOffset</code> plus some delta (possibly 0) such
-   * that the return value is aligned according to the above
-   * constraints.
-   */
-  @Inline
-  public static Offset alignAllocation(Offset initialOffset, int align, int offset) {
-    Address region = org.jikesrvm.runtime.Memory.alignUp(initialOffset.toWord().toAddress(), MIN_ALIGNMENT);
-
-    // No alignment ever required.
-    if (align <= MIN_ALIGNMENT || MAX_ALIGNMENT <= MIN_ALIGNMENT)
-      return region.toWord().toOffset();
-
-    // May require an alignment
-    Word mask = Word.fromIntSignExtend(align - 1);
-    Word negOff = Word.fromIntSignExtend(-offset);
-    Offset delta = negOff.minus(region.toWord()).and(mask).toOffset();
-
-    return region.plus(delta).toWord().toOffset();
+    throw new UnsupportedOperationException("allocateArray() has not been implemented in subclass");
   }
 
   /**
@@ -724,6 +519,16 @@ public abstract class AbstractMemoryManager {
   }
 
   /**
+   * @param obj the object in question
+   * @return whether the object is immortal
+   */
+  @Pure
+  public static boolean isImmortal(Object obj) {
+    VM.sysFail("isImmortal() has not been implemented in subclass");
+    return false;
+  }
+
+  /**
    * Checks if the object can move. This information is useful to
    *  optimize some JNI calls.
    *
@@ -733,23 +538,7 @@ public abstract class AbstractMemoryManager {
    */
   @Pure
   public static boolean willNeverMove(Object obj) {
-    // VM.sysWrite("willNeverMove ");
-    // VM.sysWriteln(ObjectReference.fromObject(obj).toAddress());
-    if (VM.BuildWithRustMMTk) {
-      return sysCall.sysWillNeverMove(ObjectReference.fromObject(obj));
-    } else {
-      return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
-    }
-  }
-
-  /**
-   * @param obj the object in question
-   * @return whether the object is immortal
-   */
-  @Pure
-  public static boolean isImmortal(Object obj) {
-    VM.sysFail("isImmortal() has not been implemented in subclass");
-    return false;
+    throw new UnsupportedOperationException("willNeverMove() has not been implemented in subclass");
   }
 
   /***********************************************************************
@@ -767,6 +556,7 @@ public abstract class AbstractMemoryManager {
   public static void addFinalizer(Object object) {
     throw new UnsupportedOperationException("addFinalizer() has not been implemented in subclass");
   }
+
 
   /**
    * Gets an object from the list of objects that are to be reclaimed
@@ -820,26 +610,6 @@ public abstract class AbstractMemoryManager {
 
   /***********************************************************************
    *
-   * Tracing
-   */
-
-  /***********************************************************************
-   *
-   * Heap size and heap growth
-   */
-
-  /**
-   * Return the max heap size in bytes (as set by -Xmx).
-   *
-   * @return The max heap size in bytes (as set by -Xmx).
-   */
-  public static Extent getMaxHeapSize() {
-    VM.sysFail("getMaxHeapSize() has not been implemented in subclass");
-    return null;
-  }
-
-  /***********************************************************************
-   *
    * Miscellaneous
    */
 
@@ -878,54 +648,29 @@ public abstract class AbstractMemoryManager {
   }
 
   /**
-   * Start the GCspy server
+   * @return the number of specialized methods.
+   */
+  public static int numSpecializedMethods() {
+    VM.sysFail("gcInProgress() has not been implemented in subclass");
+    return 0;
+  }
+
+  /**
+   * Initialize a specified specialized method.
+   *
+   * @param id the specializedMethod
+   * @return the created specialized scan method
    */
   @Interruptible
-  public static void startGCspyServer() {
-    throw new UnsupportedOperationException("startGCspyServer() has not been implemented in subclass");
+  public static SpecializedMethod createSpecializedMethod(int id) {
+    throw new UnsupportedOperationException("createSpecializedMethod() has not been implemented in subclass");
   }
 
   /**
    * Flush the mutator context.
    */
   public static void flushMutatorContext() {
-    Selected.Mutator.get().flush();
-  }
-
-  /***********************************************************************
-   *
-   * Header initialization
-   */
-
-  /**
-   * Override the boot-time initialization method here, so that
-   * the core MMTk code doesn't need to know about the
-   * BootImageInterface type.
-   *
-   * @param bootImage the bootimage instance
-   * @param ref the object's address
-   * @param tib the object's TIB
-   * @param size the number of bytes allocated by the GC system for
-   *  the object
-   * @param isScalar whether the header belongs to a scalar or an array
-   */
-  @Interruptible
-  public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
-                                      boolean isScalar) {
-    //    int status = JavaHeader.readAvailableBitsWord(bootImage, ref);
-    byte status = Selected.Plan.get().setBuildTimeGCByte(ref, ObjectReference.fromObject(tib), size);
-    JavaHeader.writeAvailableByte(bootImage, ref, status);
-  }
-
-  /**
-   * Installs a reference into the boot image.
-   *
-   * @param value the reference to install
-   * @return the installed reference
-   */
-  @Interruptible
-  public static Word bootTimeWriteBarrier(Word value) {
-    return Selected.Plan.get().bootTimeWriteBarrier(value);
+    throw new UnsupportedOperationException("flushMutatorContext() has not been implemented in subclass");
   }
 
   /***********************************************************************
@@ -958,4 +703,3 @@ public abstract class AbstractMemoryManager {
   }
 
 }
-
