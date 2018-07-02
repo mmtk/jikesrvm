@@ -30,7 +30,7 @@ import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.LOG_BYTES_IN_AD
 import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.BYTES_IN_WORD;
 
 
-public class RustScanBootImage {
+public class ScanBootImage {
 
     public static final boolean VALIDATE_REFS = VM.VerifyAssertions;
 
