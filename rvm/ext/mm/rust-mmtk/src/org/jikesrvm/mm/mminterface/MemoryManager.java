@@ -146,31 +146,10 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Interruptible
   public static void boot(BootRecord theBootRecord) {
-    Extent pageSize = BootRecord.the_boot_record.bytesInPage;
-    org.jikesrvm.runtime.Memory.setPageSize(pageSize);
     DebugUtil.boot(theBootRecord);
-    Selected.Plan.get().enableAllocation();
     sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
     RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
-    Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
-      @Override
-      public void notifyExit(int value) {
-        Selected.Plan.get().notifyExit(value);
-      }
-    });
-
     booted = true;
-  }
-
-  /**
-   * Perform postBoot operations such as dealing with command line
-   * options (this is called as soon as options have been parsed,
-   * which is necessarily after the basic allocator boot).
-   */
-  @Interruptible
-  public static void postBoot() {
-    Selected.Plan.get().processOptions();
-
   }
 
   /**
@@ -196,14 +175,6 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   public static boolean collectionEnabled() {
     return collectionEnabled;
-  }
-
-  /**
-   * Notify the MM that the host VM is now fully booted.
-   */
-  @Interruptible
-  public static void fullyBootedVM() {
-    Selected.Plan.get().fullyBooted();
   }
 
   @Interruptible
@@ -350,18 +321,6 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
 
   /**
-   * Return an allocation site upon request.  The request may be made
-   * in the context of compilation.
-   *
-   * @param compileTime {@code true} if this request is being made in the
-   * context of a compilation.
-   * @return an allocation site
-   */
-  public static int getAllocationSite(boolean compileTime) {
-    return Plan.DEFAULT_SITE;
-  }
-
-  /**
    * Returns the appropriate allocation scheme/area for the given
    * type.  This form is deprecated.  Without the RVMMethod argument,
    * it is possible that the wrong allocator is chosen which may
@@ -411,64 +370,6 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
 
   /**
-   * Allocate a scalar object.
-   *
-   * @param size Size in bytes of the object, including any headers
-   * that need space.
-   * @param tib  Type of the object (pointer to TIB).
-   * @param allocator Specify which allocation scheme/area JMTk should
-   * allocate the memory from.
-   * @param align the alignment requested; must be a power of 2.
-   * @param offset the offset at which the alignment is desired.
-   * @param site allocation site.
-   * @return the initialized Object
-   */
-  @Inline
-  public static Object allocateScalar(int size, TIB tib, int allocator, int align, int offset, int site) {
-    Selected.Mutator mutator = Selected.Mutator.get();
-    allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
-    Address region = allocateSpace(mutator, size, align, offset, allocator, site);
-    Object result = ObjectModel.initializeScalar(region, tib, size);
-    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
-    if (traceAllocation) {
-      VM.sysWrite("as: ", ObjectReference.fromObject(result));
-      VM.sysWrite(" ", region);
-      VM.sysWriteln("-", region.plus(size));
-    }
-    return result;
-  }
-
-  /**
-   * Allocate an array object. This is the interruptible component, including throwing
-   * an OutOfMemoryError for arrays that are too large.
-   *
-   * @param numElements number of array elements
-   * @param logElementSize size in bytes of an array element, log base 2.
-   * @param headerSize size in bytes of array header
-   * @param tib type information block for array object
-   * @param allocator int that encodes which allocator should be used
-   * @param align the alignment requested; must be a power of 2.
-   * @param offset the offset at which the alignment is desired.
-   * @param site allocation site.
-   * @return array object with header installed and all elements set
-   *         to zero/null
-   * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
-   */
-  @Inline
-  @Unpreemptible
-  public static Object allocateArray(int numElements, int logElementSize, int headerSize, TIB tib, int allocator,
-                                     int align, int offset, int site) {
-    int elemBytes = numElements << logElementSize;
-    if (elemBytes < 0 || (elemBytes >>> logElementSize) != numElements) {
-      /* asked to allocate more than Integer.MAX_VALUE bytes */
-      throwLargeArrayOutOfMemoryError();
-    }
-    int size = elemBytes + headerSize;
-    return allocateArrayInternal(numElements, size, tib, allocator, align, offset, site);
-  }
-
-
-  /**
    * Throw an out of memory error due to an array allocation request that is
    * larger than the maximum allowed value. This is in a separate method
    * so it can be forced out of line.
@@ -477,36 +378,6 @@ public final class MemoryManager extends AbstractMemoryManager {
   @UnpreemptibleNoWarn
   private static void throwLargeArrayOutOfMemoryError() {
     throw new OutOfMemoryError();
-  }
-
-  /**
-   * Allocate an array object.
-   *
-   * @param numElements The number of element bytes
-   * @param size size in bytes of array header
-   * @param tib type information block for array object
-   * @param allocator int that encodes which allocator should be used
-   * @param align the alignment requested; must be a power of 2.
-   * @param offset the offset at which the alignment is desired.
-   * @param site allocation site.
-   * @return array object with header installed and all elements set
-   *         to zero/{@code null}
-   * See also: bytecode 0xbc ("newarray") and 0xbd ("anewarray")
-   */
-  @Inline
-  private static Object allocateArrayInternal(int numElements, int size, TIB tib, int allocator,
-                                              int align, int offset, int site) {
-    Selected.Mutator mutator = Selected.Mutator.get();
-    allocator = mutator.checkAllocator(org.jikesrvm.runtime.Memory.alignUp(size, MIN_ALIGNMENT), align, allocator);
-    Address region = allocateSpace(mutator, size, align, offset, allocator, site);
-    Object result = ObjectModel.initializeArray(region, tib, numElements, size);
-    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(tib), size, allocator);
-    if (traceAllocation) {
-      VM.sysWrite("aai: ", ObjectReference.fromObject(result));
-      VM.sysWrite(" ", region);
-      VM.sysWriteln("-", region.plus(size));
-    }
-    return result;
   }
 
   /**
@@ -532,280 +403,6 @@ public final class MemoryManager extends AbstractMemoryManager {
   }
 
   /**
-   * Allocate a CodeArray into a code space.
-   * Currently the interface is fairly primitive;
-   * just the number of instructions in the code array and a boolean
-   * to indicate hot or cold code.
-   * @param numInstrs number of instructions
-   * @param isHot is this a request for hot code space allocation?
-   * @return The  array
-   */
-  @NoInline
-  @Interruptible
-  public static CodeArray allocateCode(int numInstrs, boolean isHot) {
-    RVMArray type = RVMType.CodeArrayType;
-    int headerSize = ObjectModel.computeArrayHeaderSize(type);
-    int align = ObjectModel.getAlignment(type);
-    int offset = ObjectModel.getOffsetForAlignment(type, false);
-    int width = type.getLogElementSize();
-    TIB tib = type.getTypeInformationBlock();
-    int allocator = isHot ? Plan.ALLOC_HOT_CODE : Plan.ALLOC_COLD_CODE;
-
-    return (CodeArray) allocateArray(numInstrs, width, headerSize, tib, allocator, align, offset, Plan.DEFAULT_SITE);
-  }
-
-  /**
-   * Allocate a stack
-   * @param bytes the number of bytes to allocate. Must be greater than
-   *  0.
-   * @return The stack
-   */
-  @NoInline
-  @Unpreemptible
-  public static byte[] newStack(int bytes) {
-    if (bytes <= 0) {
-      if (VM.VerifyAssertions) {
-        VM.sysWrite("Invalid stack size: ");
-        VM.sysWrite(bytes);
-        VM.sysWriteln("!");
-        VM._assert(VM.NOT_REACHED, "Attempted to create stack with size (in bytes) of 0 or smaller!");
-      } else {
-        bytes = StackFrameLayout.getStackSizeNormal();
-      }
-    }
-
-    if (!VM.runningVM) {
-      return new byte[bytes];
-    } else {
-      RVMArray stackType = RVMArray.ByteArray;
-      int headerSize = ObjectModel.computeArrayHeaderSize(stackType);
-      int align = ObjectModel.getAlignment(stackType);
-      int offset = ObjectModel.getOffsetForAlignment(stackType, false);
-      int width = stackType.getLogElementSize();
-      TIB stackTib = stackType.getTypeInformationBlock();
-
-      return (byte[]) allocateArray(bytes,
-                                    width,
-                                    headerSize,
-                                    stackTib,
-                                    Plan.ALLOC_STACK,
-                                    align,
-                                    offset,
-                                    Plan.DEFAULT_SITE);
-    }
-  }
-
-  /**
-   * Allocates a non moving word array.
-   *
-   * @param size The size of the array
-   * @return the new non moving word array
-   */
-  @NoInline
-  @Interruptible
-  public static WordArray newNonMovingWordArray(int size) {
-    if (!VM.runningVM) {
-      return WordArray.create(size);
-    }
-
-    RVMArray arrayType = RVMType.WordArrayType;
-    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
-    int width = arrayType.getLogElementSize();
-    TIB arrayTib = arrayType.getTypeInformationBlock();
-
-    return (WordArray) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
-
-  }
-
-  /**
-   * Allocates a non moving double array.
-   *
-   * @param size The size of the array
-   * @return the new non moving double array
-   */
-  @NoInline
-  @Interruptible
-  public static double[] newNonMovingDoubleArray(int size) {
-    if (!VM.runningVM) {
-      return new double[size];
-    }
-
-    RVMArray arrayType = RVMArray.DoubleArray;
-    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
-    int width = arrayType.getLogElementSize();
-    TIB arrayTib = arrayType.getTypeInformationBlock();
-
-    return (double[]) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
-
-  }
-
-  /**
-   * Allocates a non moving int array.
-   *
-   * @param size The size of the array
-   * @return the new non moving int array
-   */
-  @NoInline
-  @Interruptible
-  public static int[] newNonMovingIntArray(int size) {
-    if (!VM.runningVM) {
-      return new int[size];
-    }
-
-    RVMArray arrayType = RVMArray.IntArray;
-    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
-    int width = arrayType.getLogElementSize();
-    TIB arrayTib = arrayType.getTypeInformationBlock();
-
-    return (int[]) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
-
-  }
-
-  /**
-   * Allocates a non moving short array.
-   *
-   * @param size The size of the array
-   * @return the new non moving short array
-   */
-  @NoInline
-  @Interruptible
-  public static short[] newNonMovingShortArray(int size) {
-    if (!VM.runningVM) {
-      return new short[size];
-    }
-
-    RVMArray arrayType = RVMArray.ShortArray;
-    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
-    int align = ObjectModel.getAlignment(arrayType);
-    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
-    int width = arrayType.getLogElementSize();
-    TIB arrayTib = arrayType.getTypeInformationBlock();
-
-    return (short[]) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
-
-  }
-
-  /**
-   * Allocates a new type information block (TIB).
-   *
-   * @param numVirtualMethods the number of virtual method slots in the TIB
-   * @param alignCode alignment encoding for the TIB
-   * @return the new TIB
-   * @see AlignmentEncoding
-   */
-  @NoInline
-  @Interruptible
-  public static TIB newTIB(int numVirtualMethods, int alignCode) {
-    int elements = TIB.computeSize(numVirtualMethods);
-
-    if (!VM.runningVM) {
-      return TIB.allocate(elements, alignCode);
-    }
-    if (alignCode == AlignmentEncoding.ALIGN_CODE_NONE) {
-      return (TIB)newRuntimeTable(elements, RVMType.TIBType);
-    }
-
-    RVMType type = RVMType.TIBType;
-    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
-
-    TIB realTib = type.getTypeInformationBlock();
-    RVMArray fakeType = RVMType.WordArrayType;
-    TIB fakeTib = fakeType.getTypeInformationBlock();
-    int headerSize = ObjectModel.computeArrayHeaderSize(fakeType);
-    int align = ObjectModel.getAlignment(fakeType);
-    int offset = ObjectModel.getOffsetForAlignment(fakeType, false);
-    int width = fakeType.getLogElementSize();
-    int elemBytes = elements << width;
-    if (elemBytes < 0 || (elemBytes >>> width) != elements) {
-      /* asked to allocate more than Integer.MAX_VALUE bytes */
-      throwLargeArrayOutOfMemoryError();
-    }
-    int size = elemBytes + headerSize + AlignmentEncoding.padding(alignCode);
-    Selected.Mutator mutator = Selected.Mutator.get();
-    Address region = allocateSpace(mutator, size, align, offset, type.getMMAllocator(), Plan.DEFAULT_SITE);
-
-    region = AlignmentEncoding.adjustRegion(alignCode, region);
-
-    Object result = ObjectModel.initializeArray(region, fakeTib, elements, size);
-    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(fakeTib), size, type.getMMAllocator());
-
-    /* Now we replace the TIB */
-    ObjectModel.setTIB(result, realTib);
-
-    if (traceAllocation) {
-      VM.sysWrite("tib: ", ObjectReference.fromObject(result));
-      VM.sysWrite(" ", region);
-      VM.sysWriteln("-", region.plus(size));
-    }
-    return (TIB)result;
-  }
-
-  /**
-   * Allocate a new interface method table (IMT).
-   *
-   * @return the new IMT
-   */
-  @NoInline
-  @Interruptible
-  public static IMT newIMT() {
-    if (!VM.runningVM) {
-      return IMT.allocate();
-    }
-
-    return (IMT)newRuntimeTable(IMT_METHOD_SLOTS, RVMType.IMTType);
-  }
-
-  /**
-   * Allocate a new ITable
-   *
-   * @param size the number of slots in the ITable
-   * @return the new ITable
-   */
-  @NoInline
-  @Interruptible
-  public static ITable newITable(int size) {
-    if (!VM.runningVM) {
-      return ITable.allocate(size);
-    }
-
-    return (ITable)newRuntimeTable(size, RVMType.ITableType);
-  }
-
-  /**
    * Allocate a new ITableArray
    *
    * @param size the number of slots in the ITableArray
@@ -821,40 +418,6 @@ public final class MemoryManager extends AbstractMemoryManager {
     return (ITableArray)newRuntimeTable(size, RVMType.ITableArrayType);
   }
 
-  /**
-   * Allocates a new runtime table (at runtime).
-   *
-   * @param size The size of the table
-   * @param type the type for the table
-   * @return the newly allocated table
-   */
-  @NoInline
-  @Interruptible
-  public static Object newRuntimeTable(int size, RVMType type) {
-    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
-
-    TIB realTib = type.getTypeInformationBlock();
-    RVMArray fakeType = RVMType.WordArrayType;
-    TIB fakeTib = fakeType.getTypeInformationBlock();
-    int headerSize = ObjectModel.computeArrayHeaderSize(fakeType);
-    int align = ObjectModel.getAlignment(fakeType);
-    int offset = ObjectModel.getOffsetForAlignment(fakeType, false);
-    int width = fakeType.getLogElementSize();
-
-    /* Allocate a word array */
-    Object array = allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 fakeTib,
-                                 type.getMMAllocator(),
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
-
-    /* Now we replace the TIB */
-    ObjectModel.setTIB(array, realTib);
-    return array;
-  }
 
   /**
    * Checks if the object can move. This information is useful to
@@ -867,15 +430,6 @@ public final class MemoryManager extends AbstractMemoryManager {
   @Pure
   public static boolean willNeverMove(Object obj) {
     return sysCall.sysWillNeverMove(ObjectReference.fromObject(obj));
-  }
-
-  /**
-   * @param obj the object in question
-   * @return whether the object is immortal
-   */
-  @Pure
-  public static boolean isImmortal(Object obj) {
-    return SysCall.sysCall.is_immortal(ObjectReference.fromObject(obj).toAddress());
   }
 
   /***********************************************************************
@@ -994,64 +548,6 @@ public final class MemoryManager extends AbstractMemoryManager {
             SysCall.sysCall.sysLastHeapAddress().GT(obj.toAddress()) &&
             SysCall.sysCall.sysStartingHeapAddress().LE(ObjectReference.fromObject(ObjectModel.getTIB(obj)).toAddress()) &&
             SysCall.sysCall.sysLastHeapAddress().GT(ObjectReference.fromObject(ObjectModel.getTIB(obj)).toAddress());
-  }
-
-  /**
-   * Returns true if GC is in progress.
-   *
-   * @return True if GC is in progress.
-   */
-  public static boolean gcInProgress() {
-    return false; //todo
-  }
-
-  /**
-   * Flush the mutator context.
-   */
-  public static void flushMutatorContext() {
-    VM.sysWriteln("flushMutatorContext() not implemented yet");
-  }
-
-  /**
-   * @return the number of specialized methods.
-   */
-  public static int numSpecializedMethods() {
-    //FIXME
-    //VM.sysFail("numSpecializedMethods not implemented yet");
-    return 0;
-    //return SpecializedScanMethod.ENABLED ? Selected.Constraints.get().numSpecializedScans() : 0;
-  }
-
-  /**
-   * Initialize a specified specialized method.
-   * FIXME
-   * @param id the specializedMethod
-   * @return the created specialized scan method
-   */
-  @Interruptible
-  public static SpecializedMethod createSpecializedMethod(int id) {
-    if (VM.VerifyAssertions) {
-      //VM._assert(SpecializedScanMethod.ENABLED);
-      VM._assert(id < Selected.Constraints.get().numSpecializedScans());
-    }
-
-    /* What does the plan want us to specialize this to? */
-    //Class<?> traceClass = Selected.Plan.get().getSpecializedScanClass(id);
-
-    /* Create the specialized method */
-    return null;
-    //return new SpecializedScanMethod(id, TypeReference.findOrCreate(traceClass));
-  }
-
-  /**
-   * Installs a reference into the boot image.
-   *
-   * @param value the reference to install
-   * @return the installed reference
-   */
-  @Interruptible
-  public static Word bootTimeWriteBarrier(Word value) {
-    return Selected.Plan.get().bootTimeWriteBarrier(value);
   }
 
   /***********************************************************************
