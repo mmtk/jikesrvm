@@ -12,10 +12,7 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MAX_ALIGNMENT;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
-import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
-import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MIN_ALIGNMENT;
 import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MAX_SPACES;
 
 import java.lang.ref.PhantomReference;
@@ -23,7 +20,6 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.classloader.SpecializedMethod;
@@ -33,27 +29,19 @@ import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ITable;
 import org.jikesrvm.objectmodel.ITableArray;
 import org.jikesrvm.objectmodel.JavaHeader;
-import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
-import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
-import org.jikesrvm.scheduler.RVMThread;
-import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
-import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
-import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
 
-import static org.jikesrvm.runtime.SysCall.sysCall;
 
 
 /**
@@ -70,12 +58,12 @@ public abstract class AbstractMemoryManager {
   /**
    * Has the interface been booted yet?
    */
-  private static boolean booted = false;
+  static boolean booted = false;
 
   /**
    * Has garbage collection been enabled yet?
    */
-  private static boolean collectionEnabled = false;
+  static boolean collectionEnabled = false;
 
   /***********************************************************************
    *
@@ -86,6 +74,7 @@ public abstract class AbstractMemoryManager {
    * Initialization that occurs at <i>boot</i> time (runtime
    * initialization).  This is only executed by one processor (the
    * primordial thread).
+   *
    * @param theBootRecord the boot record. Contains information about
    * the heap size.
    */
@@ -132,31 +121,6 @@ public abstract class AbstractMemoryManager {
   @Interruptible
   public static void processCommandLineArg(String arg) {
     throw new UnsupportedOperationException("processCommandLineArg() has not been implemented in subclass");
-  }
-
-  /***********************************************************************
-   *
-   * Header initialization
-   */
-
-  /**
-   * Override the boot-time initialization method here, so that
-   * the core MMTk code doesn't need to know about the
-   * BootImageInterface type.
-   *
-   * @param bootImage the bootimage instance
-   * @param ref the object's address
-   * @param tib the object's TIB
-   * @param size the number of bytes allocated by the GC system for
-   *  the object
-   * @param isScalar whether the header belongs to a scalar or an array
-   */
-  @Interruptible
-  public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
-                                      boolean isScalar) {
-    //    int status = JavaHeader.readAvailableBitsWord(bootImage, ref);
-    byte status = Selected.Plan.get().setBuildTimeGCByte(ref, ObjectReference.fromObject(tib), size);
-    JavaHeader.writeAvailableByte(bootImage, ref, status);
   }
 
   /***********************************************************************
@@ -220,7 +184,6 @@ public abstract class AbstractMemoryManager {
   public static void dumpRef(ObjectReference ref) {
     DebugUtil.dumpRef(ref);
   }
-
 
   /**
    * Checks if a reference is valid.
@@ -318,7 +281,7 @@ public abstract class AbstractMemoryManager {
    */
   @Interruptible
   private static int pickAllocatorForType(RVMType type) {
-    throw new UnsupportedOperationException("pickAllocatorForType(type) has not been implemented in subclass");
+    throw new UnsupportedOperationException("pickAllocatorForType() has not been implemented in subclass");
   }
 
   /***********************************************************************
@@ -342,7 +305,8 @@ public abstract class AbstractMemoryManager {
    */
   @Inline
   public static Object allocateScalar(int size, TIB tib, int allocator, int align, int offset, int site) {
-    throw new UnsupportedOperationException("allocateScalar() has not been implemented in subclass");
+    VM.sysFail("allocateScalar() has not been implemented in subclass");
+    return null;
   }
 
   /**
@@ -365,7 +329,8 @@ public abstract class AbstractMemoryManager {
   @Unpreemptible
   public static Object allocateArray(int numElements, int logElementSize, int headerSize, TIB tib, int allocator,
                                      int align, int offset, int site) {
-    throw new UnsupportedOperationException("allocateArray() has not been implemented in subclass");
+    VM.sysFail("allocateArray() has not been implemented in subclass");
+    return null;
   }
 
   /**
@@ -519,18 +484,8 @@ public abstract class AbstractMemoryManager {
   }
 
   /**
-   * @param obj the object in question
-   * @return whether the object is immortal
-   */
-  @Pure
-  public static boolean isImmortal(Object obj) {
-    VM.sysFail("isImmortal() has not been implemented in subclass");
-    return false;
-  }
-
-  /**
    * Checks if the object can move. This information is useful to
-   *  optimize some JNI calls.
+   * optimize some JNI calls.
    *
    * @param obj the object in question
    * @return {@code true} if this object can never move, {@code false}
@@ -538,7 +493,18 @@ public abstract class AbstractMemoryManager {
    */
   @Pure
   public static boolean willNeverMove(Object obj) {
-    throw new UnsupportedOperationException("willNeverMove() has not been implemented in subclass");
+    VM.sysFail("willNeverMove() has not been implemented in subclass");
+    return false;
+  }
+
+  /**
+   * @param obj the object in question
+   * @return whether the object is immortal
+   */
+  @Pure
+  public static boolean isImmortal(Object obj) {
+    VM.sysFail("isImmortal() has not been implemented in subclass");
+    return false;
   }
 
   /***********************************************************************
@@ -556,7 +522,6 @@ public abstract class AbstractMemoryManager {
   public static void addFinalizer(Object object) {
     throw new UnsupportedOperationException("addFinalizer() has not been implemented in subclass");
   }
-
 
   /**
    * Gets an object from the list of objects that are to be reclaimed
@@ -670,7 +635,32 @@ public abstract class AbstractMemoryManager {
    * Flush the mutator context.
    */
   public static void flushMutatorContext() {
-    throw new UnsupportedOperationException("flushMutatorContext() has not been implemented in subclass");
+    VM.sysFail("flushMutatorContext() has not been implemented in subclass");
+  }
+
+  /***********************************************************************
+   *
+   * Header initialization
+   */
+
+  /**
+   * Override the boot-time initialization method here, so that
+   * the core MMTk code doesn't need to know about the
+   * BootImageInterface type.
+   *
+   * @param bootImage the bootimage instance
+   * @param ref       the object's address
+   * @param tib       the object's TIB
+   * @param size      the number of bytes allocated by the GC system for
+   *                  the object
+   * @param isScalar  whether the header belongs to a scalar or an array
+   */
+  @Interruptible
+  public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
+                                      boolean isScalar) {
+    //    int status = JavaHeader.readAvailableBitsWord(bootImage, ref);
+    byte status = Selected.Plan.get().setBuildTimeGCByte(ref, ObjectReference.fromObject(tib), size);
+    JavaHeader.writeAvailableByte(bootImage, ref, status);
   }
 
   /***********************************************************************
@@ -702,4 +692,26 @@ public abstract class AbstractMemoryManager {
     return new int[n];
   }
 
+  /***********************************************************************
+   *
+   * Experimental
+   */
+
+  /**
+   * Take a bytemap encoding of all references in the boot image, and
+   * produce an encoded byte array.  Return the total length of the
+   * encoding.
+   *
+   * @param bootImageRMap     space for the compressed reference map. The map
+   *                          is initially empty and will be filled during execution of this method.
+   * @param referenceMap      the (uncompressed) reference map for the bootimage
+   * @param referenceMapLimit the highest index in the referenceMap that
+   *                          contains a reference
+   * @return the total length of the encoding
+   */
+  @Interruptible
+  public static int encodeRMap(byte[] bootImageRMap, byte[] referenceMap,
+                               int referenceMapLimit) {
+    return ScanBootImage.encodeRMap(bootImageRMap,referenceMap,referenceMapLimit);
+  }
 }
