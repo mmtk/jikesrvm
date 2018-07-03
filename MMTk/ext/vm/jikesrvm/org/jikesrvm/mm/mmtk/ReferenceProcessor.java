@@ -743,7 +743,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
 
     if (sysCall.sysTraceIsLive(trace, oldReferent)) {
       if (VM.VerifyAssertions) {
-        if (!DebugUtil.validRef(oldReferent)) {
+        if (sysCall.alignedIsValidRef(oldReferent)) {
           VM.sysWriteln("Error in old referent.");
           DebugUtil.dumpRef(oldReferent);
           VM.sysFail("Invalid reference");
@@ -758,7 +758,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
       if (TRACE_DETAIL) VM.sysWriteln(" ~> ",newReferent);
 
       if (VM.VerifyAssertions) {
-        if (!DebugUtil.validRef(newReferent)) {
+        if (!sysCall.alignedIsValidRef(newReferent)) {
           VM.sysWriteln("Error forwarding reference object.");
           DebugUtil.dumpRef(oldReferent);
           VM.sysFail("Invalid reference");
