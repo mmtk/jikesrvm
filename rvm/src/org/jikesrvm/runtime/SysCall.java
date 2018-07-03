@@ -393,6 +393,14 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract ObjectReference trace_retain_referent(Address trace, ObjectReference object);
 
+  @Inline
+  public boolean sysIsMappedObject(ObjectReference object) {
+    return is_mapped_object(object);
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract boolean is_mapped_object(ObjectReference object);
+
   @SysCallTemplate
   public abstract Address sysMalloc(int length);
 

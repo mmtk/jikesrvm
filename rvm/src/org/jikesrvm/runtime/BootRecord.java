@@ -279,6 +279,7 @@ public class BootRecord {
   public Address trace_get_forwarded_referentRIP;
   public Address trace_is_liveRIP;
   public Address trace_retain_referentRIP;
+  public Address is_mapped_objectRIP;
 
 
   // startup/shutdown
