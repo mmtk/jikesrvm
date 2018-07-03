@@ -306,7 +306,7 @@ public final class MemoryManager {
     /* Make sure that during GC, we don't update on a possibly moving object.
        Such updates are dangerous because they can be lost.
      */
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 1) {
+    if (VM.BuildWithRustMMTk) {
       sysCall.sysModifyCheck(ObjectReference.fromObject(object));
     } else {
       if (Plan.gcInProgressProper()) {
