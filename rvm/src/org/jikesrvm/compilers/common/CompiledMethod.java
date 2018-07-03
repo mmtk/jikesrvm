@@ -212,6 +212,9 @@ public abstract class CompiledMethod {
           if (offset.toWord().LT(Word.fromIntZeroExtend(max)))
             return offset;
         }
+        if (VM.BuildWithRustMMTk) {
+          return offset;
+        }
         Address instructionStart = Magic.objectAsAddress(instructions);
         VM.sysWriteln();
         VM.sysWriteln("In thread ",RVMThread.getCurrentThreadSlot()," getInstructionOffset: ip is not within compiled code for method: ",ip);

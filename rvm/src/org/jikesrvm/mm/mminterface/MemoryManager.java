@@ -67,6 +67,7 @@ import org.vmmagic.pragma.Pure;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.UnpreemptibleNoWarn;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
@@ -264,6 +265,12 @@ public final class MemoryManager {
    */
   public static boolean collectionEnabled() {
     return collectionEnabled;
+  }
+
+  @Entrypoint
+  @UninterruptibleNoWarn
+  public static void outOfMemory() {
+    throw RVMThread.getOutOfMemoryError();
   }
 
   /**

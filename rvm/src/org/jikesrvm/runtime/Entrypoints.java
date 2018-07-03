@@ -150,6 +150,9 @@ public class Entrypoints {
   public static final NormalMethod spawnCollectorThreadMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "spawnCollectorThread",
                   "(Lorg/vmmagic/unboxed/Address;)V");
+  public static final NormalMethod outOfMemoryMethod =
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "outOfMemory",
+                  "()V");
   public static final NormalMethod processReferenceTypesMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "processReferenceTypes",
                   "(Lorg/vmmagic/unboxed/Address;I)V");
