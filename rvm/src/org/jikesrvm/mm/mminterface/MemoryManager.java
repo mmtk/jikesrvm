@@ -307,7 +307,7 @@ public final class MemoryManager {
        Such updates are dangerous because they can be lost.
      */
     if (VM.BuildWithRustMMTk && verboseUnimplemented > 1) {
-      VM.sysFail("modifyCheck() unimplemented");
+      sysCall.sysModifyCheck(ObjectReference.fromObject(object));
     } else {
       if (Plan.gcInProgressProper()) {
         ObjectReference ref = ObjectReference.fromObject(object);

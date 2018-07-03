@@ -401,6 +401,14 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract boolean is_mapped_object(ObjectReference object);
 
+  @Inline
+  public void sysModifyCheck(ObjectReference object) {
+    modify_check(object);
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void modify_check(ObjectReference object);
+
   @SysCallTemplate
   public abstract Address sysMalloc(int length);
 
