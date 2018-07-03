@@ -1729,7 +1729,12 @@ Check to make sure all required properties are specified. This includes properti
       </sequential>
     </if>
 
+    <condition property="match.exp" value="rust" else="java">
+      <isset property="${rust.build}"/>
+    </condition>
+    <echo message="${match.exp}"/>
     <replaceregexp file="${build.base}/Primordials.txt" match=".*#.*" replace="" byline="true"/>
+    <replaceregexp file="${build.base}/Primordials.txt" match=".*//." replace="" byline="true"/>
   </target>
 
 
