@@ -28,7 +28,6 @@ import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.objectmodel.IMT;
 import org.jikesrvm.objectmodel.ITable;
 import org.jikesrvm.objectmodel.ITableArray;
-import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.BootRecord;
 import org.vmmagic.pragma.Inline;
@@ -41,8 +40,6 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.WordArray;
-
-
 
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
@@ -168,7 +165,7 @@ public abstract class AbstractMemoryManager {
    */
   @Interruptible
   public static void gc() {
-    Selected.Plan.handleUserCollectionRequest();
+    throw new UnsupportedOperationException("gc() has not been implemented in subclass");
   }
 
   /****************************************************************************
@@ -658,9 +655,7 @@ public abstract class AbstractMemoryManager {
   @Interruptible
   public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
                                       boolean isScalar) {
-    //    int status = JavaHeader.readAvailableBitsWord(bootImage, ref);
-    byte status = Selected.Plan.get().setBuildTimeGCByte(ref, ObjectReference.fromObject(tib), size);
-    JavaHeader.writeAvailableByte(bootImage, ref, status);
+    throw new UnsupportedOperationException("initializeHeader() has not been implemented in subclass");
   }
 
   /***********************************************************************
