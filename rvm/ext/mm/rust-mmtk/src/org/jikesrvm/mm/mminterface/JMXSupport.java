@@ -17,9 +17,6 @@ import java.lang.management.MemoryUsage;
 import java.util.HashMap;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.mm.mminterface.Selected.Plan;
-
-import org.vmmagic.unboxed.Extent;
 
 /**
  * Provides methods supporting all JMX beans that relate to memory. Functionality

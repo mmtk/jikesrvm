@@ -22,7 +22,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 
 @Uninterruptible
-public class NoGCContext extends BaseContext {
+public class NoGCContext extends RustContext {
 
     @Entrypoint
     Address threadId;
@@ -62,6 +62,12 @@ public class NoGCContext extends BaseContext {
         return region;
     }
 
+    @Override
+    public int getId() {
+        VM.sysFail("getId() unimplemented");
+        return 0;
+    }
+
     public void setBlock(Address mmtkHandle) {
         if (VM.VerifyAssertions) {
             VM._assert(cursorOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(4));
@@ -73,6 +79,7 @@ public class NoGCContext extends BaseContext {
         limit    = mmtkHandle.plus(BYTES_IN_WORD * 2).loadAddress();
         space    = mmtkHandle.plus(BYTES_IN_WORD * 3).loadAddress();
     }
+
 
 
 }

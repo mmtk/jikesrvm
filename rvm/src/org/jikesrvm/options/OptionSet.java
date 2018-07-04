@@ -12,13 +12,11 @@
  */
 package org.jikesrvm.options;
 
-import static org.jikesrvm.runtime.CommandLineArgs.stringToBytes;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_PRINTED_HELP_MESSAGE;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.Memory;
-import org.jikesrvm.runtime.SysCall;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.Word;
@@ -80,56 +78,48 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
 
     String name = arg.substring(0,split);
     String value = arg.substring(split + 1);
-    byte[] nameBytes = stringToBytes("converting name", name);
-    byte[] valueBytes = stringToBytes("converting value", value);
 
-    if (VM.BuildWithRustMMTk) {
-      if (SysCall.sysCall.sysProcess(nameBytes, valueBytes)) {
+    Option o = getOption(name);
+
+    if (o == null) return false;
+
+    switch (o.getType()) {
+      case Option.BOOLEAN_OPTION:
+        if (value.equals("true")) {
+          ((BooleanOption) o).setValue(true);
+          return true;
+        } else if (value.equals("false")) {
+          ((BooleanOption) o).setValue(false);
+          return true;
+        }
+        return false;
+      case Option.INT_OPTION:
+        int ival = CommandLineArgs.primitiveParseInt(value);
+        ((IntOption) o).setValue(ival);
         return true;
-      }
-    } else {
-      Option o = getOption(name);
-
-      if (o == null) return false;
-
-      switch (o.getType()) {
-        case Option.BOOLEAN_OPTION:
-          if (value.equals("true")) {
-            ((BooleanOption) o).setValue(true);
-            return true;
-          } else if (value.equals("false")) {
-            ((BooleanOption) o).setValue(false);
-            return true;
-          }
-          return false;
-        case Option.INT_OPTION:
-          int ival = CommandLineArgs.primitiveParseInt(value);
-          ((IntOption) o).setValue(ival);
-          return true;
-        case Option.ADDRESS_OPTION:
-          long lval = CommandLineArgs.primitiveParseLong(value);
-          ((AddressOption) o).setValue(lval);
-          return true;
-        case Option.FLOAT_OPTION:
-          float fval = CommandLineArgs.primitiveParseFloat(value);
-          ((FloatOption) o).setValue(fval);
-          return true;
-        case Option.STRING_OPTION:
-          ((StringOption) o).setValue(value);
-          return true;
-        case Option.ENUM_OPTION:
-          ((EnumOption) o).setValue(value);
-          return true;
-        case Option.PAGES_OPTION:
-          long pval = CommandLineArgs.parseMemorySize(o.getName(), name, "b", 1, arg, value);
-          if (pval < 0) return false;
-          ((PagesOption) o).setBytes(Extent.fromIntSignExtend((int) pval));
-          return true;
-        case Option.MICROSECONDS_OPTION:
-          int mval = CommandLineArgs.primitiveParseInt(value);
-          ((MicrosecondsOption) o).setMicroseconds(mval);
-          return true;
-      }
+      case Option.ADDRESS_OPTION:
+        long lval = CommandLineArgs.primitiveParseLong(value);
+        ((AddressOption) o).setValue(lval);
+        return true;
+      case Option.FLOAT_OPTION:
+        float fval = CommandLineArgs.primitiveParseFloat(value);
+        ((FloatOption) o).setValue(fval);
+        return true;
+      case Option.STRING_OPTION:
+        ((StringOption) o).setValue(value);
+        return true;
+      case Option.ENUM_OPTION:
+        ((EnumOption) o).setValue(value);
+        return true;
+      case Option.PAGES_OPTION:
+        long pval = CommandLineArgs.parseMemorySize(o.getName(), name, "b", 1, arg, value);
+        if (pval < 0) return false;
+        ((PagesOption) o).setBytes(Extent.fromIntSignExtend((int) pval));
+        return true;
+      case Option.MICROSECONDS_OPTION:
+        int mval = CommandLineArgs.primitiveParseInt(value);
+        ((MicrosecondsOption) o).setMicroseconds(mval);
+        return true;
     }
     // None of the above tests matched, so this wasn't an option
     return false;

@@ -35,7 +35,6 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.mm.mminterface.MemoryManager;
-//import org.jikesrvm.mm.mmtk.ScanBootImage;
 import org.jikesrvm.objectmodel.BootImageInterface;
 import org.jikesrvm.objectmodel.JavaHeader;
 import org.jikesrvm.objectmodel.ObjectModel;
@@ -43,7 +42,6 @@ import org.jikesrvm.runtime.Statics;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
-import org.jikesrvm.mm.mminterface.ScanBootImage;
 
 /**
  * Memory image of virtual machine that will be written to disk file and later
@@ -198,7 +196,7 @@ public class BootImage implements BootImageInterface {
        used portion of the array actually gets written into the image. */
     bootImageRMap = new byte[referenceMapReferences << LOG_BYTES_IN_WORD];
     //FIXME
-    rMapSize = ScanBootImage.encodeRMap(bootImageRMap, referenceMap, referenceMapLimit);
+    rMapSize = MemoryManager.encodeRMap(bootImageRMap, referenceMap, referenceMapLimit);
     FileOutputStream rmapOut = new FileOutputStream(imageRMapFileName);
     rmapOut.write(bootImageRMap, 0, rMapSize);
     rmapOut.flush();
@@ -206,7 +204,7 @@ public class BootImage implements BootImageInterface {
     if (trace) {
       say("total refs: " + referenceMapReferences);
     }
-    //ScanBootImage.encodingStats();
+    // fixme ScanBootImage.encodingStats();
   }
 
   /**

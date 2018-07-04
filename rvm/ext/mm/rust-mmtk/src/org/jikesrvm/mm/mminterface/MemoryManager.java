@@ -15,27 +15,18 @@ package org.jikesrvm.mm.mminterface;
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.*;
-import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.objectmodel.*;
-import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
-import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.SysCall;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
-import java.lang.ref.PhantomReference;
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
-
 import static org.jikesrvm.HeapLayoutConstants.*;
-import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MAX_ALIGNMENT;
-import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
+import static org.jikesrvm.runtime.CommandLineArgs.stringToBytes;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MIN_ALIGNMENT;
-import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MAX_SPACES;
 
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
@@ -48,89 +39,13 @@ public final class MemoryManager extends AbstractMemoryManager {
    * Class variables
    */
 
-  /**
-   * <code>true</code> if checking of allocated memory to ensure it is
-   * zeroed is desired.
-   */
-  private static final boolean CHECK_MEMORY_IS_ZEROED = false;
   private static final boolean traceAllocator = false;
   private static final boolean traceAllocation = false;
-
-  /**
-   * Has the interface been booted yet?
-   */
-  private static boolean booted = false;
-
-  /**
-   * Has garbage collection been enabled yet?
-   */
-  private static boolean collectionEnabled = false;
 
   /***********************************************************************
    *
    * Initialization
    */
-
-  @Entrypoint
-  public static void prepareMutator(RVMThread t) {
-    /*
-     * The collector threads of processors currently running threads
-     * off in JNI-land cannot run.
-     */
-    t.monitor().lockNoHandshake();
-    // are these the only unexpected states?
-    t.assertUnacceptableStates(RVMThread.IN_JNI,RVMThread.IN_NATIVE);
-    int execStatus = t.getExecStatus();
-    // these next assertions are not redundant given the ability of the
-    // states to change asynchronously, even when we're holding the lock, since
-    // the thread may change its own state.  of course that shouldn't happen,
-    // but having more assertions never hurts...
-    if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_JNI);
-    if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_NATIVE);
-    if (execStatus == RVMThread.BLOCKED_IN_JNI) {
-      if (false) {
-        VM.sysWriteln("for thread #",t.getThreadSlot()," setting up JNI stack scan");
-        VM.sysWriteln("thread #",t.getThreadSlot()," has top java fp = ",t.getJNIEnv().topJavaFP());
-      }
-
-      /* thread is blocked in C for this GC.
-       Its stack needs to be scanned, starting from the "top" java
-       frame, which has been saved in the running threads JNIEnv.  Put
-       the saved frame pointer into the threads saved context regs,
-       which is where the stack scan starts. */
-      t.contextRegisters.setInnermost(Address.zero(), t.getJNIEnv().topJavaFP());
-    }
-    t.monitor().unlock();
-  }
-
-
-  /*
-   * This code is just for rust to call into JikesRVM. It is only for debugging purposes.
-   */
-  @Entrypoint
-  public static int test2(int a, int b) {
-    return a + b;
-  }
-
-  @Entrypoint
-  public static int test3(int a, int b, int c, int d) {
-    VM.sysWriteln(a);
-    VM.sysWriteln(b);
-    VM.sysWriteln(c);
-    VM.sysWriteln(d);
-    return a * b + c + d;
-  }
-
-  @Entrypoint
-  public static void test1() {
-      VM.sysWriteln("testprint");
-  }
-
-  @Entrypoint
-  public static int test(int a) {
-    return a + 10;
-  }
-
 
   /**
    * Suppress default constructor to enforce noninstantiability.
@@ -146,7 +61,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Interruptible
   public static void boot(BootRecord theBootRecord) {
-    DebugUtil.boot(theBootRecord);
+    DebugUtil.boot(theBootRecord); // note: do we need this?
     sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
     RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
     booted = true;
@@ -162,27 +77,27 @@ public final class MemoryManager extends AbstractMemoryManager {
   }
 
   @Interruptible
-  @Entrypoint
-  public static void spawnCollectorThread(Address workerInstance) {
-    byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
-    CollectorThread t = new CollectorThread(stack);
-    t.setWorker(workerInstance);
-    t.start();
-  }
-
-  /**
-   * @return whether collection is enabled
-   */
-  public static boolean collectionEnabled() {
-    return collectionEnabled;
-  }
-
-  @Interruptible
   public static void processCommandLineArg(String arg) {
-    if (!OptionSet.gc.process(arg)) {
+    // FIXME this is a hackish solution
+    // First handle the "option commands"
+    if (arg.equals("help")) {
+      VM.sysWriteln("No help available for Rust :(");
+    }
+    // Required format of arg is 'name=value'
+    // Split into 'name' and 'value' strings
+    int split = arg.indexOf('=');
+    if (split == -1) {
+      VM.sysWriteln("  Illegal option specification!\n  \"" + arg +
+              "\" must be specified as a name-value pair in the form of option=value");
       VM.sysWriteln("Unrecognized command line argument: \"" + arg + "\"");
       VM.sysExit(EXIT_STATUS_BOGUS_COMMAND_LINE_ARG);
     }
+
+    String name = arg.substring(0,split);
+    String value = arg.substring(split + 1);
+    byte[] nameBytes = stringToBytes("converting name", name);
+    byte[] valueBytes = stringToBytes("converting value", value);
+    SysCall.sysCall.sysProcess(nameBytes, valueBytes);
   }
 
   /***********************************************************************
@@ -199,6 +114,8 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Entrypoint
   public static void modifyCheck(Object object) {
+    //fixme not implemented
+    return;
   }
 
   /***********************************************************************
@@ -238,40 +155,10 @@ public final class MemoryManager extends AbstractMemoryManager {
     return Extent.fromIntZeroExtend(SysCall.sysCall.sysTotalBytes());
   }
 
-  /**
-   * External call to force a garbage collection.
-   */
-  @Interruptible
-  public static void gc() { VM.sysWriteln("Called MM.gc(). This function does nothing.");}
-
   /****************************************************************************
    *
    * Check references, log information about references
    */
-
-  /**
-   * Logs information about a reference to the error output.
-   *
-   * @param ref the address to log information about
-   */
-  public static void dumpRef(ObjectReference ref) {
-    DebugUtil.dumpRef(ref);
-  }
-
-  /**
-   * Checks if a reference is valid.
-   *
-   * @param ref the address to be checked
-   * @return <code>true</code> if the reference is valid
-   */
-  @Inline
-  public static boolean validRef(ObjectReference ref) {
-    if (booted) {
-      return DebugUtil.validRef(ref);
-    } else {
-      return true;
-    }
-  }
 
   /**
    * Checks if an address refers to an in-use area of memory.
@@ -281,6 +168,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Inline
   public static boolean addressInVM(Address address) {
+    // note: check if this is correct
     return (SysCall.sysCall.sysStartingHeapAddress().LE(address) && address.LE(sysCall.sysCall.sysLastHeapAddress())) ||
             (BOOT_IMAGE_DATA_START.LE(address) && BOOT_IMAGE_END.LE(address));
   }
@@ -298,8 +186,7 @@ public final class MemoryManager extends AbstractMemoryManager {
    */
   @Inline
   public static boolean objectInVM(ObjectReference object) {
-    return (SysCall.sysCall.sysStartingHeapAddress().LE(object.toAddress()) && object.toAddress().LE(sysCall.sysCall.sysLastHeapAddress())) ||
-            (BOOT_IMAGE_DATA_START.LE(object.toAddress()) && BOOT_IMAGE_END.LE(object.toAddress()));
+    return addressInVM(object.toAddress().loadAddress());
   }
 
   /**
@@ -312,56 +199,15 @@ public final class MemoryManager extends AbstractMemoryManager {
     // In general we don't know which spaces may hold allocated stacks.
     // If we want to be more specific than the space being mapped we
     // will need to add a check in Plan that can be overriden.
+    // note: check this is correct
     return (SysCall.sysCall.sysStartingHeapAddress().LE(address) && address.LE(sysCall.sysCall.sysLastHeapAddress())) ||
             (BOOT_IMAGE_DATA_START.LE(address) && BOOT_IMAGE_END.LE(address));
   }
+
   /***********************************************************************
    *
    * Allocation
    */
-
-  /**
-   * Returns the appropriate allocation scheme/area for the given
-   * type.  This form is deprecated.  Without the RVMMethod argument,
-   * it is possible that the wrong allocator is chosen which may
-   * affect correctness. The prototypical example is that JMTk
-   * meta-data must generally be in immortal or at least non-moving
-   * space.
-   *
-   *
-   * @param type the type of the object to be allocated
-   * @return the identifier of the appropriate allocator
-   */
-  @Interruptible
-  public static int pickAllocator(RVMType type) {
-    return pickAllocator(type, null);
-  }
-
-  /**
-   * Is string <code>a</code> a prefix of string
-   * <code>b</code>. String <code>b</code> is encoded as an ASCII byte
-   * array.
-   *
-   * @param a prefix string
-   * @param b string which may contain prefix, encoded as an ASCII
-   * byte array.
-   * @return <code>true</code> if <code>a</code> is a prefix of
-   * <code>b</code>
-   */
-  @Interruptible
-  private static boolean isPrefix(String a, byte[] b) {
-    int aLen = a.length();
-    if (aLen > b.length) {
-      return false;
-    }
-    for (int i = 0; i < aLen; i++) {
-      if (a.charAt(i) != ((char) b[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
 
   /***********************************************************************
    * These methods allocate memory.  Specialized versions are available for
@@ -378,6 +224,88 @@ public final class MemoryManager extends AbstractMemoryManager {
   @UnpreemptibleNoWarn
   private static void throwLargeArrayOutOfMemoryError() {
     throw new OutOfMemoryError();
+  }
+
+  /***********************************************************************
+   *
+   * Allocation
+   */
+
+  /**
+   * Return an allocation site upon request.  The request may be made
+   * in the context of compilation.
+   *
+   * @param compileTime {@code true} if this request is being made in the
+   * context of a compilation.
+   * @return an allocation site
+   */
+  public static int getAllocationSite(boolean compileTime) {
+    return RustContext.DEFAULT_SITE;
+  }
+
+  /**
+   * Returns the appropriate allocation scheme/area for the given type
+   * and given method requesting the allocation.
+   *
+   * @param type the type of the object to be allocated
+   * @param method the method requesting the allocation
+   * @return the identifier of the appropriate allocator
+   */
+  @Interruptible
+  public static int pickAllocator(RVMType type, RVMMethod method) {
+    if (traceAllocator) {
+      VM.sysWrite("allocator for ");
+      VM.sysWrite(type.getDescriptor());
+      VM.sysWrite(": ");
+    }
+    if (method != null) {
+      // We should strive to be allocation-free here.
+      RVMClass cls = method.getDeclaringClass();
+      byte[] clsBA = cls.getDescriptor().toByteArray();
+      if (isPrefix("Lorg/jikesrvm/mm/", clsBA)) {
+        if (traceAllocator) {
+          VM.sysWriteln("NONMOVING");
+        }
+        return RustContext.ALLOC_NON_MOVING;
+      }
+      if (method.isNonMovingAllocation()) {
+        return RustContext.ALLOC_NON_MOVING;
+      }
+    }
+    if (traceAllocator) {
+      VM.sysWriteln(type.getMMAllocator());
+    }
+    return type.getMMAllocator();
+  }
+
+
+  /**
+   * Determine the default allocator to be used for a given type.
+   *
+   * @param type The type in question
+   * @return The allocator to use for allocating instances of type
+   * <code>type</code>.
+   */
+  @Interruptible
+  private static int pickAllocatorForType(RVMType type) {
+    int allocator = RustContext.ALLOC_DEFAULT;
+    if (type.isArrayType()) {
+      RVMType elementType = type.asArray().getElementType();
+      if (elementType.isPrimitiveType() || elementType.isUnboxedType()) {
+        allocator = RustContext.ALLOC_NON_REFERENCE;
+      }
+    }
+    if (type.isNonMoving()) {
+      allocator = RustContext.ALLOC_NON_MOVING;
+    }
+    byte[] typeBA = type.getDescriptor().toByteArray();
+    if (isPrefix("Lorg/jikesrvm/tuningfork", typeBA) || isPrefix("[Lorg/jikesrvm/tuningfork", typeBA) ||
+            isPrefix("Lcom/ibm/tuningfork/", typeBA) || isPrefix("[Lcom/ibm/tuningfork/", typeBA) ||
+            isPrefix("Lorg/jikesrvm/mm/", typeBA) || isPrefix("[Lorg/jikesrvm/mm/", typeBA) ||
+            isPrefix("Lorg/jikesrvm/jni/JNIEnvironment;", typeBA)) {
+      allocator = RustContext.ALLOC_NON_MOVING;
+    }
+    return allocator;
   }
 
   /**
@@ -403,21 +331,214 @@ public final class MemoryManager extends AbstractMemoryManager {
   }
 
   /**
-   * Allocate a new ITableArray
+   * Align an allocation using some modulo arithmetic to guarantee the
+   * following property:<br>
+   * <code>(region + offset) % alignment == 0</code>
    *
-   * @param size the number of slots in the ITableArray
-   * @return the new ITableArray
+   * @param initialOffset The initial (unaligned) start value of the
+   * allocated region of memory.
+   * @param align The alignment requested, must be a power of two
+   * @param offset The offset at which the alignment is desired
+   * @return <code>initialOffset</code> plus some delta (possibly 0) such
+   * that the return value is aligned according to the above
+   * constraints.
+   */
+  @Inline
+  public static Offset alignAllocation(Offset initialOffset, int align, int offset) {
+    Address region = org.jikesrvm.runtime.Memory.alignUp(initialOffset.toWord().toAddress(), MIN_ALIGNMENT);
+    return Selected.Mutator.alignAllocation(region, align, offset, MIN_ALIGNMENT, false).toWord().toOffset();
+  }
+
+  /**
+   * Allocate a stack
+   * @param bytes the number of bytes to allocate. Must be greater than
+   *  0.
+   * @return The stack
+   */
+  @NoInline
+  @Unpreemptible
+  public static byte[] newStack(int bytes) {
+    if (bytes <= 0) {
+      if (VM.VerifyAssertions) {
+        VM.sysWrite("Invalid stack size: ");
+        VM.sysWrite(bytes);
+        VM.sysWriteln("!");
+        VM._assert(VM.NOT_REACHED, "Attempted to create stack with size (in bytes) of 0 or smaller!");
+      } else {
+        bytes = StackFrameLayout.getStackSizeNormal();
+      }
+    }
+
+    if (!VM.runningVM) {
+      return new byte[bytes];
+    } else {
+      RVMArray stackType = RVMArray.ByteArray;
+      int headerSize = ObjectModel.computeArrayHeaderSize(stackType);
+      int align = ObjectModel.getAlignment(stackType);
+      int offset = ObjectModel.getOffsetForAlignment(stackType, false);
+      int width = stackType.getLogElementSize();
+      TIB stackTib = stackType.getTypeInformationBlock();
+
+      return (byte[]) allocateArray(bytes,
+              width,
+              headerSize,
+              stackTib,
+              RustContext.ALLOC_STACK,
+              align,
+              offset,
+              RustContext.DEFAULT_SITE);
+    }
+  }
+
+  /**
+   * Allocates a non moving word array.
+   *
+   * @param size The size of the array
+   * @return the new non moving word array
    */
   @NoInline
   @Interruptible
-  public static ITableArray newITableArray(int size) {
+  public static WordArray newNonMovingWordArray(int size) {
+    // fixme: code duplication for everything except the return
     if (!VM.runningVM) {
-      return ITableArray.allocate(size);
+      return WordArray.create(size);
     }
 
-    return (ITableArray)newRuntimeTable(size, RVMType.ITableArrayType);
+    RVMArray arrayType = RVMType.WordArrayType;
+    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
+    int align = ObjectModel.getAlignment(arrayType);
+    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
+    int width = arrayType.getLogElementSize();
+    TIB arrayTib = arrayType.getTypeInformationBlock();
+
+    return (WordArray) allocateArray(size,
+            width,
+            headerSize,
+            arrayTib,
+            RustContext.ALLOC_NON_MOVING,
+            align,
+            offset,
+            RustContext.DEFAULT_SITE);
+
   }
 
+  /**
+   * Allocates a non moving int array.
+   *
+   * @param size The size of the array
+   * @return the new non moving int array
+   */
+  @NoInline
+  @Interruptible
+  public static int[] newNonMovingIntArray(int size) {
+    //fixme: code duplication for everything except the return
+    if (!VM.runningVM) {
+      return new int[size];
+    }
+
+    RVMArray arrayType = RVMArray.IntArray;
+    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
+    int align = ObjectModel.getAlignment(arrayType);
+    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
+    int width = arrayType.getLogElementSize();
+    TIB arrayTib = arrayType.getTypeInformationBlock();
+
+    return (int[]) allocateArray(size,
+            width,
+            headerSize,
+            arrayTib,
+            RustContext.ALLOC_NON_MOVING,
+            align,
+            offset,
+            RustContext.DEFAULT_SITE);
+  }
+
+  /**
+   * Allocates a non moving short array.
+   *
+   * @param size The size of the array
+   * @return the new non moving short array
+   */
+  @NoInline
+  @Interruptible
+  public static short[] newNonMovingShortArray(int size) {
+    //fixme: code duplication for everything except the return
+    if (!VM.runningVM) {
+      return new short[size];
+    }
+
+    RVMArray arrayType = RVMArray.ShortArray;
+    int headerSize = ObjectModel.computeArrayHeaderSize(arrayType);
+    int align = ObjectModel.getAlignment(arrayType);
+    int offset = ObjectModel.getOffsetForAlignment(arrayType, false);
+    int width = arrayType.getLogElementSize();
+    TIB arrayTib = arrayType.getTypeInformationBlock();
+
+    return (short[]) allocateArray(size,
+            width,
+            headerSize,
+            arrayTib,
+            RustContext.ALLOC_NON_MOVING,
+            align,
+            offset,
+            RustContext.DEFAULT_SITE);
+  }
+
+  /**
+   * Allocates a new type information block (TIB).
+   *
+   * @param numVirtualMethods the number of virtual method slots in the TIB
+   * @param alignCode alignment encoding for the TIB
+   * @return the new TIB
+   * @see AlignmentEncoding
+   */
+  @NoInline
+  @Interruptible
+  public static TIB newTIB(int numVirtualMethods, int alignCode) {
+    int elements = TIB.computeSize(numVirtualMethods);
+
+    if (!VM.runningVM) {
+      return TIB.allocate(elements, alignCode);
+    }
+    if (alignCode == AlignmentEncoding.ALIGN_CODE_NONE) {
+      return (TIB)newRuntimeTable(elements, RVMType.TIBType);
+    }
+
+    RVMType type = RVMType.TIBType;
+    if (VM.VerifyAssertions) VM._assert(VM.runningVM);
+
+    TIB realTib = type.getTypeInformationBlock();
+    RVMArray fakeType = RVMType.WordArrayType;
+    TIB fakeTib = fakeType.getTypeInformationBlock();
+    int headerSize = ObjectModel.computeArrayHeaderSize(fakeType);
+    int align = ObjectModel.getAlignment(fakeType);
+    int offset = ObjectModel.getOffsetForAlignment(fakeType, false);
+    int width = fakeType.getLogElementSize();
+    int elemBytes = elements << width;
+    if (elemBytes < 0 || (elemBytes >>> width) != elements) {
+      /* asked to allocate more than Integer.MAX_VALUE bytes */
+      throwLargeArrayOutOfMemoryError();
+    }
+    int size = elemBytes + headerSize + AlignmentEncoding.padding(alignCode);
+    Selected.Mutator mutator = Selected.Mutator.get();
+    Address region = allocateSpace(mutator, size, align, offset, type.getMMAllocator(), RustContext.DEFAULT_SITE);
+
+    region = AlignmentEncoding.adjustRegion(alignCode, region);
+
+    Object result = ObjectModel.initializeArray(region, fakeTib, elements, size);
+    // note: mutator must implement postAlloc
+    mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(fakeTib), size, type.getMMAllocator());
+
+    /* Now we replace the TIB */
+    ObjectModel.setTIB(result, realTib);
+
+    if (traceAllocation) {
+      VM.sysWrite("tib: ", ObjectReference.fromObject(result));
+      VM.sysWrite(" ", region);
+      VM.sysWriteln("-", region.plus(size));
+    }
+    return (TIB)result;
+  }
 
   /**
    * Checks if the object can move. This information is useful to
@@ -430,73 +551,6 @@ public final class MemoryManager extends AbstractMemoryManager {
   @Pure
   public static boolean willNeverMove(Object obj) {
     return sysCall.sysWillNeverMove(ObjectReference.fromObject(obj));
-  }
-
-  /***********************************************************************
-   *
-   * Finalizers
-   */
-
-  /**
-   * Adds an object to the list of objects to have their
-   * <code>finalize</code> method called when they are reclaimed.
-   *
-   * @param object the object to be added to the finalizer's list
-   */
-  @Interruptible
-  public static void addFinalizer(Object object) {
-    //FinalizableProcessor.addCandidate(object);
-  }
-
-  /**
-   * Gets an object from the list of objects that are to be reclaimed
-   * and need to have their <code>finalize</code> method called.
-   *
-   * @return the object needing to be finialized
-   */
-  @Unpreemptible("Non-preemptible but may yield if finalizable table is being grown")
-  public static Object getFinalizedObject() {
-    //return FinalizableProcessor.getForFinalize();
-    VM.sysFail("Have not yet implemented getFinalizedObject for RustMMTk");
-    return null;
-  }
-
-  /***********************************************************************
-   *
-   * References
-   */
-
-  /**
-   * Add a soft reference to the list of soft references.
-   *
-   * @param obj the soft reference to be added to the list
-   * @param referent the object that the reference points to
-   */
-  @Interruptible
-  public static void addSoftReference(SoftReference<?> obj, Object referent) {
-    //ReferenceProcessor.addSoftCandidate(obj,ObjectReference.fromObject(referent));
-  }
-
-  /**
-   * Add a weak reference to the list of weak references.
-   *
-   * @param obj the weak reference to be added to the list
-   * @param referent the object that the reference points to
-   */
-  @Interruptible
-  public static void addWeakReference(WeakReference<?> obj, Object referent) {
-    //ReferenceProcessor.addWeakCandidate(obj,ObjectReference.fromObject(referent));
-  }
-
-  /**
-   * Add a phantom reference to the list of phantom references.
-   *
-   * @param obj the phantom reference to be added to the list
-   * @param referent the object that the reference points to
-   */
-  @Interruptible
-  public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
-    //ReferenceProcessor.addPhantomCandidate(obj,ObjectReference.fromObject(referent));
   }
 
   /***********************************************************************
@@ -520,18 +574,56 @@ public final class MemoryManager extends AbstractMemoryManager {
 
   /***********************************************************************
    *
-   * Miscellaneous
+   * Header initialization
    */
 
   /**
-   * A new type has been resolved by the VM.  Create a new MM type to
-   * reflect the VM type, and associate the MM type with the VM type.
+   * Override the boot-time initialization method here, so that
+   * the core MMTk code doesn't need to know about the
+   * BootImageInterface type.
    *
-   * @param vmType The newly resolved type
+   * @param bootImage the bootimage instance
+   * @param ref the object's address
+   * @param tib the object's TIB
+   * @param size the number of bytes allocated by the GC system for
+   *  the object
+   * @param isScalar whether the header belongs to a scalar or an array
    */
   @Interruptible
+  public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
+                                      boolean isScalar) {
+    byte status = 0;
+    JavaHeader.writeAvailableByte(bootImage, ref, status);
+  }
+
+  /**
+   * Installs a reference into the boot image.
+   *
+   * @param value the reference to install
+   * @return the installed reference
+   */
+  @Interruptible
+  public static Word bootTimeWriteBarrier(Word value) {
+    return value;
+  }
+
+  /***********************************************************************
+   *
+   * Miscellaneous
+   */
+
+  @Interruptible
   public static void notifyClassResolved(RVMType vmType) {
-    //vmType.setMMAllocator(pickAllocatorForType(vmType));
+    vmType.setMMAllocator(pickAllocatorForType(vmType));
+  }
+
+  /**
+   * @return the number of specialized methods.
+   */
+  public static int numSpecializedMethods() {
+    // note: check whether different RMMTk plans may have multiple specializedMethods
+    // we may have to put this in selected
+    return 0;
   }
 
   /**
@@ -550,35 +642,11 @@ public final class MemoryManager extends AbstractMemoryManager {
             SysCall.sysCall.sysLastHeapAddress().GT(ObjectReference.fromObject(ObjectModel.getTIB(obj)).toAddress());
   }
 
+
   /***********************************************************************
    *
-   * Deprecated and/or broken.  The following need to be expunged.
+   * Entrypoints used by Rust
    */
-
-  /**
-   * Returns the maximum number of heaps that can be managed.
-   *
-   * @return the maximum number of heaps
-   */
-  public static int getMaxHeaps() {
-    /*
-     *  The boot record has a table of address ranges of the heaps,
-     *  the maximum number of heaps is used to size the table.
-     */
-    return MAX_SPACES;
-  }
-
-  /**
-   * Allocate a contiguous int array
-   * @param n The number of ints
-   * @return The contiguous int array
-   */
-  @Inline
-  @Interruptible
-  public static int[] newContiguousIntArray(int n) {
-    return new int[n];
-  }
-
 
   @Entrypoint
   @Unpreemptible
@@ -588,5 +656,74 @@ public final class MemoryManager extends AbstractMemoryManager {
     RVMThread.observeExecStatusAtSTW(t.getExecStatus());
     t.block(RVMThread.gcBlockAdapter);
   }
+
+  @Entrypoint
+  public static void prepareMutator(RVMThread t) {
+    /*
+     * The collector threads of processors currently running threads
+     * off in JNI-land cannot run.
+     */
+    t.monitor().lockNoHandshake();
+    // are these the only unexpected states?
+    t.assertUnacceptableStates(RVMThread.IN_JNI,RVMThread.IN_NATIVE);
+    int execStatus = t.getExecStatus();
+    // these next assertions are not redundant given the ability of the
+    // states to change asynchronously, even when we're holding the lock, since
+    // the thread may change its own state.  of course that shouldn't happen,
+    // but having more assertions never hurts...
+    if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_JNI);
+    if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_NATIVE);
+    if (execStatus == RVMThread.BLOCKED_IN_JNI) {
+      if (false) {
+        VM.sysWriteln("for thread #",t.getThreadSlot()," setting up JNI stack scan");
+        VM.sysWriteln("thread #",t.getThreadSlot()," has top java fp = ",t.getJNIEnv().topJavaFP());
+      }
+
+      /* thread is blocked in C for this GC.
+       Its stack needs to be scanned, starting from the "top" java
+       frame, which has been saved in the running threads JNIEnv.  Put
+       the saved frame pointer into the threads saved context regs,
+       which is where the stack scan starts. */
+      t.contextRegisters.setInnermost(Address.zero(), t.getJNIEnv().topJavaFP());
+    }
+    t.monitor().unlock();
+  }
+
+  @Interruptible
+  @Entrypoint
+  public static void spawnCollectorThread(Address workerInstance) {
+    byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
+    CollectorThread t = new CollectorThread(stack);
+    t.setWorker(workerInstance);
+    t.start();
+  }
+
+  /*
+   * This code is just for rust to call into JikesRVM. It is only for debugging purposes.
+   */
+  @Entrypoint
+  public static int test2(int a, int b) {
+    return a + b;
+  }
+
+  @Entrypoint
+  public static int test3(int a, int b, int c, int d) {
+    VM.sysWriteln(a);
+    VM.sysWriteln(b);
+    VM.sysWriteln(c);
+    VM.sysWriteln(d);
+    return a * b + c + d;
+  }
+
+  @Entrypoint
+  public static void test1() {
+    VM.sysWriteln("testprint");
+  }
+
+  @Entrypoint
+  public static int test(int a) {
+    return a + 10;
+  }
+
 }
 

@@ -104,7 +104,7 @@ public class BaseEntrypoints {
   public static final RVMField activeMutatorContextField =
     getField(org.jikesrvm.scheduler.RVMThread.class, "activeMutatorContext", boolean.class);
   public static final RVMField mmtkHandleField =
-    getField(org.jikesrvm.mm.mminterface.Selected.Mutator.class, "mmtkHandle",
+    getField(org.jikesrvm.mm.mminterface.RustContext.class, "mmtkHandle",
             org.vmmagic.unboxed.Address.class);
   public static final RVMField functionTableDataField =
     getField(org.jikesrvm.jni.FunctionTable.class, "data",

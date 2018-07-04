@@ -30,16 +30,8 @@ import org.jikesrvm.objectmodel.ITable;
 import org.jikesrvm.objectmodel.ITableArray;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.BootRecord;
-import org.vmmagic.pragma.Inline;
-import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.NoInline;
-import org.vmmagic.pragma.Pure;
-import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Unpreemptible;
-import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Extent;
-import org.vmmagic.unboxed.ObjectReference;
-import org.vmmagic.unboxed.WordArray;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
@@ -118,6 +110,23 @@ public abstract class AbstractMemoryManager {
   @Interruptible
   public static void processCommandLineArg(String arg) {
     throw new UnsupportedOperationException("processCommandLineArg() has not been implemented in subclass");
+  }
+
+  /***********************************************************************
+   *
+   * Write barriers
+   */
+
+  /**
+   * Checks that if a garbage collection is in progress then the given
+   * object is not movable.  If it is movable error messages are
+   * logged and the system exits.
+   *
+   * @param object the object to check
+   */
+  @Entrypoint
+  public static void modifyCheck(Object object) {
+    VM.sysFail("modifyCheck() has not been implemented in subclass");
   }
 
   /***********************************************************************
@@ -226,6 +235,31 @@ public abstract class AbstractMemoryManager {
    */
 
   /**
+   * Is string <code>a</code> a prefix of string
+   * <code>b</code>. String <code>b</code> is encoded as an ASCII byte
+   * array.
+   *
+   * @param a prefix string
+   * @param b string which may contain prefix, encoded as an ASCII
+   * byte array.
+   * @return <code>true</code> if <code>a</code> is a prefix of
+   * <code>b</code>
+   */
+  @Interruptible
+  static boolean isPrefix(String a, byte[] b) {
+    int aLen = a.length();
+    if (aLen > b.length) {
+      return false;
+    }
+    for (int i = 0; i < aLen; i++) {
+      if (a.charAt(i) != ((char) b[i])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Return an allocation site upon request.  The request may be made
    * in the context of compilation.
    *
@@ -266,19 +300,6 @@ public abstract class AbstractMemoryManager {
   @Interruptible
   public static int pickAllocator(RVMType type, RVMMethod method) {
     throw new UnsupportedOperationException("pickAllocator() has not been implemented in subclass");
-  }
-
-
-  /**
-   * Determine the default allocator to be used for a given type.
-   *
-   * @param type The type in question
-   * @return The allocator to use for allocating instances of type
-   * <code>type</code>.
-   */
-  @Interruptible
-  private static int pickAllocatorForType(RVMType type) {
-    throw new UnsupportedOperationException("pickAllocatorForType() has not been implemented in subclass");
   }
 
   /***********************************************************************
@@ -327,6 +348,25 @@ public abstract class AbstractMemoryManager {
   public static Object allocateArray(int numElements, int logElementSize, int headerSize, TIB tib, int allocator,
                                      int align, int offset, int site) {
     VM.sysFail("allocateArray() has not been implemented in subclass");
+    return null;
+  }
+
+  /**
+   * Align an allocation using some modulo arithmetic to guarantee the
+   * following property:<br>
+   * <code>(region + offset) % alignment == 0</code>
+   *
+   * @param initialOffset The initial (unaligned) start value of the
+   * allocated region of memory.
+   * @param align The alignment requested, must be a power of two
+   * @param offset The offset at which the alignment is desired
+   * @return <code>initialOffset</code> plus some delta (possibly 0) such
+   * that the return value is aligned according to the above
+   * constraints.
+   */
+  @Inline
+  public static Offset alignAllocation(Offset initialOffset, int align, int offset) {
+    VM.sysFail("alignAllocation() has not been implemented in subclass");
     return null;
   }
 
@@ -583,7 +623,7 @@ public abstract class AbstractMemoryManager {
    */
   @Interruptible
   public static void notifyClassResolved(RVMType vmType) {
-    vmType.setMMAllocator(pickAllocatorForType(vmType));
+    throw new UnsupportedOperationException("notifyClassResolved() has not been implemented in subclass");
   }
 
   /**
@@ -656,6 +696,17 @@ public abstract class AbstractMemoryManager {
   public static void initializeHeader(BootImageInterface bootImage, Address ref, TIB tib, int size,
                                       boolean isScalar) {
     throw new UnsupportedOperationException("initializeHeader() has not been implemented in subclass");
+  }
+
+  /**
+   * Installs a reference into the boot image.
+   *
+   * @param value the reference to install
+   * @return the installed reference
+   */
+  @Interruptible
+  public static Word bootTimeWriteBarrier(Word value) {
+    throw new UnsupportedOperationException("createSpecializedMethod() has not been implemented in subclass");
   }
 
   /***********************************************************************

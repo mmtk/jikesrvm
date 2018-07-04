@@ -12,24 +12,34 @@
  */
 package org.jikesrvm.mm.mminterface;
 
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_BOOLEAN;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_DOUBLE;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_FLOAT;
+import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
+
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.ARRAY_ELEMENT;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.INSTANCE_FIELD;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.LOG_BYTES_IN_ADDRESS;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.LOG_BYTES_IN_CHAR;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.LOG_BYTES_IN_INT;
+import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.LOG_BYTES_IN_SHORT;
+
 import org.jikesrvm.VM;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.runtime.Memory;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.*;
+import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.Extent;
+import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.unboxed.Offset;
+import org.vmmagic.unboxed.Word;
 
-import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.*;
-import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.LOG_BYTES_IN_CHAR;
-import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.LOG_BYTES_IN_INT;
-import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.LOG_BYTES_IN_SHORT;
-import static org.jikesrvm.runtime.JavaSizeConstants.*;
-import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_LONG;
 
 
 @Uninterruptible
-public class Barriers {
+public class AbstractBarriers {
   /** {@code true} if the selected plan requires a read barrier on java.lang.ref.Reference types */
   private static final boolean NEEDS_JAVA_LANG_REFERENCE_GC_READ_BARRIER = false; // Selected.Constraints.get().needsJavaLangReferenceReadBarrier();
   /** {@code true} if the selected plan requires a read barrier on java.lang.ref.Reference types */
@@ -42,7 +52,10 @@ public class Barriers {
    * @return The object to release to the mutator.
    */
   public static Object javaLangReferenceReadBarrier(Object obj) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_JAVA_LANG_REFERENCE_GC_READ_BARRIER) {
+      ObjectReference result = Selected.Mutator.get().javaLangReferenceReadBarrier(ObjectReference.fromObject(obj));
+      return result.toObject();
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return null;
   }
@@ -75,8 +88,11 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static void booleanFieldWrite(Object ref, boolean value, Offset offset, int locationMetadata) {
-     if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
-
+    if (NEEDS_BOOLEAN_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().booleanWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -91,7 +107,12 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static void booleanArrayWrite(boolean[] ref, int index, boolean value) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    if (NEEDS_BOOLEAN_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_BOOLEAN);
+      Selected.Mutator.get().booleanWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
+      VM._assert(VM.NOT_REACHED);
   }
 
   /**
@@ -105,7 +126,10 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static boolean booleanFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_BOOLEAN_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().booleanRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return false;
   }
@@ -120,7 +144,11 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static boolean booleanArrayRead(boolean[] ref, int index) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_BOOLEAN_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_BOOLEAN);
+      return Selected.Mutator.get().booleanRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return false;
   }
@@ -136,23 +164,27 @@ public class Barriers {
    */
   @Inline
   public static void booleanBulkCopy(boolean[] src, Offset srcOffset, boolean[] dst, Offset dstOffset, int bytes) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(BOOLEAN_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().booleanBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.aligned8Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
   /** {@code true} if the garbage collector requires write barriers on byte putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_BYTE_GC_WRITE_BARRIER     = false; // Selected.Constraints.get().needsByteWriteBarrier();
+  private static final boolean NEEDS_BYTE_GC_WRITE_BARRIER     = Selected.Constraints.get().needsByteWriteBarrier();
   /** {@code true} if the VM requires write barriers on byte putfield */
   public static final boolean  NEEDS_BYTE_PUTFIELD_BARRIER     = NEEDS_BYTE_GC_WRITE_BARRIER;
   /** {@code true} if the VM requires write barriers on byte arraystore */
   public static final boolean  NEEDS_BYTE_ASTORE_BARRIER       = NEEDS_BYTE_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on byte getfield or arrayload */
-  private static final boolean NEEDS_BYTE_GC_READ_BARRIER      = false; //Selected.Constraints.get().needsByteReadBarrier();
+  private static final boolean NEEDS_BYTE_GC_READ_BARRIER      = Selected.Constraints.get().needsByteReadBarrier();
   /** {@code true} if the VM requires read barriers on byte getfield */
   public static final boolean  NEEDS_BYTE_GETFIELD_BARRIER     = NEEDS_BYTE_GC_READ_BARRIER;
   /** {@code true} if the VM requires read barriers on byte arrayload */
   public static final boolean  NEEDS_BYTE_ALOAD_BARRIER        = NEEDS_BYTE_GC_READ_BARRIER;
   /** {@code true} if the garbage collector does not support the bulk copy operation */
-  public static final boolean BYTE_BULK_COPY_SUPPORTED         = false; //!(NEEDS_BYTE_ASTORE_BARRIER || NEEDS_BYTE_ALOAD_BARRIER) || Selected.Constraints.get().byteBulkCopySupported();
+  public static final boolean BYTE_BULK_COPY_SUPPORTED         = !(NEEDS_BYTE_ASTORE_BARRIER || NEEDS_BYTE_ALOAD_BARRIER) || Selected.Constraints.get().byteBulkCopySupported();
 
   /**
    * Barrier for writes of bytes into fields of instances (i.e. putfield).
@@ -165,7 +197,10 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static void byteFieldWrite(Object ref, byte value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_BYTE_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().byteWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -181,7 +216,11 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static void byteArrayWrite(byte[] ref, int index, byte value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_BYTE_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index);
+      Selected.Mutator.get().byteWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -196,7 +235,10 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static byte byteFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_BYTE_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().byteRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -211,7 +253,11 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static byte byteArrayRead(byte[] ref, int index) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_BYTE_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index);
+      return Selected.Mutator.get().byteRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -227,24 +273,28 @@ public class Barriers {
    */
   @Inline
   public static void byteBulkCopy(byte[] src, Offset srcOffset, byte[] dst, Offset dstOffset, int bytes) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(BYTE_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().byteBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.aligned8Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
   /** {@code true} if the garbage collector requires write barriers on char putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_CHAR_GC_WRITE_BARRIER     = false; //Selected.Constraints.get().needsCharWriteBarrier();
+  private static final boolean NEEDS_CHAR_GC_WRITE_BARRIER     = Selected.Constraints.get().needsCharWriteBarrier();
   /** {@code true} if the VM requires write barriers on char putfield */
   public static final boolean  NEEDS_CHAR_PUTFIELD_BARRIER     = NEEDS_CHAR_GC_WRITE_BARRIER;
   /** {@code true} if the VM requires write barriers on char arraystore */
   public static final boolean  NEEDS_CHAR_ASTORE_BARRIER       = NEEDS_CHAR_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on char getfield or arrayload */
-  private static final boolean NEEDS_CHAR_GC_READ_BARRIER      = false; //Selected.Constraints.get().needsCharReadBarrier();
+  private static final boolean NEEDS_CHAR_GC_READ_BARRIER      = Selected.Constraints.get().needsCharReadBarrier();
   /** {@code true} if the VM requires read barriers on char getfield */
   public static final boolean  NEEDS_CHAR_GETFIELD_BARRIER     = NEEDS_CHAR_GC_READ_BARRIER;
   /** {@code true} if the VM requires read barriers on char arrayload */
   public static final boolean  NEEDS_CHAR_ALOAD_BARRIER        = NEEDS_CHAR_GC_READ_BARRIER;
   /** {@code true} if the garbage collector does not support the bulk copy operation */
-  public static final boolean CHAR_BULK_COPY_SUPPORTED         = false;// !(NEEDS_CHAR_ASTORE_BARRIER || NEEDS_CHAR_ALOAD_BARRIER) || Selected.Constraints.get().charBulkCopySupported();
+  public static final boolean CHAR_BULK_COPY_SUPPORTED         = !(NEEDS_CHAR_ASTORE_BARRIER || NEEDS_CHAR_ALOAD_BARRIER) || Selected.Constraints.get().charBulkCopySupported();
 
   /**
    * Barrier for writes of chars into fields of instances (i.e. putfield).
@@ -257,7 +307,10 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static void charFieldWrite(Object ref, char value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_CHAR_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().charWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -273,7 +326,11 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static void charArrayWrite(char[] ref, int index, char value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_CHAR_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_CHAR);
+      Selected.Mutator.get().charWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -288,7 +345,10 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static char charFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_CHAR_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().charRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -303,7 +363,11 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static char charArrayRead(char[] ref, int index) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_CHAR_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_CHAR);
+      return Selected.Mutator.get().charRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -319,24 +383,28 @@ public class Barriers {
    */
   @Inline
   public static void charBulkCopy(char[] src, Offset srcOffset, char[] dst, Offset dstOffset, int bytes) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(CHAR_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().charBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.aligned16Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
   /** {@code true} if the garbage collector requires write barriers on short putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_SHORT_GC_WRITE_BARRIER     = false; //Selected.Constraints.get().needsShortWriteBarrier();
+  private static final boolean NEEDS_SHORT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsShortWriteBarrier();
   /** {@code true} if the VM requires write barriers on short putfield */
   public static final boolean  NEEDS_SHORT_PUTFIELD_BARRIER     = NEEDS_SHORT_GC_WRITE_BARRIER;
   /** {@code true} if the VM requires write barriers on short arraystore */
   public static final boolean  NEEDS_SHORT_ASTORE_BARRIER       = NEEDS_SHORT_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on short getfield or arrayload */
-  private static final boolean NEEDS_SHORT_GC_READ_BARRIER      = false;//Selected.Constraints.get().needsShortReadBarrier();
+  private static final boolean NEEDS_SHORT_GC_READ_BARRIER      = Selected.Constraints.get().needsShortReadBarrier();
   /** {@code true} if the VM requires read barriers on short getfield */
   public static final boolean  NEEDS_SHORT_GETFIELD_BARRIER     = NEEDS_SHORT_GC_READ_BARRIER;
   /** {@code true} if the VM requires read barriers on short arrayload */
   public static final boolean  NEEDS_SHORT_ALOAD_BARRIER        = NEEDS_SHORT_GC_READ_BARRIER;
   /** {@code true} if the garbage collector does not support the bulk copy operation */
-  public static final boolean SHORT_BULK_COPY_SUPPORTED         = false;//!(NEEDS_SHORT_ASTORE_BARRIER || NEEDS_SHORT_ALOAD_BARRIER) || Selected.Constraints.get().shortBulkCopySupported();
+  public static final boolean SHORT_BULK_COPY_SUPPORTED         = !(NEEDS_SHORT_ASTORE_BARRIER || NEEDS_SHORT_ALOAD_BARRIER) || Selected.Constraints.get().shortBulkCopySupported();
 
   /**
    * Barrier for writes of shorts into fields of instances (i.e. putfield).
@@ -349,7 +417,10 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static void shortFieldWrite(Object ref, short value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_SHORT_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().shortWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -365,7 +436,11 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static void shortArrayWrite(short[] ref, int index, short value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_SHORT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_SHORT);
+      Selected.Mutator.get().shortWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -380,7 +455,10 @@ public class Barriers {
   @Inline
   @Entrypoint
   public static short shortFieldRead(Object ref, Offset offset, int locationMetadata) {
-if (VM.VerifyAssertions)
+    if (NEEDS_SHORT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().shortRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -395,7 +473,11 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static short shortArrayRead(short[] ref, int index) {
-if (VM.VerifyAssertions)
+    if (NEEDS_SHORT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_SHORT);
+      return Selected.Mutator.get().shortRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -411,25 +493,29 @@ if (VM.VerifyAssertions)
    */
   @Inline
   public static void shortBulkCopy(short[] src, Offset srcOffset, short[] dst, Offset dstOffset, int bytes) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(SHORT_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().shortBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.aligned16Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
 
   /** {@code true} if the garbage collector requires write barriers on int putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_INT_GC_WRITE_BARRIER     = false;//Selected.Constraints.get().needsIntWriteBarrier();
+  private static final boolean NEEDS_INT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsIntWriteBarrier();
   /** {@code true} if the VM requires write barriers on int putfield */
   public static final boolean  NEEDS_INT_PUTFIELD_BARRIER     = NEEDS_INT_GC_WRITE_BARRIER;
   /** {@code true} if the VM requires write barriers on int arraystore */
   public static final boolean  NEEDS_INT_ASTORE_BARRIER       = NEEDS_INT_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on int getfield or arrayload */
-  private static final boolean NEEDS_INT_GC_READ_BARRIER      = false;//Selected.Constraints.get().needsIntReadBarrier();
+  private static final boolean NEEDS_INT_GC_READ_BARRIER      = Selected.Constraints.get().needsIntReadBarrier();
   /** {@code true} if the VM requires read barriers on int getfield */
   public static final boolean  NEEDS_INT_GETFIELD_BARRIER     = NEEDS_INT_GC_READ_BARRIER;
   /** {@code true} if the VM requires read barriers on int arrayload */
   public static final boolean  NEEDS_INT_ALOAD_BARRIER        = NEEDS_INT_GC_READ_BARRIER;
   /** {@code true} if the garbage collector does not support the bulk copy operation */
-  public static final boolean INT_BULK_COPY_SUPPORTED         = false;//!(NEEDS_INT_ASTORE_BARRIER || NEEDS_INT_ALOAD_BARRIER) || Selected.Constraints.get().intBulkCopySupported();
+  public static final boolean INT_BULK_COPY_SUPPORTED         = !(NEEDS_INT_ASTORE_BARRIER || NEEDS_INT_ALOAD_BARRIER) || Selected.Constraints.get().intBulkCopySupported();
 
   /**
    * Barrier for writes of ints into fields of instances (i.e. putfield).
@@ -442,7 +528,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void intFieldWrite(Object ref, int value, Offset offset, int locationMetadata) {
- if (VM.VerifyAssertions)
+    if (NEEDS_INT_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().intWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -458,7 +547,11 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void intArrayWrite(int[] ref, int index, int value) {
-if (VM.VerifyAssertions)
+    if (NEEDS_INT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_INT);
+      Selected.Mutator.get().intWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -473,7 +566,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static int intFieldRead(Object ref, Offset offset, int locationMetadata) {
-if (VM.VerifyAssertions)
+    if (NEEDS_INT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().intRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -488,7 +584,11 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static int intArrayRead(int[] ref, int index) {
-if (VM.VerifyAssertions)
+    if (NEEDS_INT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_INT);
+      return Selected.Mutator.get().intRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -504,7 +604,11 @@ if (VM.VerifyAssertions)
    */
   @Inline
   public static void intBulkCopy(int[] src, Offset srcOffset, int[] dst, Offset dstOffset, int bytes) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(INT_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().intBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.aligned32Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
   /**
@@ -517,26 +621,31 @@ if (VM.VerifyAssertions)
    */
   @Inline
   public static boolean intTryCompareAndSwap(Object ref, Offset offset, int old, int value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_INT_GC_WRITE_BARRIER || NEEDS_INT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().intTryCompareAndSwap(src, src.toAddress().plus(offset), old, value, offset.toWord(),
+                                                         Word.zero(), // do not have location metadata
+                                                         INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return false;
   }
 
 
   /** {@code true} if the garbage collector requires write barriers on long putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_LONG_GC_WRITE_BARRIER     = false;//Selected.Constraints.get().needsLongWriteBarrier();
+  private static final boolean NEEDS_LONG_GC_WRITE_BARRIER     = Selected.Constraints.get().needsLongWriteBarrier();
   /** {@code true} if the VM requires write barriers on long putfield */
   public static final boolean  NEEDS_LONG_PUTFIELD_BARRIER     = NEEDS_LONG_GC_WRITE_BARRIER;
   /** {@code true} if the VM requires write barriers on long arraystore */
   public static final boolean  NEEDS_LONG_ASTORE_BARRIER       = NEEDS_LONG_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on long getfield or arrayload */
-  private static final boolean NEEDS_LONG_GC_READ_BARRIER      = false;//Selected.Constraints.get().needsLongReadBarrier();
+  private static final boolean NEEDS_LONG_GC_READ_BARRIER      = Selected.Constraints.get().needsLongReadBarrier();
   /** {@code true} if the VM requires read barriers on long getfield */
   public static final boolean  NEEDS_LONG_GETFIELD_BARRIER     = NEEDS_LONG_GC_READ_BARRIER;
   /** {@code true} if the VM requires read barriers on long arrayload */
   public static final boolean  NEEDS_LONG_ALOAD_BARRIER        = NEEDS_LONG_GC_READ_BARRIER;
   /** {@code true} if the garbage collector supports the bulk copy operation */
-  public static final boolean LONG_BULK_COPY_SUPPORTED         = false;//!(NEEDS_LONG_ASTORE_BARRIER || NEEDS_LONG_ALOAD_BARRIER) || Selected.Constraints.get().longBulkCopySupported();
+  public static final boolean LONG_BULK_COPY_SUPPORTED         = !(NEEDS_LONG_ASTORE_BARRIER || NEEDS_LONG_ALOAD_BARRIER) || Selected.Constraints.get().longBulkCopySupported();
 
   /**
    * Barrier for writes of longs into fields of instances (i.e. putfield).
@@ -549,7 +658,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void longFieldWrite(Object ref, long value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_LONG_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().longWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -565,7 +677,11 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void longArrayWrite(long[] ref, int index, long value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_LONG_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_LONG);
+      Selected.Mutator.get().longWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -580,7 +696,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static long longFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_LONG_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().longRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -595,7 +714,11 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static long longArrayRead(long[] ref, int index) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_LONG_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_LONG);
+      return Selected.Mutator.get().longRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -610,7 +733,12 @@ if (VM.VerifyAssertions)
    */
   @Inline
   public static boolean longTryCompareAndSwap(Object ref, Offset offset, long old, long value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_LONG_GC_WRITE_BARRIER || NEEDS_LONG_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().longTryCompareAndSwap(src, src.toAddress().plus(offset), old, value, offset.toWord(),
+                                                          Word.zero(), // do not have location metadata
+                                                          INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return false;
   }
@@ -625,24 +753,28 @@ if (VM.VerifyAssertions)
    */
   @Inline
   public static void longBulkCopy(long[] src, Offset srcOffset, long[] dst, Offset dstOffset, int bytes) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(LONG_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().longBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.aligned64Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
   /** {@code true} if the garbage collector requires write barriers on float putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_FLOAT_GC_WRITE_BARRIER     = false;//Selected.Constraints.get().needsFloatWriteBarrier();
+  private static final boolean NEEDS_FLOAT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsFloatWriteBarrier();
   /** {@code true} if the VM requires write barriers on float putfield */
   public static final boolean  NEEDS_FLOAT_PUTFIELD_BARRIER     = NEEDS_FLOAT_GC_WRITE_BARRIER;
   /** {@code true} if the VM requires write barriers on float arraystore */
   public static final boolean  NEEDS_FLOAT_ASTORE_BARRIER       = NEEDS_FLOAT_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on float getfield or arrayload */
-  private static final boolean NEEDS_FLOAT_GC_READ_BARRIER      = false;//Selected.Constraints.get().needsFloatReadBarrier();
+  private static final boolean NEEDS_FLOAT_GC_READ_BARRIER      = Selected.Constraints.get().needsFloatReadBarrier();
   /** {@code true} if the VM requires read barriers on float getfield */
   public static final boolean  NEEDS_FLOAT_GETFIELD_BARRIER     = NEEDS_FLOAT_GC_READ_BARRIER;
   /** {@code true} if the VM requires read barriers on float arrayload */
   public static final boolean  NEEDS_FLOAT_ALOAD_BARRIER        = NEEDS_FLOAT_GC_READ_BARRIER;
   /** {@code true} if the garbage collector supports the bulk copy operation */
-  public static final boolean FLOAT_BULK_COPY_SUPPORTED         = false;//!(NEEDS_FLOAT_ASTORE_BARRIER || NEEDS_FLOAT_ALOAD_BARRIER) || Selected.Constraints.get().floatBulkCopySupported();
+  public static final boolean FLOAT_BULK_COPY_SUPPORTED         = !(NEEDS_FLOAT_ASTORE_BARRIER || NEEDS_FLOAT_ALOAD_BARRIER) || Selected.Constraints.get().floatBulkCopySupported();
 
   /**
    * Barrier for writes of floats into fields of instances (i.e. putfield).
@@ -655,7 +787,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void floatFieldWrite(Object ref, float value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_FLOAT_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().floatWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -671,7 +806,11 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void floatArrayWrite(float[] ref, int index, float value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_FLOAT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_FLOAT);
+      Selected.Mutator.get().floatWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -686,7 +825,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static float floatFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_FLOAT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().floatRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -701,7 +843,11 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static float floatArrayRead(float[] ref, int index) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_FLOAT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_FLOAT);
+      return Selected.Mutator.get().floatRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -717,24 +863,28 @@ if (VM.VerifyAssertions)
    */
   @Inline
   public static void floatBulkCopy(float[] src, Offset srcOffset, float[] dst, Offset dstOffset, int bytes) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(FLOAT_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().floatBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.aligned32Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
   /** {@code true} if the garbage collector requires write barriers on double putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_DOUBLE_GC_WRITE_BARRIER     = false;//Selected.Constraints.get().needsDoubleWriteBarrier();
+  private static final boolean NEEDS_DOUBLE_GC_WRITE_BARRIER     = Selected.Constraints.get().needsDoubleWriteBarrier();
   /** {@code true} if the VM requires write barriers on double putfield */
   public static final boolean  NEEDS_DOUBLE_PUTFIELD_BARRIER     = NEEDS_DOUBLE_GC_WRITE_BARRIER;
   /** {@code true} if the VM requires write barriers on double arraystore */
   public static final boolean  NEEDS_DOUBLE_ASTORE_BARRIER       = NEEDS_DOUBLE_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on double getfield or arrayload */
-  private static final boolean NEEDS_DOUBLE_GC_READ_BARRIER      = false;//Selected.Constraints.get().needsDoubleReadBarrier();
+  private static final boolean NEEDS_DOUBLE_GC_READ_BARRIER      = Selected.Constraints.get().needsDoubleReadBarrier();
   /** {@code true} if the VM requires read barriers on double getfield */
   public static final boolean  NEEDS_DOUBLE_GETFIELD_BARRIER     = NEEDS_DOUBLE_GC_READ_BARRIER;
   /** {@code true} if the VM requires read barriers on double arrayload */
   public static final boolean  NEEDS_DOUBLE_ALOAD_BARRIER        = NEEDS_DOUBLE_GC_READ_BARRIER;
   /** {@code true} if the garbage collector supports the bulk copy operation */
-  public static final boolean DOUBLE_BULK_COPY_SUPPORTED         = false;//!(NEEDS_DOUBLE_ASTORE_BARRIER || NEEDS_DOUBLE_ALOAD_BARRIER) || Selected.Constraints.get().doubleBulkCopySupported();
+  public static final boolean DOUBLE_BULK_COPY_SUPPORTED         = !(NEEDS_DOUBLE_ASTORE_BARRIER || NEEDS_DOUBLE_ALOAD_BARRIER) || Selected.Constraints.get().doubleBulkCopySupported();
 
   /**
    * Barrier for writes of doubles into fields of instances (i.e. putfield).
@@ -747,7 +897,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void doubleFieldWrite(Object ref, double value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_DOUBLE_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().doubleWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -763,7 +916,11 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void doubleArrayWrite(double[] ref, int index, double value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_DOUBLE_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_DOUBLE);
+      Selected.Mutator.get().doubleWrite(array, array.toAddress().plus(offset), value, offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -778,7 +935,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static double doubleFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_DOUBLE_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().doubleRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -793,7 +953,11 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static double doubleArrayRead(double[] ref, int index) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_DOUBLE_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_DOUBLE);
+      return Selected.Mutator.get().doubleRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return 0;
   }
@@ -809,7 +973,11 @@ if (VM.VerifyAssertions)
    */
   @Inline
   public static void doubleBulkCopy(double[] src, Offset srcOffset, double[] dst, Offset dstOffset, int bytes) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(DOUBLE_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().doubleBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.aligned64Copy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
   /********************************************************************************
@@ -823,11 +991,11 @@ if (VM.VerifyAssertions)
    */
 
   /** {@code true} if the garbage collector requires write barriers on Word putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_WORD_GC_WRITE_BARRIER     = false;//Selected.Constraints.get().needsWordWriteBarrier();
+  private static final boolean NEEDS_WORD_GC_WRITE_BARRIER     = Selected.Constraints.get().needsWordWriteBarrier();
   /** {@code true} if the VM requires write barriers on Word putfield */
   public static final boolean  NEEDS_WORD_PUTFIELD_BARRIER     = NEEDS_WORD_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on Word getfield or arrayload */
-  private static final boolean NEEDS_WORD_GC_READ_BARRIER      = false;//Selected.Constraints.get().needsWordReadBarrier();
+  private static final boolean NEEDS_WORD_GC_READ_BARRIER      = Selected.Constraints.get().needsWordReadBarrier();
   /** {@code true} if the VM requires read barriers on Word getfield */
   public static final boolean  NEEDS_WORD_GETFIELD_BARRIER     = NEEDS_WORD_GC_READ_BARRIER;
 
@@ -842,7 +1010,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void wordFieldWrite(Object ref, Word value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_WORD_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().wordWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -857,7 +1028,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static Word wordFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_WORD_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().wordRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return Word.zero();
   }
@@ -873,17 +1047,22 @@ if (VM.VerifyAssertions)
    */
   @Inline
   public static boolean wordTryCompareAndSwap(Object ref, Offset offset, Word old, Word value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_WORD_GC_WRITE_BARRIER || NEEDS_WORD_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().wordTryCompareAndSwap(src, src.toAddress().plus(offset), old, value, offset.toWord(),
+                                                          Word.zero(), // do not have location metadata
+                                                          INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return false;
   }
 
   /** {@code true} if the garbage collector requires write barriers on Address putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_ADDRESS_GC_WRITE_BARRIER     = false;//Selected.Constraints.get().needsAddressWriteBarrier();
+  private static final boolean NEEDS_ADDRESS_GC_WRITE_BARRIER     = Selected.Constraints.get().needsAddressWriteBarrier();
   /** {@code true} if the VM requires write barriers on Address putfield */
   public static final boolean  NEEDS_ADDRESS_PUTFIELD_BARRIER     = NEEDS_ADDRESS_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on Address getfield or arrayload */
-  private static final boolean NEEDS_ADDRESS_GC_READ_BARRIER      = false;//Selected.Constraints.get().needsAddressReadBarrier();
+  private static final boolean NEEDS_ADDRESS_GC_READ_BARRIER      = Selected.Constraints.get().needsAddressReadBarrier();
   /** {@code true} if the VM requires read barriers on Address getfield */
   public static final boolean  NEEDS_ADDRESS_GETFIELD_BARRIER     = NEEDS_ADDRESS_GC_READ_BARRIER;
 
@@ -898,7 +1077,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void addressFieldWrite(Object ref, Address value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_ADDRESS_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().addressWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -913,7 +1095,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static Address addressFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_ADDRESS_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().addressRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return Address.zero();
   }
@@ -929,17 +1114,22 @@ if (VM.VerifyAssertions)
    */
   @Inline
   public static boolean addressTryCompareAndSwap(Object ref, Offset offset, Address old, Address value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_ADDRESS_GC_WRITE_BARRIER || NEEDS_ADDRESS_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().addressTryCompareAndSwap(src, src.toAddress().plus(offset), old, value, offset.toWord(),
+                                                          Word.zero(), // do not have location metadata
+                                                          INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return false;
   }
 
   /** {@code true} if the garbage collector requires write barriers on Extent putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_EXTENT_GC_WRITE_BARRIER     = false;//Selected.Constraints.get().needsExtentWriteBarrier();
+  private static final boolean NEEDS_EXTENT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsExtentWriteBarrier();
   /** {@code true} if the VM requires write barriers on Extent putfield */
   public static final boolean  NEEDS_EXTENT_PUTFIELD_BARRIER     = NEEDS_EXTENT_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on Extent getfield or arrayload */
-  private static final boolean NEEDS_EXTENT_GC_READ_BARRIER      = false;//Selected.Constraints.get().needsExtentReadBarrier();
+  private static final boolean NEEDS_EXTENT_GC_READ_BARRIER      = Selected.Constraints.get().needsExtentReadBarrier();
   /** {@code true} if the VM requires read barriers on Extent getfield */
   public static final boolean  NEEDS_EXTENT_GETFIELD_BARRIER     = NEEDS_EXTENT_GC_READ_BARRIER;
 
@@ -954,7 +1144,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void extentFieldWrite(Object ref, Extent value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_EXTENT_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().extentWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -969,17 +1162,20 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static Extent extentFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_EXTENT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().extentRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return Extent.zero();
   }
 
   /** {@code true} if the garbage collector requires write barriers on Offset putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_OFFSET_GC_WRITE_BARRIER     = false;//Selected.Constraints.get().needsOffsetWriteBarrier();
+  private static final boolean NEEDS_OFFSET_GC_WRITE_BARRIER     = Selected.Constraints.get().needsOffsetWriteBarrier();
   /** {@code true} if the VM requires write barriers on Offset putfield */
   public static final boolean  NEEDS_OFFSET_PUTFIELD_BARRIER     = NEEDS_OFFSET_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on Offset getfield or arrayload */
-  private static final boolean NEEDS_OFFSET_GC_READ_BARRIER      = false;//Selected.Constraints.get().needsOffsetReadBarrier();
+  private static final boolean NEEDS_OFFSET_GC_READ_BARRIER      = Selected.Constraints.get().needsOffsetReadBarrier();
   /** {@code true} if the VM requires read barriers on Offset getfield */
   public static final boolean  NEEDS_OFFSET_GETFIELD_BARRIER     = NEEDS_OFFSET_GC_READ_BARRIER;
 
@@ -994,7 +1190,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void offsetFieldWrite(Object ref, Offset value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_OFFSET_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().offsetWrite(src, src.toAddress().plus(offset), value, offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -1009,25 +1208,28 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static Offset offsetFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_OFFSET_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().offsetRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return Offset.zero();
   }
 
   /** {@code true} if the garbage collector requires write barriers on reference putfield, arraystore or modifycheck */
-  private static final boolean NEEDS_OBJECT_GC_WRITE_BARRIER     = false;//Selected.Constraints.get().needsObjectReferenceWriteBarrier();
+  private static final boolean NEEDS_OBJECT_GC_WRITE_BARRIER     = Selected.Constraints.get().needsObjectReferenceWriteBarrier();
   /** {@code true} if the VM requires write barriers on reference putfield */
   public static final boolean  NEEDS_OBJECT_PUTFIELD_BARRIER     = NEEDS_OBJECT_GC_WRITE_BARRIER;
   /** {@code true} if the VM requires write barriers on reference arraystore */
   public static final boolean  NEEDS_OBJECT_ASTORE_BARRIER       = NEEDS_OBJECT_GC_WRITE_BARRIER;
   /** {@code true} if the garbage collector requires read barriers on reference getfield or arrayload */
-  private static final boolean NEEDS_OBJECT_GC_READ_BARRIER      = false;// Selected.Constraints.get().needsObjectReferenceReadBarrier();
+  private static final boolean NEEDS_OBJECT_GC_READ_BARRIER      = Selected.Constraints.get().needsObjectReferenceReadBarrier();
   /** {@code true} if the VM requires read barriers on reference getfield */
   public static final boolean  NEEDS_OBJECT_GETFIELD_BARRIER     = NEEDS_OBJECT_GC_READ_BARRIER;
   /** {@code true} if the VM requires read barriers on reference arrayload */
   public static final boolean  NEEDS_OBJECT_ALOAD_BARRIER        = NEEDS_OBJECT_GC_READ_BARRIER;
   /** {@code true} if the garbage collector supports the bulk copy operation */
-  public static final boolean OBJECT_BULK_COPY_SUPPORTED         = false;// !(NEEDS_OBJECT_ASTORE_BARRIER || NEEDS_OBJECT_ALOAD_BARRIER) || Selected.Constraints.get().objectReferenceBulkCopySupported();
+  public static final boolean OBJECT_BULK_COPY_SUPPORTED         = !(NEEDS_OBJECT_ASTORE_BARRIER || NEEDS_OBJECT_ALOAD_BARRIER) || Selected.Constraints.get().objectReferenceBulkCopySupported();
 
   /**
    * Barrier for writes of objects into fields of instances (i.e. putfield).
@@ -1040,7 +1242,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void objectFieldWrite(Object ref, Object value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      Selected.Mutator.get().objectReferenceWrite(src, src.toAddress().plus(offset), ObjectReference.fromObject(value), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -1056,7 +1261,11 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void objectArrayWrite(Object[] ref, int index, Object value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS);
+      Selected.Mutator.get().objectReferenceWrite(array, array.toAddress().plus(offset), ObjectReference.fromObject(value), offset.toWord(), Word.zero(), ARRAY_ELEMENT);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -1071,7 +1280,10 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static Object objectFieldRead(Object ref, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().objectReferenceRead(src, src.toAddress().plus(offset), offset.toWord(), Word.fromIntZeroExtend(locationMetadata), INSTANCE_FIELD).toObject();
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return null;
   }
@@ -1086,7 +1298,11 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static Object objectArrayRead(Object[] ref, int index) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference array = ObjectReference.fromObject(ref);
+      Offset offset = Offset.fromIntZeroExtend(index << LOG_BYTES_IN_ADDRESS);
+      return Selected.Mutator.get().objectReferenceRead(array, array.toAddress().plus(offset), offset.toWord(), Word.zero(), ARRAY_ELEMENT).toObject();
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return null;
   }
@@ -1102,16 +1318,20 @@ if (VM.VerifyAssertions)
    */
   @Inline
   public static void objectBulkCopy(Object[] src, Offset srcOffset, Object[] dst, Offset dstOffset, int bytes) {
-    if (VM.VerifyAssertions) VM._assert(VM.NOT_REACHED);
+    if (VM.VerifyAssertions) VM._assert(OBJECT_BULK_COPY_SUPPORTED);
+
+    if (!Selected.Mutator.get().objectReferenceBulkCopy(ObjectReference.fromObject(src), srcOffset, ObjectReference.fromObject(dst), dstOffset, bytes)) {
+      Memory.alignedWordCopy(Magic.objectAsAddress(dst).plus(dstOffset), Magic.objectAsAddress(src).plus(srcOffset), bytes);
+    }
   }
 
 
   /** {@code true} if the selected plan requires write barriers on reference putstatic */
-  private static final boolean NEEDS_OBJECT_GC_PUTSTATIC_BARRIER = false;//Selected.Constraints.get().needsObjectReferenceNonHeapWriteBarrier();
+  private static final boolean NEEDS_OBJECT_GC_PUTSTATIC_BARRIER = Selected.Constraints.get().needsObjectReferenceNonHeapWriteBarrier();
   /** {@code true} if the selected plan requires write barriers on reference putstatic */
   public static final boolean  NEEDS_OBJECT_PUTSTATIC_BARRIER    = NEEDS_OBJECT_GC_PUTSTATIC_BARRIER;
   /** {@code true} if the selected plan requires read barriers on reference getstatic */
-  private static final boolean NEEDS_OBJECT_GC_GETSTATIC_BARRIER = false;//Selected.Constraints.get().needsObjectReferenceNonHeapReadBarrier();
+  private static final boolean NEEDS_OBJECT_GC_GETSTATIC_BARRIER = Selected.Constraints.get().needsObjectReferenceNonHeapReadBarrier();
   /** {@code true} if the selected plan requires read barriers on reference getstatic */
   public static final boolean  NEEDS_OBJECT_GETSTATIC_BARRIER    = NEEDS_OBJECT_GC_GETSTATIC_BARRIER;
 
@@ -1125,7 +1345,13 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static void objectStaticWrite(Object value, Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_OBJECT_GC_PUTSTATIC_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(Magic.getJTOC());
+      Selected.Mutator.get().objectReferenceNonHeapWrite(src.toAddress().plus(offset),
+          ObjectReference.fromObject(value),
+          offset.toWord(),
+          Word.fromIntZeroExtend(locationMetadata));
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
   }
 
@@ -1139,7 +1365,13 @@ if (VM.VerifyAssertions)
   @Inline
   @Entrypoint
   public static Object objectStaticRead(Offset offset, int locationMetadata) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_OBJECT_GC_GETSTATIC_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(Magic.getJTOC());
+      return Selected.Mutator.get().objectReferenceNonHeapRead(
+          src.toAddress().plus(offset),
+          offset.toWord(),
+          Word.fromIntZeroExtend(locationMetadata)).toObject();
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return null;
   }
@@ -1156,7 +1388,16 @@ if (VM.VerifyAssertions)
    */
   @Inline
   public static boolean objectTryCompareAndSwap(Object ref, Offset offset, Object old, Object value) {
-    if (VM.VerifyAssertions)
+    if (NEEDS_OBJECT_GC_WRITE_BARRIER || NEEDS_OBJECT_GC_READ_BARRIER) {
+      ObjectReference src = ObjectReference.fromObject(ref);
+      return Selected.Mutator.get().objectReferenceTryCompareAndSwap(src,
+          src.toAddress().plus(offset),
+          ObjectReference.fromObject(old),
+          ObjectReference.fromObject(value),
+          offset.toWord(),
+          Word.zero(), // do not have location metadata
+          INSTANCE_FIELD);
+    } else if (VM.VerifyAssertions)
       VM._assert(VM.NOT_REACHED);
     return false;
   }

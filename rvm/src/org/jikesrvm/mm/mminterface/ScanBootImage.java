@@ -170,7 +170,7 @@ public class ScanBootImage {
      */
     @Uninterruptible
     public static void checkReference(Address refaddr) {
-        ObjectReference ref = Selected.Plan.get().loadObjectReference(refaddr);
+        ObjectReference ref = refaddr.loadObjectReference();
         if (!MemoryManager.validRef(ref)) {
             //Log.writeln();
             //Log.writeln("Invalid ref reported while scanning boot image");

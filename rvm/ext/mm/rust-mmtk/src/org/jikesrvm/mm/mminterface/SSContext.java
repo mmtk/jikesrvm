@@ -23,7 +23,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 
 @Uninterruptible
-public class SSContext extends BaseContext {
+public class SSContext extends RustContext {
 
     @Entrypoint
     Address threadId;
@@ -50,6 +50,12 @@ public class SSContext extends BaseContext {
     static final Offset cursorImmortalOffset = getField(SSContext.class, "cursorImmortal", Address.class).getOffset();
     static final Offset limitImmortalOffset = getField(SSContext.class, "limitImmortal", Address.class).getOffset();
     static final Offset spaceImmortalOffset = getField(SSContext.class, "spaceImmortal", Address.class).getOffset();
+
+    @Override
+    public int getId() {
+        VM.sysFail("getId() unimplemented");
+        return 0;
+    }
 
     public void setBlock(Address mmtkHandle) {
         if (VM.VerifyAssertions) {

@@ -19,8 +19,8 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.mm.mminterface.Barriers;
 import org.jikesrvm.mm.mminterface.BaseEntrypoints;
-import org.jikesrvm.scheduler.RVMThread;
 
 /**
  * Fields and methods of the virtual machine that are needed by
@@ -259,110 +259,110 @@ public class Entrypoints extends BaseEntrypoints {
   */
 
   public static final NormalMethod booleanFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "booleanFieldWrite", "(Ljava/lang/Object;ZLorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "booleanFieldWrite", "(Ljava/lang/Object;ZLorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod booleanArrayWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "booleanArrayWrite", "([ZIZ)V");
+    getMethod(Barriers.class, "booleanArrayWrite", "([ZIZ)V");
   public static final NormalMethod booleanFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "booleanFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Z");
+    getMethod(Barriers.class, "booleanFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Z");
   public static final NormalMethod booleanArrayReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "booleanArrayRead", "([ZI)Z");
+    getMethod(Barriers.class, "booleanArrayRead", "([ZI)Z");
 
   public static final NormalMethod byteFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "byteFieldWrite", "(Ljava/lang/Object;BLorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "byteFieldWrite", "(Ljava/lang/Object;BLorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod byteArrayWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "byteArrayWrite", "([BIB)V");
+    getMethod(Barriers.class, "byteArrayWrite", "([BIB)V");
   public static final NormalMethod byteFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "byteFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)B");
+    getMethod(Barriers.class, "byteFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)B");
   public static final NormalMethod byteArrayReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "byteArrayRead", "([BI)B");
+    getMethod(Barriers.class, "byteArrayRead", "([BI)B");
 
   public static final NormalMethod charFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "charFieldWrite", "(Ljava/lang/Object;CLorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "charFieldWrite", "(Ljava/lang/Object;CLorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod charArrayWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "charArrayWrite", "([CIC)V");
+    getMethod(Barriers.class, "charArrayWrite", "([CIC)V");
   public static final NormalMethod charFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "charFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)C");
+    getMethod(Barriers.class, "charFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)C");
   public static final NormalMethod charArrayReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "charArrayRead", "([CI)C");
+    getMethod(Barriers.class, "charArrayRead", "([CI)C");
 
   public static final NormalMethod shortFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "shortFieldWrite", "(Ljava/lang/Object;SLorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "shortFieldWrite", "(Ljava/lang/Object;SLorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod shortArrayWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "shortArrayWrite", "([SIS)V");
+    getMethod(Barriers.class, "shortArrayWrite", "([SIS)V");
   public static final NormalMethod shortFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "shortFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)S");
+    getMethod(Barriers.class, "shortFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)S");
   public static final NormalMethod shortArrayReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "shortArrayRead", "([SI)S");
+    getMethod(Barriers.class, "shortArrayRead", "([SI)S");
 
   public static final NormalMethod intFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "intFieldWrite", "(Ljava/lang/Object;ILorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "intFieldWrite", "(Ljava/lang/Object;ILorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod intArrayWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "intArrayWrite", "([III)V");
+    getMethod(Barriers.class, "intArrayWrite", "([III)V");
   public static final NormalMethod intFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "intFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)I");
+    getMethod(Barriers.class, "intFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)I");
   public static final NormalMethod intArrayReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "intArrayRead", "([II)I");
+    getMethod(Barriers.class, "intArrayRead", "([II)I");
 
   public static final NormalMethod longFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "longFieldWrite", "(Ljava/lang/Object;JLorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "longFieldWrite", "(Ljava/lang/Object;JLorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod longArrayWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "longArrayWrite", "([JIJ)V");
+    getMethod(Barriers.class, "longArrayWrite", "([JIJ)V");
   public static final NormalMethod longFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "longFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)J");
+    getMethod(Barriers.class, "longFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)J");
   public static final NormalMethod longArrayReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "longArrayRead", "([JI)J");
+    getMethod(Barriers.class, "longArrayRead", "([JI)J");
 
   public static final NormalMethod floatFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "floatFieldWrite", "(Ljava/lang/Object;FLorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "floatFieldWrite", "(Ljava/lang/Object;FLorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod floatArrayWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "floatArrayWrite", "([FIF)V");
+    getMethod(Barriers.class, "floatArrayWrite", "([FIF)V");
   public static final NormalMethod floatFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "floatFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)F");
+    getMethod(Barriers.class, "floatFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)F");
   public static final NormalMethod floatArrayReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "floatArrayRead", "([FI)F");
+    getMethod(Barriers.class, "floatArrayRead", "([FI)F");
 
   public static final NormalMethod doubleFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "doubleFieldWrite", "(Ljava/lang/Object;DLorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "doubleFieldWrite", "(Ljava/lang/Object;DLorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod doubleArrayWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "doubleArrayWrite", "([DID)V");
+    getMethod(Barriers.class, "doubleArrayWrite", "([DID)V");
   public static final NormalMethod doubleFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "doubleFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)D");
+    getMethod(Barriers.class, "doubleFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)D");
   public static final NormalMethod doubleArrayReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "doubleArrayRead", "([DI)D");
+    getMethod(Barriers.class, "doubleArrayRead", "([DI)D");
 
   public static final NormalMethod objectFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectFieldWrite", "(Ljava/lang/Object;Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "objectFieldWrite", "(Ljava/lang/Object;Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod objectArrayWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectArrayWrite", "([Ljava/lang/Object;ILjava/lang/Object;)V");
+    getMethod(Barriers.class, "objectArrayWrite", "([Ljava/lang/Object;ILjava/lang/Object;)V");
   public static final NormalMethod objectFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
+    getMethod(Barriers.class, "objectFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
   public static final NormalMethod objectArrayReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectArrayRead", "([Ljava/lang/Object;I)Ljava/lang/Object;");
+    getMethod(Barriers.class, "objectArrayRead", "([Ljava/lang/Object;I)Ljava/lang/Object;");
 
   public static final NormalMethod wordFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "wordFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Word;Lorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "wordFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Word;Lorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod wordFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "wordFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Word;");
+    getMethod(Barriers.class, "wordFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Word;");
 
   public static final NormalMethod addressFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "addressFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Address;Lorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "addressFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Address;Lorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod addressFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "addressFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Address;");
+    getMethod(Barriers.class, "addressFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Address;");
 
   public static final NormalMethod offsetFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "offsetFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Lorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "offsetFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;Lorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod offsetFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "offsetFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Offset;");
+    getMethod(Barriers.class, "offsetFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Offset;");
 
   public static final NormalMethod extentFieldWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "extentFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Extent;Lorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "extentFieldWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Extent;Lorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod extentFieldReadBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "extentFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Extent;");
+    getMethod(Barriers.class, "extentFieldRead", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)Lorg/vmmagic/unboxed/Extent;");
 
   public static final NormalMethod objectStaticWriteBarrierMethod =
-    getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectStaticWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)V");
+    getMethod(Barriers.class, "objectStaticWrite", "(Ljava/lang/Object;Lorg/vmmagic/unboxed/Offset;I)V");
   public static final NormalMethod objectStaticReadBarrierMethod =
-      getMethod(org.jikesrvm.mm.mminterface.Barriers.class, "objectStaticRead", "(Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
+      getMethod(Barriers.class, "objectStaticRead", "(Lorg/vmmagic/unboxed/Offset;I)Ljava/lang/Object;");
 
   public static final NormalMethod modifyCheckMethod =
       getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "modifyCheck", "(Ljava/lang/Object;)V");

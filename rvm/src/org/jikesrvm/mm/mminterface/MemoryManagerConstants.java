@@ -40,17 +40,17 @@ public class MemoryManagerConstants {
   public static final int BYTES_IN_WORD = 1 << LOG_BYTES_IN_WORD;
 
   /** {@code true} if the selected plan needs support for linearly scanning the heap */
-  public static final boolean NEEDS_LINEAR_SCAN = Selected.Constraints.get().needsLinearScan();
+  public static final boolean NEEDS_LINEAR_SCAN = false; // Selected.Constraints.get().needsLinearScan();
   /** Number of bits in the GC header required by the selected plan */
-  public static final int GC_HEADER_BITS = Selected.Constraints.get().gcHeaderBits();
+  public static final int GC_HEADER_BITS = 0; // Selected.Constraints.get().gcHeaderBits();
   /** Number of additional bytes required in the header by the selected plan */
-  public static final int GC_HEADER_BYTES = Selected.Constraints.get().gcHeaderWords() << LOG_BYTES_IN_WORD;
+  public static final int GC_HEADER_BYTES = 0; // Selected.Constraints.get().gcHeaderWords() << LOG_BYTES_IN_WORD;
   /** {@code true} if the selected plan requires concurrent worker threads */
-  public static final boolean NEEDS_CONCURRENT_WORKERS = Selected.Constraints.get().needsConcurrentWorkers();
+  public static final boolean NEEDS_CONCURRENT_WORKERS = false; // Selected.Constraints.get().needsConcurrentWorkers();
   /** {@code true} if the selected plan needs support for generating a GC trace */
-  public static final boolean GENERATE_GC_TRACE = Selected.Constraints.get().generateGCTrace();
+  public static final boolean GENERATE_GC_TRACE = false; //Selected.Constraints.get().generateGCTrace();
   /** {@code true} if the selected plan may move objects */
-  public static final boolean MOVES_OBJECTS = Selected.Constraints.get().movesObjects();
+  public static final boolean MOVES_OBJECTS = false; // Selected.Constraints.get().movesObjects();
   /** {@code true} if the selected plan moves TIB objects */
   public static final boolean MOVES_TIBS = false;
   /** {@code true} if the selected plan moves code */
