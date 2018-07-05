@@ -402,6 +402,14 @@ public abstract class SysCall {
   public abstract boolean is_mapped_object(ObjectReference object);
 
   @Inline
+  public boolean sysIsMappedAddress(Address address) {
+    return is_mapped_address(address);
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract boolean is_mapped_address(Address address);
+
+  @Inline
   public void sysModifyCheck(ObjectReference object) {
     modify_check(object);
   }

@@ -422,12 +422,11 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean addressInVM(Address address) {
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 1) {
-      VM.sysFail("addressInVM unimplemented()");
+    if (VM.BuildWithRustMMTk) {
+      return sysCall.is_mapped_address(address);
     } else {
       return Space.isMappedAddress(address);
     }
-    return false;
   }
 
   /**
@@ -443,12 +442,11 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean objectInVM(ObjectReference object) {
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 1) {
-      VM.sysFail("objectInVM unimplemented()");
+    if (VM.BuildWithRustMMTk) {
+      return sysCall.is_mapped_object(object);
     } else {
       return Space.isMappedObject(object);
     }
-    return false;
   }
 
   /**
@@ -461,12 +459,11 @@ public final class MemoryManager {
     // In general we don't know which spaces may hold allocated stacks.
     // If we want to be more specific than the space being mapped we
     // will need to add a check in Plan that can be overriden.
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 1) {
-      VM.sysFail("mightBeFP unimplemented()");
+    if (VM.BuildWithRustMMTk) {
+      return sysCall.is_mapped_address(address);
     } else {
       return Space.isMappedAddress(address);
     }
-    return false;
   }
   /***********************************************************************
    *
