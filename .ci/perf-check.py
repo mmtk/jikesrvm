@@ -58,6 +58,10 @@ for bm in benchmarks:
                 if matcher:
                     execution_times.append(float(matcher.group(1)))
 
+            if len(execution_times) == 0:
+                print "Did not find any result for %s in %s" % (bm, log_file)
+                sys.exit(1)
+
             # check how many iterations we have in the log
             global expected_iteration
             if expected_iteration == 0:

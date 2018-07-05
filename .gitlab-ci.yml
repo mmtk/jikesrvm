@@ -82,9 +82,9 @@ perf-run:
     paths:
       - .ci/running/results/log
 
-perf-check:BaseBaseNoGC:
+NoGC:
   stage: perf-check
   script:
-    - python .ci/perf-check.py BaseBaseNoGC
+    - python .ci/perf-check.py FastAdaptiveNoGC
   dependencies:
     - perf-run

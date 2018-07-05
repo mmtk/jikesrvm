@@ -65,7 +65,7 @@ $remotedir = $rootdir;          # same directory structure on both machines
 $standalonemode = 0;            # if 1, then stop daemons (including network!)
 $targetinvocations = 5;        # how many invocations of each benchmark?
 $defaulttimingiteration = 2;    # which iteration of the benchmark to time
-$heaprange = 6;                 # controls x-axis range
+$heaprange = 80;                 # controls x-axis range
 $maxinvocations = $targetinvocations;
 $arch = "_x86_64-linux";
 $genadvice = 0;
@@ -164,6 +164,8 @@ $genadvice = 0;
 	      );
 # configurations
 @gcconfigs = (
+	      # IMPORTANT: only use this script to run NoGC; get a fresh clone to run others
+
 	      # do not use MMTk probe for NoGC, otherwise it will force system GC after warmup
 	      "FastAdaptiveNoGC|ig", "RFastAdaptiveNoGC|ig"
 	      # for other plans, we should use |pmmtk to use MMTk probe
@@ -187,7 +189,7 @@ $genadvice = 0;
 @jksdacapo = (@dacapobms, @jksbach);
 @jvm98bms = ("_202_jess", "_201_compress", "_209_db", "_213_javac", "_222_mpegaudio", "_227_mtrt", "_228_jack");
 
-@benchmarks = ("fop");
+@benchmarks = (@jksdacapo);
 
 #
 # Variables below this line should be stable
@@ -210,33 +212,33 @@ $genadvice = 0;
             "_222_mpegaudio" => 13,
             "_227_mtrt" => 20,
             "_228_jack" => 17,
-            "antlr" => 24,
-            "bloat" => 33,
-            "chart" => 49,
-            "eclipse" => 84,
-            "fop" => 40,
-            "hsqldb" => 127,
-            "jython" => 40,
-            "luindex" => 22,
-            "lusearch" => 34,
-            "pmd" => 49,
-            "xalan" => 54,
+            "antlr" => 50,
+            "bloat" => 50,
+            "chart" => 50,
+            "eclipse" => 50,
+            "fop" => 50,
+            "hsqldb" => 50,
+            "jython" => 50,
+            "luindex" => 50,
+            "lusearch" => 50,
+            "pmd" => 50,
+            "xalan" => 50,
             "avrora" => 50,
             "batik" => 50,
-            "eclipse" => 80,
-            "fop" => 40,
-            "h2" => 127,
-            "jython" => 40,
-            "luindex" => 22,
-            "lusearch" => 34,
-            "pmd" => 49,
-            "sunflow" => 54,
-            "tomcat" => 100,  
-            "tradebeans" => 200,
-            "tradesoap" => 200,
-            "xalan" => 54,
-            "pjbb2005" => 200,
-	    "pjbb2000" => 214,
+            "eclipse" => 50,
+            "fop" => 50,
+            "h2" => 50,
+            "jython" => 50,
+            "luindex" => 50,
+            "lusearch" => 50,
+            "pmd" => 50,
+            "sunflow" => 50,
+            "tomcat" => 50,
+            "tradebeans" => 50,
+            "tradesoap" => 50,
+            "xalan" => 50,
+            "pjbb2005" => 50,
+	    "pjbb2000" => 50,
 	    );
 # heap size used for -s (slice) option (in this example, 1.5 X min heap)
 %sliceHeapSize = ();
