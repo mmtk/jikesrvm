@@ -165,7 +165,7 @@ $genadvice = 0;
 # configurations
 @gcconfigs = (
 	      # do not use MMTk probe for NoGC, otherwise it will force system GC after warmup
-	      "BaseBaseNoGC|ig", "RBaseBaseNoGC|ig"
+	      "FastAdaptiveNoGC|ig", "RFastAdaptiveNoGC|ig"
 	      # for other plans, we should use |pmmtk to use MMTk probe
 	      );
 

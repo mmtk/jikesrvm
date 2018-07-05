@@ -22,14 +22,22 @@ build:rbasebasenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g RBaseBaseNoGC
-  artifacts:
-    paths:
-      - dist/RBaseBaseNoGC_x86_64-linux
 
 build:rfastadaptivenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g RFastAdaptiveNoGC
+  artifacts:
+    paths:
+      - dist/RFastAdaptiveNoGC_x86_64-linux
+
+build:fastadaptivenogc:
+  stage: build
+  script:
+    - python scripts/testMMTk.py -g FastAdaptiveNoGC --build-only
+  artifacts:
+    paths:
+      - dist/FastAdaptiveNoGC_x86_64-linux
 
 build:rfulladaptivenogc:
   stage: build
@@ -40,9 +48,6 @@ build:basebasenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g BaseBaseNoGC
-  artifacts:
-    paths:
-      - dist/BaseBaseNoGC_x86_64-linux
 
 build:rbasebasesemispace:
   stage: build
