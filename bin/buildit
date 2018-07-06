@@ -636,7 +636,7 @@ my $sourcedirs = "";
 #
 my @dirs = ("rvm", "MMTk", "bin", "build", "testing", "tools", "tools-external", 
          "common", "build.xml", "libraryInterface", "external", "test.xml",
-         "rust_mmtk");
+         "rust_mmtk", "scripts");
 
 #
 # The files needed to be transferred to a host in order to complete a
