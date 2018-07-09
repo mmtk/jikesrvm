@@ -65,11 +65,11 @@ $remotedir = $rootdir;          # same directory structure on both machines
 $standalonemode = 0;            # if 1, then stop daemons (including network!)
 $targetinvocations = 5;        # how many invocations of each benchmark?
 $defaulttimingiteration = 2;    # which iteration of the benchmark to time
-$heaprange = 80;                 # controls x-axis range
+$heaprange = 6;                 # controls x-axis range
 $maxinvocations = $targetinvocations;
 $arch = "_x86_64-linux";
 $genadvice = 0;
-#$perfevents = "PERF_COUNT_HW_CPU_CYCLES,PERF_COUNT_HW_CACHE_LL:MISS,PERF_COUNT_HW_CACHE_L1D:MISS,PERF_COUNT_HW_CACHE_DTLB:MISS";
+# $perfevents = "PERF_COUNT_HW_CPU_CYCLES,PERF_COUNT_HW_CACHE_LL:MISS,PERF_COUNT_HW_CACHE_L1D:MISS,PERF_COUNT_HW_CACHE_DTLB:MISS";
 
 #
 # Runtime rvm flags
@@ -81,8 +81,6 @@ $genadvice = 0;
 %booleanopts = (
                 # Turn off OSR
                "noosr" => "-X:aos:osr_promotion=false -X:opt:guarded_inline=false -X:opt:guarded_inline_interface=false",
-		# Use MMTk probe
-		"pmmtk" => "-Dprobes=MMTk",
 		# Perform eager sweeping
 		"e" => "-X:gc:eagerCompleteSweep=true",
 		# Do a GC whenever system.gc() is called by the application
@@ -164,11 +162,7 @@ $genadvice = 0;
 	      );
 # configurations
 @gcconfigs = (
-	      # IMPORTANT: only use this script to run NoGC; get a fresh clone to run others
-
-	      # do not use MMTk probe for NoGC, otherwise it will force system GC after warmup
-	      "FastAdaptiveNoGC|ig", "RFastAdaptiveNoGC|ig"
-	      # for other plans, we should use |pmmtk to use MMTk probe
+	      "FastAdaptiveSemiSpace", "RFastAdaptiveSemiSpace",
 	      );
 
 
@@ -212,33 +206,33 @@ $genadvice = 0;
             "_222_mpegaudio" => 13,
             "_227_mtrt" => 20,
             "_228_jack" => 17,
-            "antlr" => 50,
-            "bloat" => 50,
-            "chart" => 50,
-            "eclipse" => 50,
-            "fop" => 50,
-            "hsqldb" => 50,
-            "jython" => 50,
-            "luindex" => 50,
-            "lusearch" => 50,
-            "pmd" => 50,
-            "xalan" => 50,
+            "antlr" => 24,
+            "bloat" => 33,
+            "chart" => 49,
+            "eclipse" => 84,
+            "fop" => 40,
+            "hsqldb" => 127,
+            "jython" => 40,
+            "luindex" => 22,
+            "lusearch" => 34,
+            "pmd" => 49,
+            "xalan" => 54,
             "avrora" => 50,
             "batik" => 50,
-            "eclipse" => 50,
-            "fop" => 50,
-            "h2" => 50,
-            "jython" => 50,
-            "luindex" => 50,
-            "lusearch" => 50,
-            "pmd" => 50,
-            "sunflow" => 50,
-            "tomcat" => 50,
-            "tradebeans" => 50,
-            "tradesoap" => 50,
-            "xalan" => 50,
-            "pjbb2005" => 50,
-	    "pjbb2000" => 50,
+            "eclipse" => 80,
+            "fop" => 40,
+            "h2" => 127,
+            "jython" => 40,
+            "luindex" => 22,
+            "lusearch" => 34,
+            "pmd" => 49,
+            "sunflow" => 54,
+            "tomcat" => 100,  
+            "tradebeans" => 200,
+            "tradesoap" => 200,
+            "xalan" => 54,
+            "pjbb2005" => 200,
+	    "pjbb2000" => 214,
 	    );
 # heap size used for -s (slice) option (in this example, 1.5 X min heap)
 %sliceHeapSize = ();
@@ -256,12 +250,12 @@ foreach $bm (keys %minheap) {
               "_222_mpegaudio" => 6,
               "_227_mtrt" => 9,
               "_228_jack" => 10,
-#              "antlr" => 12,
-#              "bloat" => 36,
-#              "chart" => 24,
+              "antlr" => 12,
+              "bloat" => 36,
+              "chart" => 24,
 #              "eclipse" => 130,
 #              "fop" => 6,
-#              "hsqldb" => 7,
+              "hsqldb" => 7,
 #              "jython" => 100,
 #              "luindex" => 30,
 #              "lusearch" => 20,
@@ -337,9 +331,9 @@ $tmp = "/tmp/runbms-".$ENV{USER};
 	      );
 
 %bmargs = (
-	   "jvm98" => "-cp $rootdir/bin/probes/probes.jar:. SpecApplication -i[#] [bm]",
-	   "dacapo" => "-cp $rootdir/bin/probes/probes.jar:$benchmarkroot/dacapo/dacapo-2006-10-MR2.jar Harness -c probe.Dacapo2006Callback -n [#] [bm]",
-	   "dacapobach" => "-cp $rootdir/bin/probes/probes.jar:$benchmarkroot/dacapo/dacapo-9.12-bach.jar Harness -c probe.DacapoBachCallback -n [#] [bm]",
-	   "pjbb2005" => "--cp $rootdir/bin/probes/probes.jar:$benchmarkroot/pjbb2005/jbb.jar:$benchmarkroot/pjbb2005/check.jar spec.jbb.JBBmain -propfile $benchmarkroot/pjbb2005/SPECjbb-8x10000.props -c probe.PJBB2005Callback -n [#]",
+	   "jvm98" => "-Dprobes=MMTk -cp $rootdir/bin/probes/probes.jar:. SpecApplication -i[#] [bm]",
+	   "dacapo" => "-Dprobes=MMTk -cp $rootdir/bin/probes/probes.jar:$benchmarkroot/dacapo/dacapo-2006-10-MR2.jar Harness -c probe.Dacapo2006Callback -n [#] [bm]",
+	   "dacapobach" => "-Dprobes=MMTk -cp $rootdir/bin/probes/probes.jar:$benchmarkroot/dacapo/dacapo-9.12-bach.jar Harness -c probe.DacapoBachCallback -n [#] [bm]",
+	   "pjbb2005" => "-Dprobes=MMTk -cp $rootdir/bin/probes/probes.jar:$benchmarkroot/pjbb2005/jbb.jar:$benchmarkroot/pjbb2005/check.jar spec.jbb.JBBmain -propfile $benchmarkroot/pjbb2005/SPECjbb-8x10000.props -c probe.PJBB2005Callback -n [#]",
 	   "pjbb2000" => "-cp pseudojbb.jar spec.jbb.JBBmain -propfile SPECjbb-8x12500.props -n [#] [mmtkstart]",
 	   );

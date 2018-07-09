@@ -5,36 +5,45 @@ TOLERANCE=0.05
 import sys
 import os
 
-if len(sys.argv) <= 1:
-    print "Need a plan name. "
-plan = sys.argv[1]
+if len(sys.argv) != 3:
+    print "Usage: python perf-check.py results_path PlanName"
+    sys.exit(2)
+
+path = sys.argv[1]
+plan = sys.argv[2]
 rplan = "R" + plan
 
-# the root dir of 'running' script
-running_root = os.path.join(os.path.dirname(os.path.realpath(__file__)), "running")
 # all the logs
-all_logs_dir = os.path.join(running_root, "results", "log")
+all_logs_dir = path
 
-# we need to assert if there is only one valid result directory
-results_dir = [x[0] for x in os.walk(all_logs_dir)][1:]
-assert len(results_dir) == 1, \
-    "Expected only one folder to contain benchmark results, found more than one: %d " % len(results_dir)
+# log directories
+log_dirs = [x[0] for x in os.walk(all_logs_dir)][1:]
 
-# this is the result dir we wil use
-result_dir = results_dir[0]
-# logs
-logs = [f for f in os.listdir(result_dir) if plan in f]
+# list all files in log directories, and find related ones
+logs = []
+for d in log_dirs:
+    for f in os.listdir(d):
+        if plan in f:
+            logs.append(os.path.join(d, f))
+print logs
 
 # collect all the benchmarks
 benchmarks = set()
 for l in logs:
-    bm = l[:l.find('.')]
+    bm = l[l.rfind('/') + 1:l.find('.')]
     benchmarks.add(bm)
 
 expected_iteration = 0
+has_errors = False
 
 # we want to check results for every benchmark
 for bm in benchmarks:
+    # recording error messages for analysing this benchmark
+    error_messages = []
+
+    def record_error(msg):
+        error_messages.append(msg)
+
     stock_mmtk_logs = [l for l in logs if plan in l and rplan not in l and bm in l]
     assert len(stock_mmtk_logs) == 1, \
         "Expected only 1 log file for %s on %s: found %d" % (plan, bm, len(stock_mmtk_logs))
@@ -59,30 +68,48 @@ for bm in benchmarks:
                     execution_times.append(float(matcher.group(1)))
 
             if len(execution_times) == 0:
-                print "Did not find any result for %s in %s" % (bm, log_file)
-                sys.exit(1)
+                record_error("Did not find any result for %s in %s" % (bm, log_file))
+                return None
+            else:
+                # check how many iterations we have in the log
+                global expected_iteration
+                if expected_iteration == 0:
+                    expected_iteration = len(execution_times)
 
-            # check how many iterations we have in the log
-            global expected_iteration
-            if expected_iteration == 0:
-                expected_iteration = len(execution_times)
-            assert len(execution_times) == expected_iteration, \
-                "Expected all benchmark runs have the same iteration counts. Found %d for %s, while expecting %d" \
-                % (len(execution_times), log_file, expected_iteration)
-
-            # get average
-            return sum(execution_times) / len(execution_times), execution_times
+                if len(execution_times) != expected_iteration:
+                    record_error("Expected all benchmark runs have the same iteration counts. Found %d for %s, while expecting %d" \
+                        % (len(execution_times), log_file, expected_iteration))
+                    return None
+                else:
+                    # get average
+                    return sum(execution_times) / len(execution_times)
 
 
-    stock_time, _ = get_execution_time_for_log(os.path.join(result_dir, stock_mmtk_log))
-    rust_time, _ = get_execution_time_for_log(os.path.join(result_dir, rust_mmtk_log))
+    stock_time = get_execution_time_for_log(stock_mmtk_log)
+    rust_time = get_execution_time_for_log(rust_mmtk_log)
 
-    diff = (rust_time - stock_time) / stock_time
+    print "-------%s-------" % bm
 
-    print "Results of %s on %s" % (plan, bm)
-    print "Stock: %.2f" % stock_time
-    print "Rust : %.2f (%s)" % (rust_time, "{0:.0%}".format(diff))
+    if stock_time and rust_time:
+        diff = (rust_time - stock_time) / stock_time
 
-    if diff > TOLERANCE:
-        print "The performance difference exceed the tolerance: %f, failed" % diff
-        sys.exit(1)
+        print "Results of %s on %s" % (plan, bm)
+        print "Stock: %.2f" % stock_time
+        print "Rust : %.2f (%s)" % (rust_time, "{0:.0%}".format(diff))
+
+        if diff > TOLERANCE:
+            record_error("The performance difference exceed the tolerance: %f, failed" % diff)
+
+    if len(error_messages) > 0:
+        print "Errors: "
+        for msg in error_messages:
+            print msg
+        has_errors = True
+
+print "-------END-------"
+if has_errors:
+    print "Had errors in logs. Failed. "
+    sys.exit(1)
+else:
+    print "Succeeded. "
+    sys.exit(0)

@@ -58,6 +58,17 @@ build:rfastadaptivesemispace:
   stage: build
   script:
     - python scripts/testMMTk.py -g RFastAdaptiveSemiSpace
+  artifacts:
+    paths:
+      - dist/RFastAdaptiveSemiSpace_x86_64-linux
+
+build:fastadaptivesemispace:
+  stage: build
+  script:
+    - python scripts/testMMTk.py -g FastAdaptiveSemiSpace
+  artifacts:
+    paths:
+      - dist/FastAdaptiveSemiSpace_x86_64-linux
 
 build:rfulladaptivesemispace:
   stage: build
@@ -74,17 +85,30 @@ perf-run:
   script:
     - git clone git@gitlab.anu.edu.au:plsl/tools/running.git .ci/running -b rust-mmtk
     - ln -s "$(realpath dist)" .ci/running/build
-    - cp .ci/RunConfig.pm .ci/running/bin/RunConfig.pm
     - mkdir -p .ci/running/bin/probes
     - cp .ci/probes.jar .ci/running/bin/probes/probes.jar
-    - .ci/running/bin/runbms 16 16
+    # run NoGC plans first
+    - cp .ci/NoGC_RunConfig.pm .ci/running/bin/RunConfig.pm
+    - .ci/running/bin/runbms 16 16 2>&1 > nogc.run
+    # run other plans
+    - cp .ci/Other_RunConfig.pm .ci/running/bin/RunConfig.pm
+    - .ci/running/bin/runbms 16 16 2>&1 > other.run
+    # check
+    - python .ci/run-check.py nogc.run
+    - python .ci/run-check.py other.run
   artifacts:
     paths:
       - .ci/running/results/log
+  allow_failure: true
 
 NoGC:
   stage: perf-check
   script:
-    - python .ci/perf-check.py FastAdaptiveNoGC
-  dependencies:
-    - perf-run
+    - python .ci/perf-check.py .ci/running/results/log FastAdaptiveNoGC
+  when: always
+
+SemiSpace:
+  stage: perf-check
+  script:
+    - python .ci/perf-check.py .ci/running/results/log FastAdaptiveSemiSpace
+  when: always
