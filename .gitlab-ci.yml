@@ -89,16 +89,19 @@ perf-run:
     - cp .ci/probes.jar .ci/running/bin/probes/probes.jar
     # run NoGC plans first
     - cp .ci/NoGC_RunConfig.pm .ci/running/bin/RunConfig.pm
-    - .ci/running/bin/runbms 16 16 2>&1 > nogc.run
+    - .ci/running/bin/runbms 16 16 &> nogc.run
     # run other plans
     - cp .ci/Other_RunConfig.pm .ci/running/bin/RunConfig.pm
-    - .ci/running/bin/runbms 16 16 2>&1 > other.run
+    - .ci/running/bin/runbms 16 16 &> other.run
     # check
     - python .ci/run-check.py nogc.run
     - python .ci/run-check.py other.run
   artifacts:
+    when: always
     paths:
       - .ci/running/results/log
+      - nogc.run
+      - other.run
   allow_failure: true
 
 NoGC:

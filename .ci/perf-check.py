@@ -25,13 +25,18 @@ for d in log_dirs:
     for f in os.listdir(d):
         if plan in f:
             logs.append(os.path.join(d, f))
-print logs
+if len(logs) == 0:
+    print "Did not find any logs"
+    sys.exit(1)
 
 # collect all the benchmarks
 benchmarks = set()
 for l in logs:
     bm = l[l.rfind('/') + 1:l.find('.')]
     benchmarks.add(bm)
+if len(benchmarks) == 0:
+    print "Did not find any benchmark results in the log directory"
+    sys.exit(1)
 
 expected_iteration = 0
 has_errors = False
