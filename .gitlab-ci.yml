@@ -65,7 +65,7 @@ build:rfastadaptivesemispace:
 build:fastadaptivesemispace:
   stage: build
   script:
-    - python scripts/testMMTk.py -g FastAdaptiveSemiSpace
+    - python scripts/testMMTk.py -g FastAdaptiveSemiSpace --build-only
   artifacts:
     paths:
       - dist/FastAdaptiveSemiSpace_x86_64-linux
