@@ -1264,8 +1264,8 @@ Check to make sure all required properties are specified. This includes properti
                 <arg line="-o @{outdir}/${target.dll-prefix}@{dllname}@{suffix}"/>
                 <ObjectFiles/>
                 <arg line="-lmmtk"/>
-                <arg line="-L${mmtk.path}"/>
-                <arg line="-Wl,-rpath,${mmtk.path}"/>
+                <arg line="-L${dist.base}/${mmtk.path}"/>
+                <arg line="-Wl,-rpath,${dist.base}/${mmtk.path}"/>
               </exec>
             </sequential>
           </if>
@@ -1736,6 +1736,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="--target=i686-unknown-linux-gnu"/>
       <arg value="--features=jikesrvm ${rust.features}"/>
       <arg value="--no-default-features"/>
+      <arg value="--target-dir=${dist.base}/rust_mmtk/"/>
       <arg line="${rust.args}"/>
       <arg value="--"/>
       <arg value="-C"/>
