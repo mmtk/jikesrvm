@@ -94,7 +94,9 @@ perf-run:
     - cp .ci/Other_RunConfig.pm .ci/running/bin/RunConfig.pm
     - .ci/running/bin/runbms 16 16 &> other.run
     # check
+    - cat nogc.run
     - python .ci/run-check.py nogc.run
+    - cat other.run
     - python .ci/run-check.py other.run
   artifacts:
     when: always
