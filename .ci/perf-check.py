@@ -32,7 +32,8 @@ if len(logs) == 0:
 # collect all the benchmarks
 benchmarks = set()
 for l in logs:
-    bm = l[l.rfind('/') + 1:l.find('.')]
+    log_name = os.path.basename(l)
+    bm = log_name[:log_name.find('.')]
     benchmarks.add(bm)
 if len(benchmarks) == 0:
     print "Did not find any benchmark results in the log directory"

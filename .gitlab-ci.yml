@@ -27,17 +27,11 @@ build:rfastadaptivenogc:
   stage: build
   script:
     - python scripts/testMMTk.py -g RFastAdaptiveNoGC
-  artifacts:
-    paths:
-      - dist/RFastAdaptiveNoGC_x86_64-linux
 
 build:fastadaptivenogc:
   stage: build
   script:
-    - python scripts/testMMTk.py -g FastAdaptiveNoGC --build-only
-  artifacts:
-    paths:
-      - dist/FastAdaptiveNoGC_x86_64-linux
+    - python scripts/testMMTk.py -g FastAdaptiveNoGC
 
 build:rfulladaptivenogc:
   stage: build
@@ -58,17 +52,11 @@ build:rfastadaptivesemispace:
   stage: build
   script:
     - python scripts/testMMTk.py -g RFastAdaptiveSemiSpace
-  artifacts:
-    paths:
-      - dist/RFastAdaptiveSemiSpace_x86_64-linux
 
 build:fastadaptivesemispace:
   stage: build
   script:
-    - python scripts/testMMTk.py -g FastAdaptiveSemiSpace --build-only
-  artifacts:
-    paths:
-      - dist/FastAdaptiveSemiSpace_x86_64-linux
+    - python scripts/testMMTk.py -g FastAdaptiveSemiSpace
 
 build:rfulladaptivesemispace:
   stage: build
@@ -83,6 +71,15 @@ build:basebasesemispace:
 perf-run:
   stage: perf-run
   script:
+    # Build all builds here
+    # I was trying to preserve them as artifacts from previous stage. However, the build directory
+    # was changed from stage to stage, and the libmmtk.so dependency relies on absolute path
+    # that no longer exists.
+    - python scripts/testMMTk.py -g FastAdaptiveNoGC --build-only
+    - python scripts/testMMTk.py -g RFastAdaptiveNoGC --build-only
+    - python scripts/testMMTk.py -g FastAdaptiveSemiSpace --build-only
+    - python scripts/testMMTk.py -g RFastAdaptiveSemiSpace --build-only
+    # clone running scripts
     - git clone git@gitlab.anu.edu.au:plsl/tools/running.git .ci/running -b rust-mmtk
     - ln -s "$(realpath dist)" .ci/running/build
     - mkdir -p .ci/running/bin/probes
@@ -90,13 +87,13 @@ perf-run:
     # run NoGC plans first
     - cp .ci/NoGC_RunConfig.pm .ci/running/bin/RunConfig.pm
     - .ci/running/bin/runbms 16 16 &> nogc.run
+    - cat nogc.run
     # run other plans
     - cp .ci/Other_RunConfig.pm .ci/running/bin/RunConfig.pm
     - .ci/running/bin/runbms 16 16 &> other.run
-    # check
-    - cat nogc.run
-    - python .ci/run-check.py nogc.run
     - cat other.run
+    # check
+    - python .ci/run-check.py nogc.run
     - python .ci/run-check.py other.run
   artifacts:
     when: always
