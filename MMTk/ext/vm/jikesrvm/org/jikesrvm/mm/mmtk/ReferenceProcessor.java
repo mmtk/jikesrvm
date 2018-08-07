@@ -688,7 +688,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
   /**
    * Processes a reference with the current semantics.
    * <p>
-   * This method deals with  a soft reference as if it were a weak reference, i.e.
+   * This method deals with a soft reference as if it were a weak reference, i.e.
    * it does not retain the referent. To retain the referent, use
    * {@link #retainReferent(TraceLocal, ObjectReference)} followed by a transitive
    * closure phase.

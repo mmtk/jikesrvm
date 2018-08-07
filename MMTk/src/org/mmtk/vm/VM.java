@@ -128,7 +128,7 @@ public final class VM {
   public static final Debug debugging;
 
   /*
-   * The remainder is does the static initialization of the
+   * The remainder does the static initialization of the
    * above, reflectively binding to the appropriate host jvm
    * classes.
    */
