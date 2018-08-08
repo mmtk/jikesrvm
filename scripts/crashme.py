@@ -5,6 +5,9 @@ import subprocess
 import datetime
 import pathlib
 import socket
+import os
+
+here = os.path.dirname(os.path.abspath(__file__))
 
 
 def mkdirp(path):
@@ -17,8 +20,8 @@ def main():
 
     date_str = datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S")
     hostname = socket.gethostname()
-    log_dir = "{}-{}".format(hostname, date_str)
-
+    log_dirname = "{}-{}".format(hostname, date_str)
+    log_dir = os.path.join(here, "..", "results", "crashme", log_dirname)
     mkdirp(log_dir)
 
     for i in range(n):
