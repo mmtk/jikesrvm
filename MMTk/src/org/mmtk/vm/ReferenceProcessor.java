@@ -14,7 +14,6 @@ package org.mmtk.vm;
 
 import org.mmtk.plan.TraceLocal;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.unboxed.Address;
 
 /**
  * This class manages SoftReferences, WeakReferences, and
