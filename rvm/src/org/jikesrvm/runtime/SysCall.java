@@ -409,6 +409,18 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract boolean is_mapped_address(Address address);
 
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void add_weak_candidate(Address ref, Address referent);
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void add_soft_candidate(Address ref, Address referent);
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void add_phantom_candidate(Address ref, Address referent);
+
   @Inline
   public void sysModifyCheck(ObjectReference object) {
     modify_check(object);

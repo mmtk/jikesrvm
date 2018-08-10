@@ -282,7 +282,9 @@ public class BootRecord {
   public Address is_mapped_objectRIP;
   public Address is_mapped_addressRIP;
   public Address modify_checkRIP;
-
+  public Address add_weak_candidateRIP;
+  public Address add_soft_candidateRIP;
+  public Address add_phantom_candidateRIP;
 
   // startup/shutdown
   public Address sysExitIP;

@@ -153,18 +153,6 @@ public class Entrypoints {
   public static final NormalMethod outOfMemoryMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "outOfMemory",
                   "()V");
-  public static final NormalMethod processReferenceTypesMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "processReferenceTypes",
-                  "(Lorg/vmmagic/unboxed/Address;I)V");
-  public static final NormalMethod scanWeakReferenceTypeMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "scanWeakReferenceType",
-                  "(Lorg/vmmagic/unboxed/Address;I)V");
-  public static final NormalMethod scanSoftReferenceTypeMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "scanSoftReferenceType",
-                  "(Lorg/vmmagic/unboxed/Address;I)V");
-  public static final NormalMethod scanPhantomReferenceTypeMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "scanPhantomReferenceType",
-                  "(Lorg/vmmagic/unboxed/Address;I)V");
   public static final NormalMethod snipObsoleteCompiledMethodsMethod =
           getMethod(org.jikesrvm.compilers.common.CompiledMethods.class, "snipObsoleteCompiledMethods", "()V");
   public static final NormalMethod getReferenceSlotSizeMethod =
@@ -175,6 +163,8 @@ public class Entrypoints {
           getMethod(org.jikesrvm.jni.FunctionTable.class, "length", "()I");
   public static final NormalMethod implementedInJavaMethod =
           getMethod(org.jikesrvm.jni.JNIGenericHelpers.class, "implementedInJava", "(I)Z");
+  public static final NormalMethod enqueueReferenceMethod =
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "enqueueReference", "(Lorg/vmmagic/unboxed/Address;)V");
 
   public static final RVMField numThreadsField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "numThreads", int.class);
