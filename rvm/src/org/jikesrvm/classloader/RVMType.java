@@ -916,6 +916,7 @@ public abstract class RVMType extends AnnotatedElement {
    * In a class with pointers, it contains the offsets of
    * reference-containing instance fields
    */
+  @Entrypoint
   protected int[] referenceOffsets;
 
   /**

@@ -139,8 +139,6 @@ public class Entrypoints {
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test2", "(II)I");
   public static final NormalMethod test3Method =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test3", "(IIII)I");
-  public static final NormalMethod getOffsetArrayMethod =
-          getMethod(org.jikesrvm.mm.mminterface.RustScanning.class, "getOffsetArray","(Ljava/lang/Object;)[I");
   public static final NormalMethod scanThreadMethod =
           getMethod(org.jikesrvm.mm.mminterface.RustScanThread.class, "scanThread",
                   "(Lorg/jikesrvm/scheduler/RVMThread;Lorg/vmmagic/unboxed/Address;ZZ)V");
@@ -213,6 +211,8 @@ public class Entrypoints {
           getField(org.jikesrvm.classloader.RVMClass.class, "instanceSize", int.class);
   public static final RVMField logElementSizeField =
           getField(org.jikesrvm.classloader.RVMArray.class, "logElementSize", int.class);
+  public static final RVMField referenceOffsetsField =
+          getField(org.jikesrvm.classloader.RVMType.class, "referenceOffsets", int[].class);
 
   public static final RVMField booleanArrayField =
           getField(org.jikesrvm.classloader.RVMArray.class, "BooleanArray",

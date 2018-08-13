@@ -47,13 +47,6 @@ public class RustScanning {
     static int roots = 0;
     static int refs = 0;
 
-    @Entrypoint
-    public static int[] getOffsetArray(Object object) {
-        ObjectReference objectRef = ObjectReference.fromObject(object);
-        RVMType type = ObjectModel.getObjectType(objectRef.toObject());
-        return type.getReferenceOffsets();
-    }
-
     @Inline
     @Uninterruptible
     @Entrypoint
