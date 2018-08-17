@@ -39,7 +39,7 @@ build:basebasenogc:
 build:rbasebasesemispace:
   stage: build
   script:
-    - python scripts/testMMTk.py -g RBaseBaseSemiSpace
+    - python scripts/testMMTk.py -g RBaseBaseSemiSpace -a "-Xms75M -Xmx75M -X:gc:threads=64"
 
 build:rfastadaptivesemispace:
   stage: build
@@ -54,4 +54,4 @@ build:rfulladaptivesemispace:
 build:basebasesemispace:
   stage: build
   script:
-    - python scripts/testMMTk.py -g BaseBaseSemiSpace
+    - python scripts/testMMTk.py -g BaseBaseSemiSpace -a "-Xms75M -Xmx75M -X:gc:threads=64"
