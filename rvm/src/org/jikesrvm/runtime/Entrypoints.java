@@ -139,8 +139,6 @@ public class Entrypoints {
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test2", "(II)I");
   public static final NormalMethod test3Method =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test3", "(IIII)I");
-  public static final NormalMethod getOffsetArrayMethod =
-          getMethod(org.jikesrvm.mm.mminterface.RustScanning.class, "getOffsetArray","(Ljava/lang/Object;)[I");
   public static final NormalMethod scanThreadMethod =
           getMethod(org.jikesrvm.mm.mminterface.RustScanThread.class, "scanThread",
                   "(Lorg/jikesrvm/scheduler/RVMThread;Lorg/vmmagic/unboxed/Address;ZZ)V");
@@ -153,18 +151,6 @@ public class Entrypoints {
   public static final NormalMethod outOfMemoryMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "outOfMemory",
                   "()V");
-  public static final NormalMethod processReferenceTypesMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "processReferenceTypes",
-                  "(Lorg/vmmagic/unboxed/Address;I)V");
-  public static final NormalMethod scanWeakReferenceTypeMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "scanWeakReferenceType",
-                  "(Lorg/vmmagic/unboxed/Address;I)V");
-  public static final NormalMethod scanSoftReferenceTypeMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "scanSoftReferenceType",
-                  "(Lorg/vmmagic/unboxed/Address;I)V");
-  public static final NormalMethod scanPhantomReferenceTypeMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "scanPhantomReferenceType",
-                  "(Lorg/vmmagic/unboxed/Address;I)V");
   public static final NormalMethod snipObsoleteCompiledMethodsMethod =
           getMethod(org.jikesrvm.compilers.common.CompiledMethods.class, "snipObsoleteCompiledMethods", "()V");
   public static final NormalMethod getReferenceSlotSizeMethod =
@@ -175,6 +161,8 @@ public class Entrypoints {
           getMethod(org.jikesrvm.jni.FunctionTable.class, "length", "()I");
   public static final NormalMethod implementedInJavaMethod =
           getMethod(org.jikesrvm.jni.JNIGenericHelpers.class, "implementedInJava", "(I)Z");
+  public static final NormalMethod enqueueReferenceMethod =
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "enqueueReference", "(Lorg/vmmagic/unboxed/Address;)V");
 
   public static final RVMField numThreadsField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "numThreads", int.class);
@@ -223,6 +211,8 @@ public class Entrypoints {
           getField(org.jikesrvm.classloader.RVMClass.class, "instanceSize", int.class);
   public static final RVMField logElementSizeField =
           getField(org.jikesrvm.classloader.RVMArray.class, "logElementSize", int.class);
+  public static final RVMField referenceOffsetsField =
+          getField(org.jikesrvm.classloader.RVMType.class, "referenceOffsets", int[].class);
 
   public static final RVMField booleanArrayField =
           getField(org.jikesrvm.classloader.RVMArray.class, "BooleanArray",

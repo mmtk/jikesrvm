@@ -23,6 +23,7 @@ import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
 import static org.mmtk.utility.heap.layout.HeapParameters.MAX_SPACES;
 
 import java.lang.ref.PhantomReference;
+import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
@@ -1186,7 +1187,12 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addSoftReference(SoftReference<?> obj, Object referent) {
-    ReferenceProcessor.addSoftCandidate(obj,ObjectReference.fromObject(referent));
+    if (VM.BuildWithRustMMTk) {
+      sysCall.add_soft_candidate(Magic.objectAsAddress(obj),
+              Magic.objectAsAddress(referent));
+    } else {
+      ReferenceProcessor.addSoftCandidate(obj, ObjectReference.fromObject(referent));
+    }
   }
 
   /**
@@ -1197,40 +1203,12 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj, Object referent) {
-    ReferenceProcessor.addWeakCandidate(obj,ObjectReference.fromObject(referent));
-  }
-
-  @Entrypoint
-  public static void scanWeakReferenceType(Address trace, int intNursery) {
-    // Weak Reference Phase
-    // FIXME
-    boolean nursery = intNursery != 0;
-    org.mmtk.vm.VM.softReferences.scan(trace, nursery,false);
-    org.mmtk.vm.VM.weakReferences.scan(trace, nursery,false);
-  }
-
-  @Entrypoint
-  public static void scanSoftReferenceType(Address trace, int intNursery) {
-    // Soft Reference Phase
-    // FIXME
-    boolean nursery = intNursery != 0;
-    org.mmtk.vm.VM.softReferences.scan(trace, nursery,true);
-  }
-
-  @Entrypoint
-  public static void scanPhantomReferenceType(Address trace, int intNursery) {
-    // Phantom Reference Phase
-    // FIXME
-    boolean nursery = intNursery != 0;
-    org.mmtk.vm.VM.phantomReferences.scan(trace, nursery,false);
-  }
-
-  @Entrypoint
-  public static void processReferenceTypes(Address trace, int intNursery) {
-    boolean nursery = intNursery != 0;
-    org.mmtk.vm.VM.softReferences.forward(trace, nursery);
-    org.mmtk.vm.VM.weakReferences.forward(trace, nursery);
-    org.mmtk.vm.VM.phantomReferences.forward(trace, nursery);
+    if (VM.BuildWithRustMMTk) {
+      sysCall.add_weak_candidate(Magic.objectAsAddress(obj),
+              Magic.objectAsAddress(referent));
+    } else {
+      ReferenceProcessor.addWeakCandidate(obj, ObjectReference.fromObject(referent));
+    }
   }
 
   /**
@@ -1241,7 +1219,17 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
-    ReferenceProcessor.addPhantomCandidate(obj,ObjectReference.fromObject(referent));
+    if (VM.BuildWithRustMMTk) {
+      sysCall.add_phantom_candidate(Magic.objectAsAddress(obj),
+              Magic.objectAsAddress(referent));
+    } else {
+      ReferenceProcessor.addPhantomCandidate(obj, ObjectReference.fromObject(referent));
+    }
+  }
+
+  @Entrypoint
+  public static void enqueueReference(Address ref) {
+    ((Reference<?>) Magic.addressAsObject(ref)).enqueueInternal();
   }
 
   /***********************************************************************

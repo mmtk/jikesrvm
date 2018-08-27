@@ -13,17 +13,14 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.mm.mmtk.ScanBootImage;
 import org.jikesrvm.mm.mmtk.ScanThread;
-import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.BootRecord;
 import org.mmtk.utility.Log;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
 
 import static org.jikesrvm.mm.mmtk.ScanBootImage.checkReference;
@@ -46,13 +43,6 @@ public class RustScanning {
     /* statistics */
     static int roots = 0;
     static int refs = 0;
-
-    @Entrypoint
-    public static int[] getOffsetArray(Object object) {
-        ObjectReference objectRef = ObjectReference.fromObject(object);
-        RVMType type = ObjectModel.getObjectType(objectRef.toObject());
-        return type.getReferenceOffsets();
-    }
 
     @Inline
     @Uninterruptible
