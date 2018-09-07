@@ -29,9 +29,9 @@ def main():
         p = subprocess.run(app, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout_file = pathlib.Path(log_dir) / "{}[{}].stdout".format(i, p.returncode)
         stderr_file = pathlib.Path(log_dir) / "{}[{}].stderr".format(i, p.returncode)
-        with stdout_file.open("w") as stdoutfd, stderr_file.open("w") as stderrfd:
-            stdoutfd.write(p.stdout.decode("utf-8"))
-            stderrfd.write(p.stderr.decode("utf-8"))
+        with stdout_file.open("wb") as stdoutfd, stderr_file.open("wb") as stderrfd:
+            stdoutfd.write(p.stdout)
+            stderrfd.write(p.stderr)
         print(".", end="", flush=True)
 
     print()
