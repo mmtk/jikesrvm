@@ -3,6 +3,7 @@ import math
 from pathlib import Path, PurePath
 import subprocess
 import sys
+import shlex
 
 def parse_input(valid_inputs, input_message="Enter a string: ", output_message="Input not valid",
                 sanitise=True, null_value="", invalid_inputs = []):
@@ -21,6 +22,20 @@ def parse_input(valid_inputs, input_message="Enter a string: ", output_message="
         else:
             logging.debug("Input set to: {}".format(user_input))
             return user_input
+
+def run_buildit(collector, tests = ""):
+    base_command = "bin/buildit ox.moma -j /usr/lib/jvm/default-java {}".format(collector)
+    test_flag = "" if tests == "" else " -t \"{}\"".format(tests)
+    output = str(subprocess.check_output(shlex.split(base_command + test_flag)))
+    output = output.split("\\n")
+    for line in output:
+        if "jikesrvm/results/buildit" in line:
+            for word in line.split():
+                if "jikesrvm/results/buildit" in word:
+                    directory = word
+                    break
+    results_dir = directory.split("/")[-1]
+    return results_dir
 
 def write_result(file, test_name, result, build):
     """Write data to file"""
