@@ -1,21 +1,10 @@
 {
-    "RB":
+    "RBaseBaseNoGCRelease":
         {
-            "FinalizeTest":
+            "TestParallelHardwareTrap":
                 {
-                    "exit-code": 124,
-                    "result": false
-                },
-            "SoftReferenceClearingTest":
-                {
-                    "result": true,
-                    "exit-code": 124
-                },
-            "FixedLive":
-                {
-                    "result": true,
-                    "exit-code": 128
+                    "exit-code": 0,
+                    "result": true
                 }
         }
-
 }
