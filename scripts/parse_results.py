@@ -6,6 +6,7 @@ import pathlib
 from pathlib import Path
 import os
 import helper
+import argparse  # parsing arguments to python
 
 # Set logging level. Levels are debug, info, warning, error, critical
 logging.basicConfig(stream=sys.stderr, level=logging.ERROR)
@@ -20,14 +21,29 @@ json_dir  = base_dir / "json"
 build_dir = base_dir / "buildit"
 xml_dir   = Path("tests") / "local" / "Results.xml"
 
+#############
+# Arguments #
+#############
+
+parser = argparse.ArgumentParser(description="Parse results")
+parser.add_argument("--latest", dest="latest", action="store_true",
+                    help="Parse the latest results")
+parser.add_argument("-r", dest="results", default="", help="Results directory")
+args = parser.parse_args()
+
 ######################################
 # Specify results directory to parse #
 ######################################
 
 result_dirs = os.listdir(build_dir)
 
-result_dir = helper.parse_input(result_dirs, input_message="Enter a directory to parse results: ",
-                output_message="Directory not valid", null_value="latest")
+if args.latest:
+    result_dir = "latest"
+elif args.results != "":
+    result_dir = args.results
+else:
+    result_dir = helper.parse_input(result_dirs, input_message="Enter a directory to parse results: ",
+                    output_message="Directory not valid", null_value="latest")
 
 #############################
 # Open Results.xml to parse #
