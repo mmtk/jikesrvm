@@ -32,7 +32,10 @@ def main():
         with stdout_file.open("wb") as stdoutfd, stderr_file.open("wb") as stderrfd:
             stdoutfd.write(p.stdout)
             stderrfd.write(p.stderr)
-        print(".", end="", flush=True)
+        if p.returncode == 0:
+            print(".", end="", flush=True)
+        else:
+            print("*", end="", flush=True)
 
     print()
 
