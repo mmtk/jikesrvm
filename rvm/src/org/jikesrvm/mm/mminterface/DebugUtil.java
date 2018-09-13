@@ -17,6 +17,7 @@ import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_END;
 import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
 import static org.jikesrvm.mm.mminterface.MemoryManagerConstants.MOVES_OBJECTS;
+import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMArray;
@@ -165,7 +166,11 @@ public class DebugUtil {
 
   @Uninterruptible
   public static boolean mappedVMRef(ObjectReference ref) {
-    return Space.isMappedObject(ref) && HeapLayout.mmapper.objectIsMapped(ref);
+    if (VM.BuildWithRustMMTk) {
+      return sysCall.sysIsMappedObject(ref);
+    } else {
+      return Space.isMappedObject(ref) && HeapLayout.mmapper.objectIsMapped(ref);
+    }
   }
 
   @Entrypoint
