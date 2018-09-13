@@ -23,8 +23,9 @@ def parse_input(valid_inputs, input_message="Enter a string: ", output_message="
             logging.debug("Input set to: {}".format(user_input))
             return user_input
 
-def run_buildit(collector, tests = ""):
-    base_command = "bin/buildit ox.moma -j /usr/lib/jvm/default-java {}".format(collector)
+def run_buildit(collector, tests = "", ci=False):
+    host = "localhost" if ci else "ox.moma"
+    base_command = "bin/buildit {} -j /usr/lib/jvm/default-java {}".format(host, collector)
     test_flag = "" if tests == "" else " -t \"{}\"".format(tests)
     output = str(subprocess.check_output(shlex.split(base_command + test_flag)))
     output = output.split("\\n")
@@ -57,7 +58,7 @@ def append_equals(text, length):
     equals_length = length - len(text)
     return "=" * math.floor(equals_length / 2) + text + "=" * math.ceil(equals_length / 2)
 
-def exe(cmd, env=None, check_corrupted=False):
+def buildit(cmd, env=None, check_corrupted=False):
     print ("{}".format(cmd))
     p = subprocess.Popen(cmd,
                          env=env,
@@ -76,12 +77,33 @@ def exe(cmd, env=None, check_corrupted=False):
     p.wait()
     return p.returncode
 
-def build_jvm(args, rerun_corrupted=3):
+def run(cmd, env=None):
+    print("{}".format(cmd))
+    p = subprocess.Popen(cmd,
+                         env=env,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.STDOUT)
+    stdout = []
+    while True:
+        line = p.stdout.readline().decode("utf-8")
+        stdout.append(line)
+        sys.stdout.write(line)
+        if line == '' and p.poll() != None:
+            break
+    p.wait()
+    return p.returncode, stdout
+
+def build_jvm(collector, host ="localhost", build_args = "", test_run = "",
+              test_suite="", java_home="/usr/lib/jvm/default-java", rerun_corrupted=3, require_results_dir=False):
     """
     Builds JVM with particular collector
 
     Args:
-        args: List of build arguments
+        host: Which host to use
+        build_args: The build arguments to use
+        test_run: Which test to run
+        test_suite: Which test suite to run
+        java_home: Location of java
         rerun_corrupted: Number of times to rerun if corrupted zip is found
     Returns:
         Whether or not the JVM built successfully or not
@@ -89,13 +111,28 @@ def build_jvm(args, rerun_corrupted=3):
     assert rerun_corrupted >= 0, "Number of times to rerun corrupted must be greater than 0"
     build = False
     for _ in range(0, rerun_corrupted):
-        cmd = ("bin/buildit localhost -j " + args.java_home + " --answer-yes " + 
-            args.build_args + args.collector + args.test + args.test_run + " --nuke").split()
-        exit_code = exe(cmd, check_corrupted=True)
-        if exit_code != 3:
-            build = exit_code == 0
+        rerun = False
+        cmd = shlex.split("bin/buildit {} -j {} --answer-yes {} {} --nuke".format(host, java_home, build_args, collector))
+        exit_code, stdout = run(cmd)
+        for line in stdout:
+            if ("corrupted zip file") in line:
+                rerun = True
+        if not rerun:
             break
-    return build
+    if exit_code == 0:
+        build = True
+    directory = ""
+    if require_results_dir and build:
+        for line in stdout:
+            if "jikesrvm/results/buildit" in line:
+                for word in line.split():
+                    if "jikesrvm/results/buildit" in word:
+                        directory = word
+                        print("found word",word)
+                        break
+    print(directory)
+    results_dir = directory.split("/")[-1]
+    return build, results_dir
 
 def test_jvm(args):
     """
@@ -108,7 +145,7 @@ def test_jvm(args):
     """
     cmd = ("dist/" + args.collector + "_x86_64-linux/rvm "
                    + args.args + " -jar benchmarks/dacapo-2006-10-MR2.jar fop").split()
-    return exe(cmd)
+    return buildit(cmd)
 
 def get_builds(args, jikesrvm_dir, path=Path("build")/"configs"):
     """
