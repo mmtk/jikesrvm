@@ -26,7 +26,8 @@ def main():
 
     for i in range(n):
         print(i, end="", flush=True)
-        p = subprocess.run(app, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.run(app, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                           env={"RUST_BACKTRACE": "1"})
         stdout_file = pathlib.Path(log_dir) / "{}[{}].stdout".format(i, p.returncode)
         stderr_file = pathlib.Path(log_dir) / "{}[{}].stderr".format(i, p.returncode)
         with stdout_file.open("wb") as stdoutfd, stderr_file.open("wb") as stderrfd:
