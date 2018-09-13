@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-#!/usr/bin/env python3
 import subprocess
 import requests
 
@@ -53,8 +52,8 @@ def get_unreserved_list():
 
 def main():
     for m in Machine.get_machines():
-        print(m)
-        print(m.is_reserved())
+        if not m.is_reserved() and m.role == 'exp' and m.usergroup == 'exp':
+            print(m.host)
 
 if __name__ == "__main__":
     main()
