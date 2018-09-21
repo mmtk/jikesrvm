@@ -3,3 +3,4 @@ pathlib
 lxml
 pyyaml
 django
+tabulate
