@@ -1,0 +1,28 @@
+{% extends 'base.html' %} {% block content %}
+
+<h1 class="center">Summary</h1>
+
+<div class="table-responsive">
+    <table class="table">
+        <thead>
+            <tr>
+                <th></th>
+                {% for hash in summary.hashes %}
+                <th><a href="{{ hash.1 }}/summary.html">{{ hash.0 }}</a></th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for gc, res in summary.results.items %}
+            <tr>
+                <th>{{ gc }}</th>
+                {% for fails in res %}
+                <th>{{ fails }}</th>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

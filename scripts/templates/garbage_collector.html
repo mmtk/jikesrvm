@@ -1,0 +1,49 @@
+{% extends 'base.html' %} {% block content %}
+
+<h1 class="text-center">Comparison of {{ gcname1 }} and {{ gcname2 }}</h1>
+<div class="row">
+    <div class="col-sm-4">
+        <h3 class="text-center">Hash: <a href="summary.html">{{ hash }}</a></h3>       
+    </div>
+    <div class="col-sm-4">
+        <h3 class="text-center">We screwed up: <span class="text-danger">{{ wrong }}</span> times {{ wrong|yesno:":(, :)" }}</h3>
+    </div>
+    <div class="col-sm-4">
+        <a href=".collapsible" class="btn btn-default btn-primary" style="float:right" data-toggle="collapse">Toggle Correct</a>
+    </div>
+</div> 
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Test</th>
+                <th>{{ gcname1 }}</th>
+                <th>{{ gcname2 }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for test, test_info in tests.items %}
+            <tr class='{{ test_info.correct|yesno:"collapsible collapse, " }}'>
+                <td min-width="200px">{{ test }}</td>
+                <td width="40%">
+                    <a href="#collapsible0{{ forloop.counter0 }}" class="btn {{ test_info.correct|yesno:'btn-success,btn-danger' }}" data-toggle="collapse">{{ test_info.result.0 }}: {{ test_info.exit_code.0 }}</a>
+                    <div id="collapsible0{{ forloop.counter0 }}" class="collapse">
+                        <p>{{ test_info.reason.0 }}</p>
+                        <code>{{ test_info.output.0 }}</code>
+                    </div>
+                </td>
+                <td width="40%">
+                    <a href="#collapsible1{{ forloop.counter0 }}" class="btn {{ test_info.correct|yesno:'btn-success,btn-danger' }}" data-toggle="collapse">{{ test_info.result.1 }}: {{ test_info.exit_code.1 }}</a>
+                    <div id="collapsible1{{ forloop.counter0 }}" class="collapse">
+                        <p>{{ test_info.reason.1 }}</p>
+                        <code>{{ test_info.output.1 }}</code>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
