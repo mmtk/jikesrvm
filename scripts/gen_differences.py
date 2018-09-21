@@ -7,6 +7,8 @@ import os
 import helper
 import argparse
 import shutil
+import yaml
+import subprocess
 
 def main():
     # Arguments
@@ -20,11 +22,9 @@ def main():
 
     g1, g2 = get_gc_names(args.g1, args.g2, args.g)
 
-    set_verbosity_level(args.verbosity)
+    helper.set_verbosity_level(args.verbosity)
 
     results = gen_differences(g1,g2)
-
-    pretty(results, indent=0)
 
 def get_gc_names(g1, g2, g):
     if g1 == "" or g2 == "":
@@ -49,10 +49,10 @@ def gen_differences(g1, g2, dump=True):
     """
     # Define Constants
     JIKESRVM_DIR = Path(os.path.abspath(os.path.dirname(__file__))) / ".."
-    CONFIG_FILE  = JIKESRVM_DIR / "scripts" / "config.txt"
+    CONFIG_FILE  = JIKESRVM_DIR / "scripts" / "config.yaml"
     RESULTS_DIR  = JIKESRVM_DIR / "results"
     JSON_DIR     = RESULTS_DIR / "json"
-    DIFF_DIR     = RESULTS_DIR / "diff"
+    DIFF_DIR     = RESULTS_DIR / "html"
 
     g1_results_dir = JSON_DIR / g1
     g2_results_dir = JSON_DIR / g2
@@ -61,10 +61,10 @@ def gen_differences(g1, g2, dump=True):
     
     g1_files, g2_files = get_result_files(g1_results_dir, g2_results_dir)
 
-    special_cases = get_contents(CONFIG_FILE)
+    special_cases = get_contents(CONFIG_FILE, type="yaml")
 
-    all_results = {}
-
+    all_results = {'suites': {}}
+    total_fail = 0
     for g1_file in g1_files:
         logging.info(("{}: Processing from {}").format(g1, g1_file))
 
@@ -81,19 +81,29 @@ def gen_differences(g1, g2, dump=True):
         group_results = {}
 
         for test_name in tests1.keys():
-            test_results = find_test_differences(test_name, tests1, tests2, g1_file, special_cases, g1, g2)
-            if len(test_results) != 0:
-                group_results[test_name] = test_results
-        if len(group_results) != 0:
-            all_results[get_file_name(g1_file)] = group_results
+            test_results, correct = find_test_differences(test_name, tests1, tests2, g1_file, special_cases, g1, g2)
+            total_fail += 0 if correct else 1
+            group_results[test_name] = test_results
+        all_results['suites'][get_file_name(g1_file)] = group_results
+    all_results['name'] = [g1, g2]
+    all_results['fails'] = total_fail
 
     if dump:
-        dump_differences(DIFF_DIR / (g1+"_"+g2+".json"), all_results)
+        DIFF_DIR.mkdir(exist_ok=True)
+        hash_date = get_hash_date(get_hash())
+        (DIFF_DIR / hash_date).mkdir(exist_ok=True) 
+        dump_differences(DIFF_DIR / hash_date / (g1+"_"+g2+".json"), all_results)
 
     return all_results 
 
+def get_hash_date(git_hash):
+    hash_date =  subprocess.check_output(["git", "show", "--no-patch", "--no-notes", "--pretty=%h_%cI", git_hash]).strip().decode()
+    return hash_date.split("+", 1)[0].replace(":", "").replace("T", "-")
+
+def get_hash():
+    return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"]).strip().decode()
+
 def find_test_differences(test_name, tests1, tests2, g1_file, special_cases, g1, g2):
-    results = {}
     logging.info("Comparing test {} from suite {}".format(test_name, g1_file.name))
     test_info1 = tests1.get(test_name, -1)
     test_info2 = tests2.get(test_name, -1)
@@ -106,17 +116,24 @@ def find_test_differences(test_name, tests1, tests2, g1_file, special_cases, g1,
     result2 = test_info2["result"]
     test_output1 = test_info1["output"]
     test_output2 = test_info2["output"]
-
+    reason1 = test_info1["reason"]
+    reason2 = test_info2["reason"]
     # Check that the second build is not a special case
+    test_success = False
     special_results = special_cases.get(g2, {}).get(test_name, {})
-    if special_results.get("result") == result2 and special_results.get("exit-code") == exit_code2:
-        return results
-    if (result1 != result2 or exit_code1 != exit_code2):
-        results = {
-            g1: test_info1,
-            g2: test_info2
-        }
-    return results
+    if special_results.get("result") == (result2 == "SUCCESS") and str(special_results.get("exit-code")) == exit_code2:
+        logging.debug("{} was found in special cases".format(test_name))
+        test_success = True
+    elif (result1 == result2 and exit_code1 == exit_code2):
+        test_success = True
+    results = {
+        'exit_code': [exit_code1, exit_code2],
+        'result': [result1, result2],
+        'output': [test_output1, test_output2],
+        'reason': [reason1, reason2],
+        'correct': test_success
+    }
+    return results, test_success
 
 def get_result_files(dir1, dir2):
     files1 = list(dir1.glob("*.json"))
@@ -128,8 +145,19 @@ def get_result_files(dir1, dir2):
     return files1, files2
 
 def get_contents(file):
-    with open(file) as f:
+    with open(str(file)) as f:
         info = json.load(f)
+    return info
+
+def get_contents(file, type="json"):
+    with open(str(file)) as f:
+        if type == "json":
+            info = json.load(f)
+        elif type == "yaml":
+            info = yaml.load(f)
+        else:
+            print("Type must be either [json, yaml]")
+            exit(1)
     return info
 
 def make_results_dir(dir, g1, g2):
@@ -141,32 +169,8 @@ def make_results_dir(dir, g1, g2):
 def get_all_files(dir):
     return os.listdir(dir)
 
-def set_verbosity_level(level):
-    levels = {
-        "debug": logging.DEBUG,
-        "info": logging.INFO,
-        "warning": logging.WARNING,
-        "error": logging.ERROR,
-        "critical": logging.CRITICAL
-    }
-    log_level = levels.get(level.lower(), -1)
-
-    if log_level != -1:
-        logging.basicConfig(stream=sys.stderr, level=log_level)
-    else:
-        print("Logging level must be a value from", levels.keys())
-        exit(1)
-
-def pretty(d, indent=0):
-    for key, value in d.items():
-        print('\t' * indent + str(key))
-        if isinstance(value, dict):
-            pretty(value, indent+1)
-        else:
-            print('\t' * (indent+1) + str(value))
-
 def dump_differences(file, contents):
-    with open(file, "w+") as f:
+    with open(str(file), "w+") as f:
         json.dump(contents, f)
 
 if __name__ == '__main__':
