@@ -14,6 +14,7 @@ package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.mm.mmtk.ScanThread;
+import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.SystemThread;
 import org.mmtk.plan.CollectorContext;
 import org.vmmagic.pragma.*;
@@ -97,9 +98,9 @@ public final class CollectorThread extends SystemThread {
   public void run() {
     if (VM.BuildWithRustMMTk) {
       if (workerInstance.EQ(Address.zero())) {
-        sysCall.sysStartControlCollector(rvmThread.threadSlot);
+        sysCall.sysStartControlCollector(Magic.objectAsAddress(rvmThread));
       } else {
-        sysCall.sysStartWorker(rvmThread.threadSlot, workerInstance);
+        sysCall.sysStartWorker(Magic.objectAsAddress(rvmThread), workerInstance);
       }
     } else {
       rvmThread.collectorContext.run();

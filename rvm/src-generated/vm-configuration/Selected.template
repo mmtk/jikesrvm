@@ -81,10 +81,11 @@ public class Selected {
 
     @_NO_RUST_MASK_START_@
     @Override
-    public void initMutator (int id){
+    public void initMutator(int id) {
+      Address tls = Magic.objectAsAddress(RVMThread.threadBySlot[id]);
       super.initMutator(id);
       if (VM.runningVM) {
-        mmtkHandle = sysCall.sysBindMutator(id);
+        mmtkHandle = sysCall.sysBindMutator(tls);
         this.mmtkHandle = this.setBlock(mmtkHandle);
       }
     }

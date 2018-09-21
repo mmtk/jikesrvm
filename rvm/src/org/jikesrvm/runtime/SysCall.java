@@ -125,7 +125,7 @@ public abstract class SysCall {
 
   @RustSysCall
   @SysCallTemplate
-  public abstract Address alignedSysBindMutator(int thread_id);
+  public abstract Address alignedSysBindMutator(Address tls);
 
   @RustSysCall
   @SysCallTemplate
@@ -133,7 +133,7 @@ public abstract class SysCall {
 
   @RustSysCall
   @SysCallTemplate
-  public abstract void alignedStartControlCollector(int threadId);
+  public abstract void alignedStartControlCollector(Address tls);
 
   @RustSysCall
   @SysCallTemplate
@@ -153,11 +153,11 @@ public abstract class SysCall {
 
   @RustSysCall
   @SysCallTemplate
-  public abstract void alignedStartWorker(int threadId, Address workerInstance);
+  public abstract void alignedStartWorker(Address tls, Address workerInstance);
 
   @RustSysCall
   @SysCallTemplate
-  public abstract void alignedEnableCollection(int threadId);
+  public abstract void alignedEnableCollection(Address tls);
 
   @RustSysCall
   @SysCallTemplate
@@ -173,21 +173,21 @@ public abstract class SysCall {
 
   @RustSysCall
   @SysCallTemplate
-  public abstract boolean alignedHandleUserCollectionRequest(int thread_id);
+  public abstract boolean alignedHandleUserCollectionRequest(Address tls);
 
 
    /**
    * Initialises information about the control collector
-   * @param threadId thread id of the control collector
+   * @param tls thread local storage of the control collector
    */
   @Inline
-  public void sysStartControlCollector(int threadId) {
-    start_control_collector(threadId);
+  public void sysStartControlCollector(Address tls) {
+    start_control_collector(tls);
   }
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract void start_control_collector(int threadId);
+  public abstract void start_control_collector(Address tls);
 
   /**
    * Initiates the GC
@@ -205,17 +205,17 @@ public abstract class SysCall {
 
   /**
    * Binds the thread to Rust
-   * @param id id of the thread
+   * @param tls thread local storage of the mutator thread
    * @return Address corresponding to start of the Rust structure of the mutator
    */
   @Inline
-  public Address sysBindMutator(int id) {
-    return bind_mutator(id);
+  public Address sysBindMutator(Address tls) {
+    return bind_mutator(tls);
   }
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract Address bind_mutator(int thread_id);
+  public abstract Address bind_mutator(Address tls);
 
   /**
    * Allocation slow path
@@ -306,20 +306,20 @@ public abstract class SysCall {
   public abstract void process_interior_edge(Address trace_local, ObjectReference target, Address slot, boolean root);
 
   @Inline
-  public void sysStartWorker(int threadId, Address workerInstance) {
-    start_worker(threadId, workerInstance);
+  public void sysStartWorker(Address tls, Address workerInstance) {
+    start_worker(tls, workerInstance);
   }
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract void start_worker(int threadId, Address workerInstance);
+  public abstract void start_worker(Address tls, Address workerInstance);
 
   @Inline
-  public void sysEnableCollection(int threadId) {
-    enable_collection(threadId);
+  public void sysEnableCollection(Address tls) {
+    enable_collection(tls);
   }
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract void enable_collection(int threadId);
+  public abstract void enable_collection(Address tls);
 
   @Inline
   public boolean sysWillNeverMove(ObjectReference object) {

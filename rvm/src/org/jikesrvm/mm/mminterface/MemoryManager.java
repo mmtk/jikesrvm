@@ -204,7 +204,8 @@ public final class MemoryManager {
     SynchronizedCounter.boot();
     if (VM.BuildWithRustMMTk) {
       sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
-      RVMThread.threadBySlot[1].setHandle(sysCall.sysBindMutator(1));
+      RVMThread.threadBySlot[1].setHandle(sysCall
+              .sysBindMutator(Magic.objectAsAddress(RVMThread.threadBySlot[1])));
     }
 
     Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
@@ -245,7 +246,8 @@ public final class MemoryManager {
   @Interruptible
   public static void enableCollection() {
     if (VM.BuildWithRustMMTk) {
-      sysCall.sysEnableCollection(RVMThread.getCurrentThreadSlot());
+      sysCall.sysEnableCollection(Magic
+              .objectAsAddress(RVMThread.getCurrentThread()));
     } else {
       Selected.Plan.get().enableCollection();
     }
@@ -376,7 +378,8 @@ public final class MemoryManager {
   @Interruptible
   public static void gc() {
     if (VM.BuildWithRustMMTk) {
-      sysCall.alignedHandleUserCollectionRequest(RVMThread.getCurrentThread().getId());
+      sysCall.alignedHandleUserCollectionRequest(Magic.objectAsAddress(RVMThread
+              .getCurrentThread()));
     } else {
       Selected.Plan.handleUserCollectionRequest();
     }
