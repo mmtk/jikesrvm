@@ -1,0 +1,51 @@
+RBaseBaseNoGC: 
+    TestParallelHardwareTrap:
+        result: True
+        exit-code: 0
+    RVM_914:
+        result: True
+        exit-code: 0
+    TestVolatileLongs:
+        result: True
+        exit-code: 0
+    TestVolatileStaticLongsUnresolved:
+        result: True
+        exit-code: 0
+    TestVolatileStaticDoublesUnresolved:
+        result: True
+        exit-code: 0
+    TestVolatileLongsUnresolved:
+        result: True
+        exit-code: 0
+    TestSerialization:
+        result: True
+        exit-code: 0
+    TestVolatileDoublesUnresolved:
+        result: True
+        exit-code: 0
+    TestFieldReflection: 
+        result: True
+        exit-code: 0
+    TestVolatileDoubles: 
+        result: True
+        exit-code: 0
+    TestClassHierarchy: 
+        result: True
+        exit-code: 0
+    TestVolatileStaticDoubles: 
+        result: True
+        exit-code: 0
+    TestArrayAccess: 
+        result: True
+        exit-code: 0
+    TestVolatileStaticLongs: 
+        result: True
+        exit-code: 0
+RBaseBaseNoGCRelease:
+    TestParallelHardwareTrap:
+        result: True
+        exit-code: 0
+RFastAdaptiveNoGC:
+    ReferenceStress:
+        result: True
+        exit-code: 0
