@@ -3,24 +3,29 @@ import math
 from pathlib import Path, PurePath
 import subprocess
 import sys
+import shlex
 
-def parse_input(valid_inputs, input_message="Enter a string: ", output_message="Input not valid",
-                sanitise=True, null_value="", invalid_inputs = []):
-    """Parse and validate input"""
-    # Continue accepting input until valid
-    while True:
-        user_input = input(input_message)
-        if (sanitise):
-            user_input = user_input.replace("/", "")
-            user_input = user_input.replace("\\", "")
-        if user_input == "" and null_value in valid_inputs and null_value not in invalid_inputs:
-            logging.debug("Input set to: {}".format(user_input))
-            return null_value
-        elif user_input not in valid_inputs or user_input in invalid_inputs:
-            print(output_message)
-        else:
-            logging.debug("Input set to: {}".format(user_input))
-            return user_input
+def set_verbosity_level(level):
+    """
+    Sets the verbosity level
+    Parameters:
+        level: The level to set the verbosity at
+    """
+    levels = {
+        "debug": logging.DEBUG,
+        "info": logging.INFO,
+        "warning": logging.WARNING,
+        "error": logging.ERROR,
+        "critical": logging.CRITICAL
+    }
+
+    log_level = levels.get(level.lower(), -1)
+
+    if log_level != -1:
+        logging.basicConfig(stream=sys.stderr, level=log_level)
+    else:
+        print("Logging level must be a value from", levels.keys())
+        exit(1)
 
 def write_result(file, test_name, result, build):
     """Write data to file"""
@@ -42,31 +47,40 @@ def append_equals(text, length):
     equals_length = length - len(text)
     return "=" * math.floor(equals_length / 2) + text + "=" * math.ceil(equals_length / 2)
 
-def exe(cmd, env=None, check_corrupted=False):
-    print ("{}".format(cmd))
+def run(cmd, env=None):
+    """
+    Runs a command
+    Parameters:
+        cmd: The command to execute. Must already be split by shlex
+        env: The environment to run it in
+    Returns:
+        A return code of the command and the stdout of the command
+    """
+    print("{}".format(cmd))
     p = subprocess.Popen(cmd,
                          env=env,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.STDOUT)
     stdout = []
-    if check_corrupted:
-        while True:
-            line = p.stdout.readline().decode("utf-8")
-            stdout.append(line)
-            sys.stdout.write(line)
-            if ("corrupted zip file") in line:
-                return 3
-            if line == '' and p.poll() != None:
-                break
+    while True:
+        line = p.stdout.readline().decode("utf-8")
+        stdout.append(line)
+        sys.stdout.write(line)
+        if line == '' and p.poll() != None:
+            break
     p.wait()
-    return p.returncode
+    return p.returncode, stdout
 
-def build_jvm(args, rerun_corrupted=3):
+def buildit(collector, host ="localhost", build_args = "", test_run = "",
+              test_suite="", java_home="/usr/lib/jvm/default-java", rerun_corrupted=3):
     """
-    Builds JVM with particular collector
-
+    Runs buildit with particular collector
     Args:
-        args: List of build arguments
+        host: Which host to use
+        build_args: The build arguments to use
+        test_run: Which test to run
+        test_suite: Which test suite to run
+        java_home: Location of java
         rerun_corrupted: Number of times to rerun if corrupted zip is found
     Returns:
         Whether or not the JVM built successfully or not
@@ -74,13 +88,26 @@ def build_jvm(args, rerun_corrupted=3):
     assert rerun_corrupted >= 0, "Number of times to rerun corrupted must be greater than 0"
     build = False
     for _ in range(0, rerun_corrupted):
-        cmd = ("bin/buildit localhost -j " + args.java_home + " --answer-yes " + 
-            args.build_args + args.collector + args.test + args.test_run + " --nuke").split()
-        exit_code = exe(cmd, check_corrupted=True)
-        if exit_code != 3:
-            build = exit_code == 0
+        rerun = False
+        cmd = shlex.split("bin/buildit {} -j {} --answer-yes {} {} --nuke".format(host, java_home, build_args, collector))
+        exit_code, stdout = run(cmd)
+        for line in stdout:
+            if ("corrupted zip file") in line:
+                rerun = True
+        if not rerun:
             break
-    return build
+    if exit_code == 0:
+        build = True
+    directory = ""
+    for line in stdout:
+        if "jikesrvm/results/buildit" in line:
+            for word in line.split():
+                if "jikesrvm/results/buildit" in word:
+                    directory = word
+                    break
+    results_dir = directory.split("/")
+    buildit_index = results_dir.index("buildit")
+    return build, results_dir[buildit_index + 1]
 
 def test_jvm(args):
     """
@@ -93,7 +120,7 @@ def test_jvm(args):
     """
     cmd = ("dist/" + args.collector + "_x86_64-linux/rvm "
                    + args.args + " -jar benchmarks/dacapo-2006-10-MR2.jar fop").split()
-    return exe(cmd)
+    return buildit(cmd)
 
 def get_builds(args, jikesrvm_dir, path=Path("build")/"configs"):
     """

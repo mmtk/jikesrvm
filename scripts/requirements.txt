@@ -1,2 +1,6 @@
 beautifulsoup4
-pypi
+pathlib
+lxml
+pyyaml
+django
+tabulate
