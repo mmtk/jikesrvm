@@ -59,11 +59,9 @@ build:basebasesemispace:
 build:correctnessbasebasenogc:
     stage: build
     script:
-     - /home/brendaw/mmtk_venv/bin/python scripts/runTests.py -g BaseBaseNoGC -T commit --host localhost
-     - rsync -r results/html squirrel.moma:/home/gitlab-runner/rust-mmtk
+     - /home/brendaw/mmtk_venv/bin/python scripts/runTests.py -g BaseBaseNoGC -T commit --host localhost --command "rsync -r results/html squirrel.moma:/home/gitlab-runner/rust-mmtk"
 
 build:correctnessfastadaptivenogc:
     stage: build
     script:
-     - /home/brendaw/mmtk_venv/bin/python scripts/runTests.py -g FastAdaptiveNoGC -T commit --host localhost
-     - rsync -r results/html squirrel.moma:/home/gitlab-runner/rust-mmtk
+     - /home/brendaw/mmtk_venv/bin/python scripts/runTests.py -g FastAdaptiveNoGC -T commit --host localhost --command "rsync -r results/html squirrel.moma:/home/gitlab-runner/rust-mmtk"
