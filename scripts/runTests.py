@@ -21,6 +21,7 @@ def main():
                         type=str)
     parser.add_argument('--host', dest='host', default="ox.moma", type=str, help="Specifies which host to use")
     parser.add_argument('-v', dest='verbosity', default="warning", type=str, help="Specifies the verbosity level")
+    parser.add_argument('--command', dest='command', default="", type=str, help="Specifies a command to run after the processing is done.")
     args = parser.parse_args()
 
     assert (args.c1 != "" and args.c2 != "") != (args.collector != "")
@@ -76,7 +77,11 @@ def main():
 
     generate_html(javagc, rustgc)
 
-    if len(results) == 0:
+    if args.command != "":
+        command = shlex.split(args.command)
+        helper.run(command)
+
+    if results['fails'] == 0:
         print("Passed")
         exit(0)
     else:
