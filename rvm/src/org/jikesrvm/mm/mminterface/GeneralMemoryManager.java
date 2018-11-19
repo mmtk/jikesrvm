@@ -12,40 +12,14 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_SIZE;
-import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_CODE_START;
-import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_SIZE;
-import static org.jikesrvm.HeapLayoutConstants.BOOT_IMAGE_DATA_START;
-import static org.jikesrvm.Options.traceAllocation;
-import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
-import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
-import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
-import static org.mmtk.utility.heap.layout.HeapParameters.MAX_SPACES;
-
-import java.lang.ref.PhantomReference;
-import java.lang.ref.Reference;
-import java.lang.ref.SoftReference;
-import java.lang.ref.WeakReference;
-
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
-import org.jikesrvm.classloader.RVMArray;
-import org.jikesrvm.classloader.RVMClass;
-import org.jikesrvm.classloader.RVMMethod;
-import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.classloader.SpecializedMethod;
-import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
-import org.jikesrvm.objectmodel.BootImageInterface;
-import org.jikesrvm.objectmodel.IMT;
-import org.jikesrvm.objectmodel.ITable;
-import org.jikesrvm.objectmodel.ITableArray;
-import org.jikesrvm.objectmodel.JavaHeader;
-import org.jikesrvm.objectmodel.ObjectModel;
-import org.jikesrvm.objectmodel.TIB;
+import org.jikesrvm.objectmodel.*;
 import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Callbacks;
@@ -60,29 +34,27 @@ import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.heap.layout.HeapLayout;
 import org.mmtk.utility.options.Options;
-import org.vmmagic.pragma.Entrypoint;
-import org.vmmagic.pragma.Inline;
-import org.vmmagic.pragma.Interruptible;
-import org.vmmagic.pragma.NoInline;
-import org.vmmagic.pragma.Pure;
-import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.Unpreemptible;
-import org.vmmagic.pragma.UnpreemptibleNoWarn;
-import org.vmmagic.pragma.UninterruptibleNoWarn;
-import org.vmmagic.unboxed.Address;
-import org.vmmagic.unboxed.Extent;
-import org.vmmagic.unboxed.ObjectReference;
-import org.vmmagic.unboxed.Offset;
-import org.vmmagic.unboxed.Word;
-import org.vmmagic.unboxed.WordArray;
+import org.vmmagic.pragma.*;
+import org.vmmagic.unboxed.*;
 
+import java.lang.ref.PhantomReference;
+import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
+
+import static org.jikesrvm.HeapLayoutConstants.*;
+import static org.jikesrvm.Options.traceAllocation;
+import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
+import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.jikesrvm.runtime.SysCall.sysCall;
+import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
+import static org.mmtk.utility.heap.layout.HeapParameters.MAX_SPACES;
 
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
 @Uninterruptible
-public final class MemoryManager {
+public class GeneralMemoryManager {
 
   /***********************************************************************
    *
@@ -96,94 +68,27 @@ public final class MemoryManager {
   private static final boolean CHECK_MEMORY_IS_ZEROED = false;
   private static final boolean traceAllocator = false;
   private static final int     verboseUnimplemented = 0;
+
+
   /**
    * Has the interface been booted yet?
    */
-  private static boolean booted = false;
+  static boolean booted = false;
 
   /**
    * Has garbage collection been enabled yet?
    */
-  private static boolean collectionEnabled = false;
+  static boolean collectionEnabled = false;
 
   /***********************************************************************
    *
    * Initialization
    */
 
-  @Entrypoint
-  @Unpreemptible
-  public static void blockForGC() {
-    RVMThread t = RVMThread.getCurrentThread();
-    t.assertAcceptableStates(RVMThread.IN_JAVA, RVMThread.IN_JAVA_TO_BLOCK);
-    RVMThread.observeExecStatusAtSTW(t.getExecStatus());
-    t.block(RVMThread.gcBlockAdapter);
-  }
-
-  @Entrypoint
-  public static void prepareMutator(RVMThread t) {
-    /*
-     * The collector threads of processors currently running threads
-     * off in JNI-land cannot run.
-     */
-    t.monitor().lockNoHandshake();
-    // are these the only unexpected states?
-    t.assertUnacceptableStates(RVMThread.IN_JNI,RVMThread.IN_NATIVE);
-    int execStatus = t.getExecStatus();
-    // these next assertions are not redundant given the ability of the
-    // states to change asynchronously, even when we're holding the lock, since
-    // the thread may change its own state.  of course that shouldn't happen,
-    // but having more assertions never hurts...
-    if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_JNI);
-    if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_NATIVE);
-    if (execStatus == RVMThread.BLOCKED_IN_JNI) {
-      if (false) {
-        VM.sysWriteln("for thread #",t.getThreadSlot()," setting up JNI stack scan");
-        VM.sysWriteln("thread #",t.getThreadSlot()," has top java fp = ",t.getJNIEnv().topJavaFP());
-      }
-
-      /* thread is blocked in C for this GC.
-       Its stack needs to be scanned, starting from the "top" java
-       frame, which has been saved in the running threads JNIEnv.  Put
-       the saved frame pointer into the threads saved context regs,
-       which is where the stack scan starts. */
-      t.contextRegisters.setInnermost(Address.zero(), t.getJNIEnv().topJavaFP());
-    }
-    t.monitor().unlock();
-  }
-
-  @Entrypoint
-  public static int test2(int a, int b) {
-    return a + b;
-  }
-
-  @Entrypoint
-  public static int test3(int a, int b, int c, int d) {
-    if (VM.verboseBoot != 0) {
-      VM.sysWriteln(a);
-      VM.sysWriteln(b);
-      VM.sysWriteln(c);
-      VM.sysWriteln(d);
-    }
-    return a * b + c + d;
-  }
-
-  @Entrypoint
-  public static void test1() {
-    if (VM.verboseBoot != 0) {
-      VM.sysWriteln("testprint");
-    }
-  }
-
-  @Entrypoint
-  public static int test(int a) {
-    return a + 10;
-  }
-
   /**
    * Suppress default constructor to enforce noninstantiability.
    */
-  private MemoryManager() {} // This constructor will never be invoked.
+  GeneralMemoryManager() {} // This constructor will never be invoked.
 
   /**
    * Initialization that occurs at <i>boot</i> time (runtime
@@ -194,28 +99,8 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void boot(BootRecord theBootRecord) {
-    Extent pageSize = BootRecord.the_boot_record.bytesInPage;
-    org.jikesrvm.runtime.Memory.setPageSize(pageSize);
-    HeapLayout.mmapper.markAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
-    HeapLayout.mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
-    HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
-    DebugUtil.boot(theBootRecord);
-    Selected.Plan.get().enableAllocation();
-    SynchronizedCounter.boot();
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysGCInit(BootRecord.the_boot_record.tocRegister, theBootRecord.maximumHeapSize.toInt());
-      RVMThread.threadBySlot[1].setHandle(sysCall
-              .sysBindMutator(Magic.objectAsAddress(RVMThread.threadBySlot[1])));
-    }
-
-    Callbacks.addExitMonitor(new Callbacks.ExitMonitor() {
-      @Override
-      public void notifyExit(int value) {
-        Selected.Plan.get().notifyExit(value);
-      }
-    });
-
     booted = true;
+    throw new UnsupportedOperationException("boot not implemented");
   }
 
   /**
@@ -225,19 +110,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void postBoot() {
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 3) {
-      VM.sysFail("postBoot() unimplemented");
-    } else {
-      Selected.Plan.get().processOptions();
-      if (Options.noReferenceTypes.getValue()) {
-        RVMType.JavaLangRefReferenceReferenceField.makeTraced();
-      }
-
-      if (VM.BuildWithGCSpy) {
-        // start the GCSpy interpreter server
-        MemoryManager.startGCspyServer();
-      }
-    }
+    throw new UnsupportedOperationException("postBoot not implemented");
   }
 
   /**
@@ -245,22 +118,8 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void enableCollection() {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysEnableCollection(Magic
-              .objectAsAddress(RVMThread.getCurrentThread()));
-    } else {
-      Selected.Plan.get().enableCollection();
-    }
     collectionEnabled = true;
-  }
-
-  @Interruptible
-  @Entrypoint
-  public static void spawnCollectorThread(Address workerInstance) {
-    byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
-    CollectorThread t = new CollectorThread(stack, null);
-    t.setWorker(workerInstance);
-    t.start();
+    throw new UnsupportedOperationException("enableCollection not implemented");
   }
 
   /**
@@ -268,12 +127,6 @@ public final class MemoryManager {
    */
   public static boolean collectionEnabled() {
     return collectionEnabled;
-  }
-
-  @Entrypoint
-  @UninterruptibleNoWarn
-  public static void outOfMemory() {
-    throw RVMThread.getOutOfMemoryError();
   }
 
   /**
@@ -309,21 +162,7 @@ public final class MemoryManager {
     /* Make sure that during GC, we don't update on a possibly moving object.
        Such updates are dangerous because they can be lost.
      */
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysModifyCheck(ObjectReference.fromObject(object));
-    } else {
-      if (Plan.gcInProgressProper()) {
-        ObjectReference ref = ObjectReference.fromObject(object);
-        if (Space.isMovable(ref)) {
-          VM.sysWriteln("GC modifying a potentially moving object via Java (i.e. not magic)");
-          VM.sysWriteln("  obj = ", ref);
-          RVMType t = Magic.getObjectType(object);
-          VM.sysWrite(" type = ");
-          VM.sysWriteln(t.getDescriptor());
-          VM.sysFail("GC modifying a potentially moving object via Java (i.e. not magic)");
-        }
-      }
-    }
+    VM.sysFail("modifyCheck not implemented");
   }
 
   /***********************************************************************
@@ -342,12 +181,9 @@ public final class MemoryManager {
    * @return The amount of free memory.
    */
   public static Extent freeMemory() {
-    if (VM.BuildWithRustMMTk) {
-      return Extent.fromIntZeroExtend(sysCall.sysFreeBytes());
-    } else {
-      return Plan.freeMemory();
+    VM.sysFail("freeMemory not implemented");
+    return null;
     }
-  }
 
   /**
    * Returns the amount of total memory.
@@ -355,11 +191,8 @@ public final class MemoryManager {
    * @return The amount of total memory.
    */
   public static Extent totalMemory() {
-    if (VM.BuildWithRustMMTk) {
-      return Extent.fromIntZeroExtend(sysCall.sysTotalBytes());
-    } else {
-        return Plan.totalMemory();
-    }
+    VM.sysFail("totalMemory not implemented");
+    return null;
   }
 
   /**
@@ -368,8 +201,8 @@ public final class MemoryManager {
    * @return The maximum amount of memory VM will attempt to use.
    */
   public static Extent maxMemory() {
-    //FIXME RUST
-    return HeapGrowthManager.getMaxHeapSize();
+    VM.sysFail("maxMemory not implemented");
+    return null;
   }
 
   /**
@@ -377,12 +210,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void gc() {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.alignedHandleUserCollectionRequest(Magic.objectAsAddress(RVMThread
-              .getCurrentThread()));
-    } else {
-      Selected.Plan.handleUserCollectionRequest();
-    }
+    VM.sysFail("gc not implemented");
   }
 
   /****************************************************************************
@@ -407,15 +235,8 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean validRef(ObjectReference ref) {
-    if (booted) {
-      if (VM.BuildWithRustMMTk) {
-        return sysCall.sysIsValidRef(ref);
-      } else {
-        return DebugUtil.validRef(ref);
-      }
-    } else {
-      return true;
-    }
+    VM.sysFail("validRef not implemented");
+    return false;
   }
 
   /**
@@ -426,11 +247,8 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean addressInVM(Address address) {
-    if (VM.BuildWithRustMMTk) {
-      return sysCall.is_mapped_address(address);
-    } else {
-      return Space.isMappedAddress(address);
-    }
+    VM.sysFail("addressInVM not implemented");
+    return false;
   }
 
   /**
@@ -446,11 +264,8 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean objectInVM(ObjectReference object) {
-    if (VM.BuildWithRustMMTk) {
-      return sysCall.is_mapped_object(object);
-    } else {
-      return Space.isMappedObject(object);
-    }
+    VM.sysFail("objectInVM not implemented");
+    return false;
   }
 
   /**
@@ -463,11 +278,8 @@ public final class MemoryManager {
     // In general we don't know which spaces may hold allocated stacks.
     // If we want to be more specific than the space being mapped we
     // will need to add a check in Plan that can be overriden.
-    if (VM.BuildWithRustMMTk) {
-      return sysCall.is_mapped_address(address);
-    } else {
-      return Space.isMappedAddress(address);
-    }
+    VM.sysFail("mightBeFP not implemented");
+    return false;
   }
   /***********************************************************************
    *
@@ -603,10 +415,10 @@ public final class MemoryManager {
       }
     }
     if (isPrefix("Lorg/jikesrvm/tuningfork", typeBA) || isPrefix("[Lorg/jikesrvm/tuningfork", typeBA) ||
-        isPrefix("Lcom/ibm/tuningfork/", typeBA) || isPrefix("[Lcom/ibm/tuningfork/", typeBA) ||
-        isPrefix("Lorg/mmtk/", typeBA) || isPrefix("[Lorg/mmtk/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/mm/", typeBA) || isPrefix("[Lorg/jikesrvm/mm/", typeBA) ||
-        isPrefix("Lorg/jikesrvm/jni/JNIEnvironment;", typeBA)) {
+            isPrefix("Lcom/ibm/tuningfork/", typeBA) || isPrefix("[Lcom/ibm/tuningfork/", typeBA) ||
+            isPrefix("Lorg/mmtk/", typeBA) || isPrefix("[Lorg/mmtk/", typeBA) ||
+            isPrefix("Lorg/jikesrvm/mm/", typeBA) || isPrefix("[Lorg/jikesrvm/mm/", typeBA) ||
+            isPrefix("Lorg/jikesrvm/jni/JNIEnvironment;", typeBA)) {
       allocator = Plan.ALLOC_NON_MOVING;
     }
     return allocator;
@@ -847,13 +659,13 @@ public final class MemoryManager {
       TIB stackTib = stackType.getTypeInformationBlock();
 
       return (byte[]) allocateArray(bytes,
-                                    width,
-                                    headerSize,
-                                    stackTib,
-                                    Plan.ALLOC_STACK,
-                                    align,
-                                    offset,
-                                    Plan.DEFAULT_SITE);
+              width,
+              headerSize,
+              stackTib,
+              Plan.ALLOC_STACK,
+              align,
+              offset,
+              Plan.DEFAULT_SITE);
     }
   }
 
@@ -878,13 +690,13 @@ public final class MemoryManager {
     TIB arrayTib = arrayType.getTypeInformationBlock();
 
     return (WordArray) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
+            width,
+            headerSize,
+            arrayTib,
+            Plan.ALLOC_NON_MOVING,
+            align,
+            offset,
+            Plan.DEFAULT_SITE);
 
   }
 
@@ -909,13 +721,13 @@ public final class MemoryManager {
     TIB arrayTib = arrayType.getTypeInformationBlock();
 
     return (double[]) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
+            width,
+            headerSize,
+            arrayTib,
+            Plan.ALLOC_NON_MOVING,
+            align,
+            offset,
+            Plan.DEFAULT_SITE);
 
   }
 
@@ -940,13 +752,13 @@ public final class MemoryManager {
     TIB arrayTib = arrayType.getTypeInformationBlock();
 
     return (int[]) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
+            width,
+            headerSize,
+            arrayTib,
+            Plan.ALLOC_NON_MOVING,
+            align,
+            offset,
+            Plan.DEFAULT_SITE);
 
   }
 
@@ -971,13 +783,13 @@ public final class MemoryManager {
     TIB arrayTib = arrayType.getTypeInformationBlock();
 
     return (short[]) allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 arrayTib,
-                                 Plan.ALLOC_NON_MOVING,
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
+            width,
+            headerSize,
+            arrayTib,
+            Plan.ALLOC_NON_MOVING,
+            align,
+            offset,
+            Plan.DEFAULT_SITE);
 
   }
 
@@ -1108,13 +920,13 @@ public final class MemoryManager {
 
     /* Allocate a word array */
     Object array = allocateArray(size,
-                                 width,
-                                 headerSize,
-                                 fakeTib,
-                                 type.getMMAllocator(),
-                                 align,
-                                 offset,
-                                 Plan.DEFAULT_SITE);
+            width,
+            headerSize,
+            fakeTib,
+            type.getMMAllocator(),
+            align,
+            offset,
+            Plan.DEFAULT_SITE);
 
     /* Now we replace the TIB */
     ObjectModel.setTIB(array, realTib);
@@ -1284,8 +1096,8 @@ public final class MemoryManager {
       VM.sysFail("mightBeTIB unimplemented()");
     }
     return !obj.isNull() &&
-           Space.isMappedObject(obj) &&
-           Space.isMappedObject(ObjectReference.fromObject(ObjectModel.getTIB(obj)));
+            Space.isMappedObject(obj) &&
+            Space.isMappedObject(ObjectReference.fromObject(ObjectModel.getTIB(obj)));
   }
 
   /**

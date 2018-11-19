@@ -1078,6 +1078,9 @@ Check to make sure all required properties are specified. This includes properti
     <condition property="pp_RVM_WITH_GNU_CLASSPATH" value="true" else="false">
       <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
     </condition>
+    <condition property="mm_type" value="Java" else="Rust">
+      <equals arg1="${rust.build}" arg2="false"/>
+    </condition>
 
     <copy file="${basedir}/rvm/src-generated/vm-configuration/Configuration.template"
           tofile="${generated.config.java}/org/jikesrvm/Configuration.java">
@@ -1121,6 +1124,13 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_NO_RUST_MASK_END_" value="${rust.true.comment.end}"/>
         <filter token="_RUST_MASK_START_" value="${rust.false.comment.start}"/>
         <filter token="_RUST_MASK_END_" value="${rust.false.comment.end}"/>
+      </filterset>
+    </copy>
+
+    <copy file="${basedir}/rvm/src-generated/vm-configuration/MemoryManager.template"
+          tofile="${generated.config.java}/org/jikesrvm/mm/mminterface/MemoryManager.java">
+      <filterset>
+        <filter token="_MM_" value="${mm_type}"/>
       </filterset>
     </copy>
 

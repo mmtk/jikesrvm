@@ -12,6 +12,7 @@
  */
 package org.jikesrvm.mm.mmtk;
 
+import org.jikesrvm.VM;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 
@@ -27,6 +28,7 @@ import org.vmmagic.pragma.Interruptible;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.pragma.Unpreemptible;
+import org.vmmagic.unboxed.Address;
 
 @Uninterruptible
 public class Collection extends org.mmtk.vm.Collection {
@@ -60,8 +62,10 @@ public class Collection extends org.mmtk.vm.Collection {
   @Override
   @Unpreemptible
   public void blockForGC() {
-    org.jikesrvm.mm.mminterface.MemoryManager.blockForGC();
-  }
+    RVMThread t = RVMThread.getCurrentThread();
+    t.assertAcceptableStates(RVMThread.IN_JAVA, RVMThread.IN_JAVA_TO_BLOCK);
+    RVMThread.observeExecStatusAtSTW(t.getExecStatus());
+    RVMThread.getCurrentThread().block(RVMThread.gcBlockAdapter);  }
 
   /***********************************************************************
    *
@@ -79,8 +83,35 @@ public class Collection extends org.mmtk.vm.Collection {
 
   @Override
   public final void prepareMutator(MutatorContext m) {
+    /*
+     * The collector threads of processors currently running threads
+     * off in JNI-land cannot run.
+     */
     RVMThread t = ((Selected.Mutator) m).getThread();
-    org.jikesrvm.mm.mminterface.MemoryManager.prepareMutator(t);
+    t.monitor().lockNoHandshake();
+    // are these the only unexpected states?
+    t.assertUnacceptableStates(RVMThread.IN_JNI,RVMThread.IN_NATIVE);
+    int execStatus = t.getExecStatus();
+    // these next assertions are not redundant given the ability of the
+    // states to change asynchronously, even when we're holding the lock, since
+    // the thread may change its own state.  of course that shouldn't happen,
+    // but having more assertions never hurts...
+    if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_JNI);
+    if (VM.VerifyAssertions) VM._assert(execStatus != RVMThread.IN_NATIVE);
+    if (execStatus == RVMThread.BLOCKED_IN_JNI) {
+      if (false) {
+        VM.sysWriteln("for thread #",t.getThreadSlot()," setting up JNI stack scan");
+        VM.sysWriteln("thread #",t.getThreadSlot()," has top java fp = ",t.getJNIEnv().topJavaFP());
+      }
+
+      /* thread is blocked in C for this GC.
+       Its stack needs to be scanned, starting from the "top" java
+       frame, which has been saved in the running threads JNIEnv.  Put
+       the saved frame pointer into the threads saved context regs,
+       which is where the stack scan starts. */
+      t.contextRegisters.setInnermost(Address.zero(), t.getJNIEnv().topJavaFP());
+    }
+    t.monitor().unlock();
   }
 
   @Override

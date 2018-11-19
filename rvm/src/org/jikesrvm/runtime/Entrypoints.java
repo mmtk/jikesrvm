@@ -125,20 +125,20 @@ public class Entrypoints {
   public static final RVMField threadBySlotField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "threadBySlot", RVMThread[].class);
   public static final NormalMethod blockForGCMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "blockForGC", "()V");
+          getMethod(org.jikesrvm.mm.mminterface.RustMemoryManager.class, "blockForGC", "()V");
   public static final NormalMethod prepareMutatorMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "prepareMutator",
+          getMethod(org.jikesrvm.mm.mminterface.RustMemoryManager.class, "prepareMutator",
                   "(Lorg/jikesrvm/scheduler/RVMThread;)V");
   public static final NormalMethod scanBootImageMethod =
           getMethod(org.jikesrvm.mm.mminterface.RustScanning.class, "scanBootImage", "(Lorg/vmmagic/unboxed/Address;)V");
   public static final NormalMethod testMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test", "(I)I");
+          getMethod(org.jikesrvm.mm.mminterface.RustMemoryManager.class, "test", "(I)I");
   public static final NormalMethod test1Method =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test1", "()V");
+          getMethod(org.jikesrvm.mm.mminterface.RustMemoryManager.class, "test1", "()V");
   public static final NormalMethod test2Method =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test2", "(II)I");
+          getMethod(org.jikesrvm.mm.mminterface.RustMemoryManager.class, "test2", "(II)I");
   public static final NormalMethod test3Method =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test3", "(IIII)I");
+          getMethod(org.jikesrvm.mm.mminterface.RustMemoryManager.class, "test3", "(IIII)I");
   public static final NormalMethod scanThreadMethod =
           getMethod(org.jikesrvm.mm.mminterface.RustScanThread.class, "scanThread",
                   "(Lorg/jikesrvm/scheduler/RVMThread;Lorg/vmmagic/unboxed/Address;ZZ)V");
@@ -146,10 +146,10 @@ public class Entrypoints {
           getMethod(org.jikesrvm.mm.mminterface.DebugUtil.class, "dumpRef",
                   "(Lorg/vmmagic/unboxed/ObjectReference;)V");
   public static final NormalMethod spawnCollectorThreadMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "spawnCollectorThread",
+          getMethod(org.jikesrvm.mm.mminterface.RustMemoryManager.class, "spawnCollectorThread",
                   "(Lorg/vmmagic/unboxed/Address;)V");
   public static final NormalMethod outOfMemoryMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "outOfMemory",
+          getMethod(org.jikesrvm.mm.mminterface.RustMemoryManager.class, "outOfMemory",
                   "()V");
   public static final NormalMethod snipObsoleteCompiledMethodsMethod =
           getMethod(org.jikesrvm.compilers.common.CompiledMethods.class, "snipObsoleteCompiledMethods", "()V");
@@ -162,7 +162,7 @@ public class Entrypoints {
   public static final NormalMethod implementedInJavaMethod =
           getMethod(org.jikesrvm.jni.JNIGenericHelpers.class, "implementedInJava", "(I)Z");
   public static final NormalMethod enqueueReferenceMethod =
-          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "enqueueReference", "(Lorg/vmmagic/unboxed/Address;)V");
+          getMethod(org.jikesrvm.mm.mminterface.GeneralMemoryManager.class, "enqueueReference", "(Lorg/vmmagic/unboxed/Address;)V");
 
   public static final RVMField numThreadsField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "numThreads", int.class);
