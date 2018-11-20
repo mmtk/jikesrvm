@@ -1133,6 +1133,20 @@ Check to make sure all required properties are specified. This includes properti
       </filterset>
     </copy>
 
+    <copy file="${basedir}/rvm/src-generated/vm-configuration/Entrypoints.template"
+          tofile="${generated.config.java}/org/jikesrvm/runtime/Entrypoints.java">
+      <filterset>
+        <filter token="_MM_" value="${mm_type}"/>
+      </filterset>
+    </copy>
+
+    <copy file="${basedir}/rvm/src-generated/vm-configuration/Barriers.template"
+          tofile="${generated.config.java}/org/jikesrvm/mm/mminterface/Barriers.java">
+      <filterset>
+        <filter token="_MM_" value="${mm_type}"/>
+      </filterset>
+    </copy>
+
     <copy file="${basedir}/rvm/src-generated/vm-configuration/MemoryManager.template"
           tofile="${generated.config.java}/org/jikesrvm/mm/mminterface/MemoryManager.java">
       <filterset>

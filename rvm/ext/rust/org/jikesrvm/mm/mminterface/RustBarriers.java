@@ -12,21 +12,9 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.Uninterruptible;
 
-/**
- * The interface that the MMTk memory manager presents to Jikes RVM
- */
 @Uninterruptible
-public final class MemoryManager extends org.jikesrvm.mm.mminterface.@_MM_@MemoryManager {
-
-  private MemoryManager() {}
-
-  @Entrypoint
-  public static void modifyCheck(Object object) {
-    @_MM_@MemoryManager.modifyCheck(object);
-  }
+public class RustBarriers extends AbstractBarriers {
 
 }
-

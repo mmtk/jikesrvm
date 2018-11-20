@@ -82,7 +82,7 @@ public class AbstractMemoryManager {
   /**
    * Suppress default constructor to enforce noninstantiability.
    */
-  AbstractMemoryManager() {} // This constructor will never be invoked.
+  public AbstractMemoryManager() {} // This constructor will never be invoked.
 
   /**
    * Initialization that occurs at <i>boot</i> time (runtime
