@@ -1,14 +1,11 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
-import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.HeapGrowthManager;
@@ -20,11 +17,9 @@ import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
 
 import static org.jikesrvm.HeapLayoutConstants.*;
-import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
-import static org.jikesrvm.runtime.SysCall.sysCall;
 
 @Uninterruptible
-public class JavaMemoryManager extends GeneralMemoryManager {
+public class JavaMemoryManager extends AbstractMemoryManager {
 
   /***********************************************************************
    *
@@ -66,7 +61,7 @@ public class JavaMemoryManager extends GeneralMemoryManager {
 
     if (VM.BuildWithGCSpy) {
       // start the GCSpy interpreter server
-      GeneralMemoryManager.startGCspyServer();
+      AbstractMemoryManager.startGCspyServer();
     }
   }
 

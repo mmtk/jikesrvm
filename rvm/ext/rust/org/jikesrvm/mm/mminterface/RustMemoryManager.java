@@ -2,25 +2,19 @@ package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
-import org.jikesrvm.classloader.RVMType;
-import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.scheduler.RVMThread;
-import org.mmtk.plan.Plan;
-import org.mmtk.policy.Space;
 import org.mmtk.utility.heap.HeapGrowthManager;
-import org.mmtk.utility.options.Options;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
 
-import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
 @Uninterruptible
-public class RustMemoryManager extends GeneralMemoryManager {
+public class RustMemoryManager extends AbstractMemoryManager {
 
   /***********************************************************************
    *
@@ -295,7 +289,7 @@ public class RustMemoryManager extends GeneralMemoryManager {
   @Interruptible
   @Entrypoint
   public static void spawnCollectorThread(Address workerInstance) {
-    byte[] stack = GeneralMemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
+    byte[] stack = AbstractMemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
     CollectorThread t = new CollectorThread(stack, null);
     t.setWorker(workerInstance);
     t.start();

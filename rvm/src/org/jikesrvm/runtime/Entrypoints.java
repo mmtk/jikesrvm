@@ -19,6 +19,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.mm.mminterface.AbstractMemoryManager;
 import org.jikesrvm.scheduler.RVMThread;
 
 /**
@@ -162,7 +163,7 @@ public class Entrypoints {
   public static final NormalMethod implementedInJavaMethod =
           getMethod(org.jikesrvm.jni.JNIGenericHelpers.class, "implementedInJava", "(I)Z");
   public static final NormalMethod enqueueReferenceMethod =
-          getMethod(org.jikesrvm.mm.mminterface.GeneralMemoryManager.class, "enqueueReference", "(Lorg/vmmagic/unboxed/Address;)V");
+          getMethod(AbstractMemoryManager.class, "enqueueReference", "(Lorg/vmmagic/unboxed/Address;)V");
 
   public static final RVMField numThreadsField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "numThreads", int.class);

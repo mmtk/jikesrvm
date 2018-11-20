@@ -18,13 +18,10 @@ import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
-import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import org.jikesrvm.objectmodel.*;
 import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
-import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
-import org.jikesrvm.scheduler.RVMThread;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
@@ -32,8 +29,6 @@ import org.mmtk.utility.Memory;
 import org.mmtk.utility.alloc.Allocator;
 import org.mmtk.utility.gcspy.GCspy;
 import org.mmtk.utility.heap.HeapGrowthManager;
-import org.mmtk.utility.heap.layout.HeapLayout;
-import org.mmtk.utility.options.Options;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -42,7 +37,6 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 
-import static org.jikesrvm.HeapLayoutConstants.*;
 import static org.jikesrvm.Options.traceAllocation;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
@@ -54,7 +48,7 @@ import static org.mmtk.utility.heap.layout.HeapParameters.MAX_SPACES;
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
 @Uninterruptible
-public class GeneralMemoryManager {
+public class AbstractMemoryManager {
 
   /***********************************************************************
    *
@@ -88,7 +82,7 @@ public class GeneralMemoryManager {
   /**
    * Suppress default constructor to enforce noninstantiability.
    */
-  GeneralMemoryManager() {} // This constructor will never be invoked.
+  AbstractMemoryManager() {} // This constructor will never be invoked.
 
   /**
    * Initialization that occurs at <i>boot</i> time (runtime

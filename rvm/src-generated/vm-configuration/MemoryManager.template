@@ -19,7 +19,7 @@ import org.vmmagic.pragma.Uninterruptible;
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
 @Uninterruptible
-public final class MemoryManager extends @_MM_@MemoryManager {
+public final class MemoryManager extends org.jikesrvm.mm.mminterface.@_MM_@MemoryManager {
 
   @Entrypoint
   public static void modifyCheck(Object object) {
