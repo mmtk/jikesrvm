@@ -28,7 +28,7 @@ EXTERNAL MMTk_Mutator alignedSysBindMutator(size_t thread_id){
 }
 
 EXTERNAL void* alignedSysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset, int allocator) {
-    return alloc_slow(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
+    return jikesrvm_alloc_slow(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
 }
 
 EXTERNAL void alignedStartControlCollector(size_t thread_id){
