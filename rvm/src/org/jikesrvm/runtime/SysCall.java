@@ -227,12 +227,12 @@ public abstract class SysCall {
    */
   @Inline
   public Address sysAllocSlow(Address mutator, int size, int align, int offset, int allocator) {
-    return alloc_slow(mutator,size,align,offset,allocator);
+    return jikesrvm_alloc_slow(mutator,size,align,offset,allocator);
   }
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract Address alloc_slow(Address mutator, int size, int align, int offset, int allocator);
+  public abstract Address jikesrvm_alloc_slow(Address mutator, int size, int align, int offset, int allocator);
 
   /**
    * TODO REDUNDANT
