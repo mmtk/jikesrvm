@@ -378,8 +378,7 @@ public final class MemoryManager {
   @Interruptible
   public static void gc() {
     if (VM.BuildWithRustMMTk) {
-      VM.sysFail("Re-entrant glue not implemented");
-      sysCall.alignedHandleUserCollectionRequest(Magic.objectAsAddress(RVMThread
+      sysCall.jikesrvm_handle_user_collection_request(Magic.objectAsAddress(RVMThread
               .getCurrentThread()));
     } else {
       Selected.Plan.handleUserCollectionRequest();

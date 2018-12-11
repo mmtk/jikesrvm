@@ -173,7 +173,7 @@ public abstract class SysCall {
 
   @RustSysCall
   @SysCallTemplate
-  public abstract boolean alignedHandleUserCollectionRequest(Address tls);
+  public abstract void alignedHandleUserCollectionRequest(Address tls);
 
 
    /**
@@ -428,6 +428,10 @@ public abstract class SysCall {
   @RustSysCall
   @SysCallAlignedTemplate
   public abstract void modify_check(ObjectReference object);
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void jikesrvm_handle_user_collection_request(Address tls);
 
   @SysCallTemplate
   public abstract Address sysMalloc(int length);
