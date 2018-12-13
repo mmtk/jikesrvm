@@ -378,7 +378,7 @@ public final class MemoryManager {
   @Interruptible
   public static void gc() {
     if (VM.BuildWithRustMMTk) {
-      sysCall.jikesrvm_handle_user_collection_request(Magic.objectAsAddress(RVMThread
+      sysCall.sysHandleUserCollectionRequest(Magic.objectAsAddress(RVMThread
               .getCurrentThread()));
     } else {
       Selected.Plan.handleUserCollectionRequest();

@@ -19,6 +19,7 @@ import org.jikesrvm.annotations.SysCallAlignedTemplate;
 import org.jikesrvm.annotations.SysCallTemplate;
 import org.jikesrvm.scheduler.RVMThread;
 import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
 
@@ -225,7 +226,7 @@ public abstract class SysCall {
    * @param offset The offset at which the alignment is desired
    * @return The first byte of a suitably sized and aligned region of memory
    */
-  @Inline
+  @NoInline
   public Address sysAllocSlow(Address mutator, int size, int align, int offset, int allocator) {
     return jikesrvm_alloc_slow(mutator,size,align,offset,allocator);
   }
@@ -428,6 +429,11 @@ public abstract class SysCall {
   @RustSysCall
   @SysCallAlignedTemplate
   public abstract void modify_check(ObjectReference object);
+
+  @NoInline
+  public void sysHandleUserCollectionRequest(Address tls) {
+      jikesrvm_handle_user_collection_request(tls);
+  }
 
   @RustSysCall
   @SysCallAlignedTemplate
