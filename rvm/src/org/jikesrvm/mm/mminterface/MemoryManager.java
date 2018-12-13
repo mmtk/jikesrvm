@@ -1280,8 +1280,10 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean mightBeTIB(ObjectReference obj) {
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 1) {
-      VM.sysFail("mightBeTIB unimplemented()");
+    if (VM.BuildWithRustMMTk) {
+      return !obj.isNull() &&
+             sysCall.sysIsMappedObject(obj) &&
+             sysCall.sysIsMappedObject(ObjectReference.fromObject(ObjectModel.getTIB(obj)));
     }
     return !obj.isNull() &&
            Space.isMappedObject(obj) &&
