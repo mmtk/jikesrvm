@@ -17,7 +17,6 @@ import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.*;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
-import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.objectmodel.*;
 import org.jikesrvm.options.OptionSet;
 import org.jikesrvm.runtime.BootRecord;
@@ -40,7 +39,6 @@ import java.lang.ref.WeakReference;
 import static org.jikesrvm.Options.traceAllocation;
 import static org.jikesrvm.objectmodel.TIBLayoutConstants.IMT_METHOD_SLOTS;
 import static org.jikesrvm.runtime.ExitStatus.EXIT_STATUS_BOGUS_COMMAND_LINE_ARG;
-import static org.jikesrvm.runtime.SysCall.sysCall;
 import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
 import static org.mmtk.utility.heap.layout.HeapParameters.MAX_SPACES;
 
@@ -563,21 +561,8 @@ public class AbstractMemoryManager {
   public static Address allocateSpace(CollectorContext context, int bytes, int align, int offset, int allocator,
                                       ObjectReference from) {
     /* MMTk requests must be in multiples of MIN_ALIGNMENT */
-    bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
-
-    /* Now make the request */
-    Address region;
-    if (VM.BuildWithRustMMTk) {
-      VM.sysFail("Tried to allocate in collector space for non-collecting plan");
-      region = null;
-    } else {
-      region = context.allocCopy(from, bytes, align, offset, allocator);
-    }
-
-    /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
-    if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
-
-    return region;
+    VM.sysFail("allocateSpace not implemented");
+    return null;
   }
 
   /**
@@ -866,14 +851,8 @@ public class AbstractMemoryManager {
   @NoInline
   @Interruptible
   public static ITable newITable(int size) {
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 1) {
       VM.sysFail("newITable unimplemented()");
-    }
-    if (!VM.runningVM) {
-      return ITable.allocate(size);
-    }
-
-    return (ITable)newRuntimeTable(size, RVMType.ITableType);
+      return null;
   }
 
   /**
@@ -937,11 +916,8 @@ public class AbstractMemoryManager {
    */
   @Pure
   public static boolean willNeverMove(Object obj) {
-    if (VM.BuildWithRustMMTk) {
-      return sysCall.sysWillNeverMove(ObjectReference.fromObject(obj));
-    } else {
-      return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
-    }
+    VM.sysFail("willNeverMove not implemented");
+    return false;
   }
 
   /**
@@ -950,10 +926,8 @@ public class AbstractMemoryManager {
    */
   @Pure
   public static boolean isImmortal(Object obj) {
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 1) {
-      VM.sysFail("isImmortal unimplemented()");
-    }
-    return Space.isImmortal(ObjectReference.fromObject(obj));
+    VM.sysFail("isImmortal unimplemented()");
+    return false;
   }
 
   /***********************************************************************
@@ -996,12 +970,7 @@ public class AbstractMemoryManager {
    */
   @Interruptible
   public static void addSoftReference(SoftReference<?> obj, Object referent) {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.add_soft_candidate(Magic.objectAsAddress(obj),
-              Magic.objectAsAddress(referent));
-    } else {
-      ReferenceProcessor.addSoftCandidate(obj, ObjectReference.fromObject(referent));
-    }
+    VM.sysFail("addSoftReference not implemented");
   }
 
   /**
@@ -1012,12 +981,7 @@ public class AbstractMemoryManager {
    */
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj, Object referent) {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.add_weak_candidate(Magic.objectAsAddress(obj),
-              Magic.objectAsAddress(referent));
-    } else {
-      ReferenceProcessor.addWeakCandidate(obj, ObjectReference.fromObject(referent));
-    }
+    VM.sysFail("addWeakReference not implemented");
   }
 
   /**
@@ -1028,12 +992,7 @@ public class AbstractMemoryManager {
    */
   @Interruptible
   public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.add_phantom_candidate(Magic.objectAsAddress(obj),
-              Magic.objectAsAddress(referent));
-    } else {
-      ReferenceProcessor.addPhantomCandidate(obj, ObjectReference.fromObject(referent));
-    }
+    VM.sysFail("addPhantomReference not implemented");
   }
 
   @Entrypoint
@@ -1100,10 +1059,8 @@ public class AbstractMemoryManager {
    * @return True if GC is in progress.
    */
   public static boolean gcInProgress() {
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 1) {
       VM.sysFail("gcInProgress unimplemented()");
-    }
-    return Plan.gcInProgress();
+    return false;
   }
 
   /**
@@ -1118,10 +1075,7 @@ public class AbstractMemoryManager {
    * Flush the mutator context.
    */
   public static void flushMutatorContext() {
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 1) {
       VM.sysFail("flushMutatorContext unimplemented()");
-    }
-    Selected.Mutator.get().flush();
   }
 
   /**
@@ -1139,19 +1093,8 @@ public class AbstractMemoryManager {
    */
   @Interruptible
   public static SpecializedMethod createSpecializedMethod(int id) {
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 2) {
       VM.sysFail("createSpecializedMethod unimplemented()");
-    }
-    if (VM.VerifyAssertions) {
-      VM._assert(SpecializedScanMethod.ENABLED);
-      VM._assert(id < Selected.Constraints.get().numSpecializedScans());
-    }
-
-    /* What does the plan want us to specialize this to? */
-    Class<?> traceClass = Selected.Plan.get().getSpecializedScanClass(id);
-
-    /* Create the specialized method */
-    return new SpecializedScanMethod(id, TypeReference.findOrCreate(traceClass));
+      return null;
   }
 
   /***********************************************************************

@@ -2,12 +2,18 @@ package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.classloader.RVMType;
+import org.jikesrvm.classloader.SpecializedMethod;
+import org.jikesrvm.classloader.TypeReference;
+import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
+import org.jikesrvm.objectmodel.ITable;
 import org.jikesrvm.runtime.BootRecord;
 import org.jikesrvm.runtime.Callbacks;
 import org.jikesrvm.runtime.Magic;
+import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.Plan;
 import org.mmtk.policy.Space;
+import org.mmtk.utility.Memory;
 import org.mmtk.utility.heap.HeapGrowthManager;
 import org.mmtk.utility.heap.layout.HeapLayout;
 import org.mmtk.utility.options.Options;
@@ -16,7 +22,12 @@ import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Extent;
 import org.vmmagic.unboxed.ObjectReference;
 
+import java.lang.ref.PhantomReference;
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
+
 import static org.jikesrvm.HeapLayoutConstants.*;
+import static org.mmtk.utility.Constants.MIN_ALIGNMENT;
 
 @Uninterruptible
 public class JavaMemoryManager extends AbstractMemoryManager {
@@ -25,6 +36,7 @@ public class JavaMemoryManager extends AbstractMemoryManager {
    *
    * Initialization
    */
+  private static final boolean CHECK_MEMORY_IS_ZEROED = false;
 
   @Interruptible
   public static void boot(BootRecord theBootRecord) {
@@ -209,6 +221,132 @@ public class JavaMemoryManager extends AbstractMemoryManager {
     // If we want to be more specific than the space being mapped we
     // will need to add a check in Plan that can be overriden.
     return Space.isMappedAddress(address);
+  }
+  /**
+   * Allocate space for GC-time copying of an object
+   *
+   * @param context The collector context to be used for this allocation
+   * @param bytes The size of the allocation in bytes
+   * @param allocator the allocator associated with this request
+   * @param align The alignment requested; must be a power of 2.
+   * @param offset The offset at which the alignment is desired.
+   * @param from The source object from which this is to be copied
+   * @return The first byte of a suitably sized and aligned region of memory.
+   */
+  @Inline
+  public static Address allocateSpace(CollectorContext context, int bytes, int align, int offset, int allocator,
+                                      ObjectReference from) {
+    /* MMTk requests must be in multiples of MIN_ALIGNMENT */
+    bytes = org.jikesrvm.runtime.Memory.alignUp(bytes, MIN_ALIGNMENT);
+
+    /* Now make the request */
+    Address region;
+    region = context.allocCopy(from, bytes, align, offset, allocator);
+    /* TODO: if (Stats.GATHER_MARK_CONS_STATS) Plan.mark.inc(bytes); */
+    if (CHECK_MEMORY_IS_ZEROED) Memory.assertIsZeroed(region, bytes);
+
+    return region;
+  }
+
+  /**
+   * Allocate a new ITable
+   *
+   * @param size the number of slots in the ITable
+   * @return the new ITable
+   */
+  @NoInline
+  @Interruptible
+  public static ITable newITable(int size) {
+    if (!VM.runningVM) {
+      return ITable.allocate(size);
+    }
+    return (ITable)newRuntimeTable(size, RVMType.ITableType);
+  }
+
+  /**
+   * Checks if the object can move. This information is useful to
+   *  optimize some JNI calls.
+   *
+   * @param obj the object in question
+   * @return {@code true} if this object can never move, {@code false}
+   *   if it can move.
+   */
+  @Pure
+  public static boolean willNeverMove(Object obj) {
+    return Selected.Plan.get().willNeverMove(ObjectReference.fromObject(obj));
+  }
+  /**
+   * @param obj the object in question
+   * @return whether the object is immortal
+   */
+  @Pure
+  public static boolean isImmortal(Object obj) {
+    return Space.isImmortal(ObjectReference.fromObject(obj));
+  }
+  /**
+   * Add a soft reference to the list of soft references.
+   *
+   * @param obj the soft reference to be added to the list
+   * @param referent the object that the reference points to
+   */
+  @Interruptible
+  public static void addSoftReference(SoftReference<?> obj, Object referent) {
+      ReferenceProcessor.addSoftCandidate(obj, ObjectReference.fromObject(referent));
+  }
+  /**
+   * Add a weak reference to the list of weak references.
+   *
+   * @param obj the weak reference to be added to the list
+   * @param referent the object that the reference points to
+   */
+  @Interruptible
+  public static void addWeakReference(WeakReference<?> obj, Object referent) {
+      ReferenceProcessor.addWeakCandidate(obj, ObjectReference.fromObject(referent));
+  }
+  /**
+   * Add a phantom reference to the list of phantom references.
+   *
+   * @param obj the phantom reference to be added to the list
+   * @param referent the object that the reference points to
+   */
+  @Interruptible
+  public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
+      ReferenceProcessor.addPhantomCandidate(obj, ObjectReference.fromObject(referent));
+  }
+
+  /**
+   * Returns true if GC is in progress.
+   *
+   * @return True if GC is in progress.
+   */
+  public static boolean gcInProgress() {
+    return Plan.gcInProgress();
+  }
+
+  /**
+   * Flush the mutator context.
+   */
+  public static void flushMutatorContext() {
+    Selected.Mutator.get().flush();
+  }
+  /**
+   * Initialize a specified specialized method.
+   *
+   * @param id the specializedMethod
+   * @return the created specialized scan method
+   */
+  @Interruptible
+  public static SpecializedMethod createSpecializedMethod(int id) {
+    if (VM.VerifyAssertions) {
+      VM._assert(SpecializedScanMethod.ENABLED);
+      VM._assert(id < Selected.Constraints.get().numSpecializedScans());
+    }
+
+    /* What does the plan want us to specialize this to? */
+    Class<?> traceClass = Selected.Plan.get().getSpecializedScanClass(id);
+
+    /* Create the specialized method */
+    return new SpecializedScanMethod(id, TypeReference.findOrCreate(traceClass));
   }
 
 
