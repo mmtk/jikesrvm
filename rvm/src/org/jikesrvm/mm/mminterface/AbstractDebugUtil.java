@@ -39,7 +39,7 @@ import org.vmmagic.unboxed.ObjectReference;
  * Common debugging utility functions used by various garbage collectors
  */
 @Uninterruptible
-public class DebugUtil {
+public class AbstractDebugUtil {
 
   private static TIB tibForArrayType;
   private static TIB tibForClassType;
@@ -97,80 +97,14 @@ public class DebugUtil {
 
   @Uninterruptible
   public static boolean validRef(ObjectReference ref) {
-
-    if (ref.isNull()) return true;
-    if (!VM.BuildWithRustMMTk) {
-      if (!Space.isMappedObject(ref)) {
-        VM.sysWrite("validRef: REF outside heap, ref = ");
-        VM.sysWrite(ref);
-        VM.sysWriteln();
-        Space.printVMMap();
-        return false;
-      }
-    }
-    if (MOVES_OBJECTS) {
-      /*
-      TODO: Work out how to check if forwarded
-      if (Plan.isForwardedOrBeingForwarded(ref)) {
-        // TODO: actually follow forwarding pointer
-        // (need to bound recursion when things are broken!!)
-        return true;
-      }
-      */
-    }
-
-    TIB tib = ObjectModel.getTIB(ref);
-    Address tibAddr = Magic.objectAsAddress(tib);
-    if (!VM.BuildWithRustMMTk) {
-      if (!Space.isMappedObject(ObjectReference.fromObject(tib))) {
-        VM.sysWrite("validRef: TIB outside heap, ref = ");
-        VM.sysWrite(ref);
-        VM.sysWrite(" tib = ");
-        VM.sysWrite(tibAddr);
-        VM.sysWriteln();
-        ObjectModel.dumpHeader(ref);
-        return false;
-      }
-    }
-    if (tibAddr.isZero()) {
-      VM.sysWrite("validRef: TIB is Zero! ");
-      VM.sysWrite(ref);
-      VM.sysWriteln();
-      ObjectModel.dumpHeader(ref);
-      return false;
-    }
-    if (tib.length() == 0) {
-      VM.sysWrite("validRef: TIB length zero, ref = ");
-      VM.sysWrite(ref);
-      VM.sysWrite(" tib = ");
-      VM.sysWrite(tibAddr);
-      VM.sysWriteln();
-      ObjectModel.dumpHeader(ref);
-      return false;
-    }
-
-    ObjectReference type = ObjectReference.fromObject(tib.getType());
-    if (!validType(type)) {
-      VM.sysWrite("validRef: invalid TYPE, ref = ");
-      VM.sysWrite(ref);
-      VM.sysWrite(" tib = ");
-      VM.sysWrite(Magic.objectAsAddress(tib));
-      VM.sysWrite(" type = ");
-      VM.sysWrite(type);
-      VM.sysWriteln();
-      ObjectModel.dumpHeader(ref);
-      return false;
-    }
-    return true;
+    VM.sysFail("validRef unimplemented");
+    return false;
   }  // validRef
 
   @Uninterruptible
   public static boolean mappedVMRef(ObjectReference ref) {
-    if (VM.BuildWithRustMMTk) {
-      return sysCall.sysIsMappedObject(ref);
-    } else {
-      return Space.isMappedObject(ref) && HeapLayout.mmapper.objectIsMapped(ref);
-    }
+      VM.sysFail("mappedVMRef unimplemented");
+      return false;
   }
 
   @Entrypoint
