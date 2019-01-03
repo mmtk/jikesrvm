@@ -13,13 +13,13 @@
 package org.jikesrvm.mm.mmtk;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.mmtk.plan.CollectorContext;
 import org.mmtk.plan.MutatorContext;
 
 import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.mm.mminterface.Selected;
-import org.jikesrvm.mm.mminterface.CollectorThread;
 import org.jikesrvm.runtime.SysCall;
 import org.jikesrvm.scheduler.RVMThread;
 import org.jikesrvm.scheduler.FinalizerThread;

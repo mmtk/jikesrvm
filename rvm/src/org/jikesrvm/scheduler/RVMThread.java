@@ -140,7 +140,7 @@ import org.vmmagic.unboxed.Word;
  * they allow the thread to perform async activities (such as mutator flushes or
  * isyncs), while GC safe code will not necessarily perform either.
  *
- * @see org.jikesrvm.mm.mminterface.CollectorThread
+ * @see CollectorThread
  * @see FinalizerThread
  * @see org.jikesrvm.adaptive.measurements.organizers.Organizer
  */
@@ -1746,7 +1746,7 @@ public final class RVMThread extends ThreadContext {
 
   /**
    * Create a thread with the given stack and name. Used by
-   * {@link org.jikesrvm.mm.mminterface.CollectorThread} and the
+   * {@link CollectorThread} and the
    * boot image writer for the boot thread.
    *
    * @param systemThread the associated system thread

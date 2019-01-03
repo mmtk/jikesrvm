@@ -1,7 +1,6 @@
-package java.org.jikesrvm.mm.mminterface;
+package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
-import org.jikesrvm.mm.mminterface.AbstractDebugUtil;
 import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.objectmodel.TIB;
 import org.jikesrvm.runtime.Magic;

@@ -26,7 +26,7 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
  * System thread used to perform garbage collection work.
  */
 @NonMoving
-public final class CollectorThread extends SystemThread {
+public class AbstractCollectorThread extends SystemThread {
 
   /***********************************************************************
    *
@@ -38,13 +38,7 @@ public final class CollectorThread extends SystemThread {
    * Instance variables
    */
 
-  @Entrypoint
-  private Address workerInstance = Address.zero();
 
-  public void setWorker(Address worker) {
-    rvmThread.assertIsCollector();
-    workerInstance = worker;
-  }
 
   /** used by collector threads to hold state during stack scanning */
   private final ScanThread threadScanner = new ScanThread();
@@ -68,16 +62,24 @@ public final class CollectorThread extends SystemThread {
    */
 
   /**
+   * Constructor for Java
    * @param stack The stack this thread will run on
    * @param context the context that will provide the thread's
    *  functionality
    */
-  public CollectorThread(byte[] stack, CollectorContext context) {
-    super(stack, (VM.BuildWithRustMMTk ? "CollectorThread" : context.getClass().getName()) + " [" + nextId + "]");
-    if (!VM.BuildWithRustMMTk) {
-      rvmThread.collectorContext = context;
-      rvmThread.collectorContext.initCollector(nextId);
-    }
+  public AbstractCollectorThread(byte[] stack, CollectorContext context) {
+    super(stack,  (context.getClass().getName()) + " [" + nextId + "]");
+    rvmThread.collectorContext = context;
+    rvmThread.collectorContext.initCollector(nextId);
+    nextId++;
+  }
+
+  /**
+   * Constructor for Rust
+   * @param stack
+   */
+  public AbstractCollectorThread(byte[] stack) {
+    super(stack, ("CollectorThread"  + " [" + nextId + "]"));
     nextId++;
   }
 
@@ -87,6 +89,7 @@ public final class CollectorThread extends SystemThread {
   /**
    * Collection entry point. Delegates the real work to MMTk.
    */
+
   @Override
   @NoOptCompile
   // refs stored in registers by opt compiler will not be relocated by GC
@@ -96,15 +99,8 @@ public final class CollectorThread extends SystemThread {
   // and store all registers from previous method in prologue, so that we can stack access them while scanning this thread.
   @Unpreemptible
   public void run() {
-    if (VM.BuildWithRustMMTk) {
-      if (workerInstance.EQ(Address.zero())) {
-        sysCall.sysStartControlCollector(Magic.objectAsAddress(rvmThread));
-      } else {
-        sysCall.sysStartWorker(Magic.objectAsAddress(rvmThread), workerInstance);
-      }
-    } else {
-      rvmThread.collectorContext.run();
-    }
+      VM.sysFail("run unimplemented");
   }
+
 }
 

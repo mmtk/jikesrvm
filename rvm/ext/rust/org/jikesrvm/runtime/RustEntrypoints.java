@@ -2,6 +2,7 @@ package org.jikesrvm.runtime;
 
 import org.jikesrvm.classloader.NormalMethod;
 import org.jikesrvm.classloader.RVMField;
+import org.jikesrvm.mm.mminterface.DebugUtil;
 import org.jikesrvm.scheduler.RVMThread;
 
 import static org.jikesrvm.runtime.EntrypointHelper.getField;
@@ -34,7 +35,7 @@ public class RustEntrypoints extends BaseEntrypoints {
           getMethod(org.jikesrvm.mm.mminterface.RustScanThread.class, "scanThread",
                   "(Lorg/jikesrvm/scheduler/RVMThread;Lorg/vmmagic/unboxed/Address;ZZ)V");
   public static final NormalMethod dumpRefMethod =
-          getMethod(org.jikesrvm.mm.mminterface.DebugUtil.class, "dumpRef",
+          getMethod(DebugUtil.class, "dumpRef",
                   "(Lorg/vmmagic/unboxed/ObjectReference;)V");
   public static final NormalMethod spawnCollectorThreadMethod =
           getMethod(org.jikesrvm.mm.mminterface.RustMemoryManager.class, "spawnCollectorThread",
@@ -66,7 +67,7 @@ public class RustEntrypoints extends BaseEntrypoints {
   public static final RVMField systemThreadField =
           getField(org.jikesrvm.scheduler.RVMThread.class, "systemThread", org.jikesrvm.scheduler.SystemThread.class);
   public static final RVMField workerInstanceField =
-          getField(org.jikesrvm.mm.mminterface.CollectorThread.class, "workerInstance", org.vmmagic.unboxed.Address.class);
+          getField(CollectorThread.class, "workerInstance", org.vmmagic.unboxed.Address.class);
   public static final RVMField JNIFunctionsField =
           getField(org.jikesrvm.jni.JNIEnvironment.class, "JNIFunctions", org.jikesrvm.jni.FunctionTable.class);
   public static final RVMField linkageTripletsField =

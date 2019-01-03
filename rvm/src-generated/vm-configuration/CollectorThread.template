@@ -12,13 +12,16 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.vmmagic.pragma.Uninterruptible;
-
+import org.mmtk.plan.CollectorContext;
+import org.vmmagic.pragma.NonMoving;
 /**
- *  Common debugging utility functions used by various garbage collectors
+ * System thread used to perform garbage collection work.
  */
-@Uninterruptible
-public class DebugUtil extends org.jikesrvm.mm.mminterface.@_MM_@DebugUtil {
+@NonMoving
+public final class CollectorThread extends org.jikesrvm.mm.mminterface.@_MM_@CollectorThread {
 
-
+    public CollectorThread(byte[] stack, CollectorContext context) {
+        super(stack, context);
+    }
 }
+

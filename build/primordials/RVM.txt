@@ -63,7 +63,7 @@ Lorg/jikesrvm/scheduler/Lock;
 [Lorg/jikesrvm/util/AbstractHashMapRVM$AbstractBucket;
 [Lorg/jikesrvm/util/AbstractHashSetRVM$AbstractBucket;
 
-[Lorg/jikesrvm/mm/mminterface/CollectorThread;
+[Lorg/jikesrvm/mm/mminterface/AbstractCollectorThread;
 [Lorg/jikesrvm/mm/mminterface/Selected$Mutator;
 
 [Lorg/jikesrvm/mm/mmtk/SynchronizedCounter;

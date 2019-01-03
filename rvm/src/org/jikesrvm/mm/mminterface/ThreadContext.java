@@ -28,7 +28,7 @@ public abstract class ThreadContext extends Selected.Mutator {
     isCollector = true;
   }
 
-  protected CollectorContext collectorContext;
+  public CollectorContext collectorContext;   //change protected to public.
 
   public final CollectorContext getCollectorContext() {
     return collectorContext;
