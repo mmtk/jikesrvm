@@ -13,11 +13,11 @@
 package org.jikesrvm.classloader;
 
 import static org.jikesrvm.classloader.BytecodeConstants.*;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_DOUBLE;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_FLOAT;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_INT;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_LONG;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
+import static org.jikesrvm.classloader.ConstantPool.CP_DOUBLE;
+import static org.jikesrvm.classloader.ConstantPool.CP_FLOAT;
+import static org.jikesrvm.classloader.ConstantPool.CP_INT;
+import static org.jikesrvm.classloader.ConstantPool.CP_LONG;
+import static org.jikesrvm.classloader.ConstantPool.CP_STRING;
 import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_BYTE;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.LOG_BYTES_IN_INT;
@@ -51,33 +51,28 @@ public class BytecodeStream {
   }
 
   /**
-   * Returns the method that this bytecode stream is from
-   * @return method
+   * @return the method that this bytecode stream is from
    */
   public final NormalMethod getMethod() {
     return method;
   }
 
   /**
-   * Returns the declaring class that this bytecode stream is from
-   * @return method
+   * @return the declaring class that this bytecode stream is from
    */
   public final RVMClass getDeclaringClass() {
     return method.getDeclaringClass();
   }
 
   /**
-   * Returns the length of the bytecode stream
-   * Returns 0 if the method doesn't have any bytecodes
-   *         (i.e. is abstract or native)
-   * @return bytecode stream length
+   * @return bytecode stream length. Returns {@code 0} if the method
+   *  doesn't have any bytecodes (i.e. is abstract or native)
    */
   public final int length() {
     return bcLength;
   }
 
   /**
-   * Returns the current bytecode index
    * @return the current bytecode index
    */
   public final int index() {
@@ -85,7 +80,7 @@ public class BytecodeStream {
   }
 
   /**
-   * Resets the stream to the beginning
+   * Resets the stream to the beginning.
    * @see #reset(int)
    */
   public final void reset() {
@@ -93,8 +88,8 @@ public class BytecodeStream {
   }
 
   /**
-   * Resets the stream to a given position
-   * Use with caution
+   * Resets the stream to a given position.
+   * Use with caution!
    * @param index the position to reset the stream to
    * @see #reset()
    */
@@ -171,8 +166,8 @@ public class BytecodeStream {
   }
 
   /**
-   * Skips the current instruction (without using the opcode field)
-   * A slightly optimized version of skipInstruction()
+   * Skips the current instruction (without using the opcode field).
+   * A slightly optimized version of skipInstruction().
    * @param opcode current opcode
    * @param wide whether current instruction follows wide
    * @see #skipInstruction()
@@ -189,8 +184,8 @@ public class BytecodeStream {
   }
 
   /**
-   * Returns a signed byte value
-   * Used for bipush
+   * Returns a signed byte value.<p>
+   * Used for bipush.
    * @return signed byte value
    */
   public final int getByteValue() {
@@ -199,8 +194,8 @@ public class BytecodeStream {
   }
 
   /**
-   * Returns a signed short value
-   * Used for sipush
+   * Returns a signed short value.<p>
+   * Used for sipush.
    * @return signed short value
    */
   public final int getShortValue() {
@@ -209,7 +204,7 @@ public class BytecodeStream {
   }
 
   /**
-   * Returns the number of the local (as an unsigned byte)
+   * Returns the number of the local (as an unsigned byte).<p>
    * Used for iload, lload, fload, dload, aload,
    *          istore, lstore, fstore, dstore, astore,
    *          iinc, ret
@@ -227,7 +222,7 @@ public class BytecodeStream {
   }
 
   /**
-   * Returns the wide number of the local (as an unsigned short)
+   * Returns the wide number of the local (as an unsigned short).<p>
    * Used for iload, lload, fload, dload, aload,
    *          istore, lstore, fstore, dstore, astore,
    *          iinc prefixed by wide
@@ -484,7 +479,7 @@ public class BytecodeStream {
     if (VM.VerifyAssertions) {
       VM._assert(JBC_isFieldAccess(opcode));
     }
-    return ClassFileReader.getFieldRef(constantPool, readUnsignedShort());
+    return ConstantPool.getFieldRef(constantPool, readUnsignedShort());
   }
   /**
    * Returns a reference to a method.<p>
@@ -508,7 +503,7 @@ public class BytecodeStream {
     if (VM.VerifyAssertions) {
       VM._assert(JBC_isJava6Call(opcode));
     }
-    return ClassFileReader.getMethodRef(constantPool, readUnsignedShort());
+    return ConstantPool.getMethodRef(constantPool, readUnsignedShort());
   }
 
   /**

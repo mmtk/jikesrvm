@@ -12,8 +12,7 @@
  */
 package org.jikesrvm.compilers.baseline.ia32;
 
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_CLASS;
-import static org.jikesrvm.classloader.ClassLoaderConstants.CP_STRING;
+import static org.jikesrvm.classloader.ConstantPool.*;
 import static org.jikesrvm.compilers.common.assembler.ia32.AssemblerConstants.*;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_BASE;
 import static org.jikesrvm.ia32.ArchConstants.SSE2_FULL;
@@ -3805,7 +3804,12 @@ public final class BaselineCompilerImpl extends BaselineCompiler {
   @Inline
   private static void genNullCheck(Assembler asm, GPR objRefReg) {
     // compare to zero
-    asm.emitTEST_Reg_Reg(objRefReg, objRefReg);
+    if (VM.BuildFor32Addr) {
+      asm.emitTEST_Reg_Reg(objRefReg, objRefReg);
+    } else {
+      asm.emitTEST_Reg_Reg_Quad(objRefReg, objRefReg);
+    }
+
     // Jmp around trap if index is OK
     asm.emitBranchLikelyNextInstruction();
     ForwardReference fr = asm.forwardJcc(NE);
