@@ -122,13 +122,13 @@ public class SSContext extends SSMutator {
     }
 
 
-    public void objectReferenceWrite(ObjectReference src, Address slot, ObjectReference value, Word metaDataA, Word metaDataB, int mode) {
+//    public void objectReferenceWrite(ObjectReference src, Address slot, ObjectReference value, Word metaDataA, Word metaDataB, int mode) {
+//
+//        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+//        sysCall.sysObjectcReferenceWriteSlow(handle,src,slot,value,metaDataA,metaDataB,mode);
+////        org.mmtk.vm.VM.barriers.objectReferenceWrite(src, value, metaDataA, metaDataB, mode);
 
-        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
-        sysCall.sysObjectcReferenceWriteSlow(handle,src,slot,value,metaDataA,metaDataB,mode);
-//        org.mmtk.vm.VM.barriers.objectReferenceWrite(src, value, metaDataA, metaDataB, mode);
-
-    }
+//    }
 
 
 
