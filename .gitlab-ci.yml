@@ -55,13 +55,4 @@ build:basebasesemispace:
   stage: build
   script:
     - python scripts/testMMTk.py -g BaseBaseSemiSpace -a "Xms75M Xmx75M X:gc:threads=64"
-
-build:correctnessbasebasenogc:
-    stage: build
-    script:
-     - /home/brendaw/mmtk_venv/bin/python scripts/runTests.py -g BaseBaseNoGC -T commit --host localhost --command "rsync -r results/html squirrel.moma:/home/gitlab-runner/rust-mmtk"
-
-build:correctnessfastadaptivenogc:
-    stage: build
-    script:
-     - /home/brendaw/mmtk_venv/bin/python scripts/runTests.py -g FastAdaptiveNoGC -T commit --host localhost --command "rsync -r results/html squirrel.moma:/home/gitlab-runner/rust-mmtk"
+    

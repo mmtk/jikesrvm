@@ -420,11 +420,6 @@ import static org.jikesrvm.runtime.SysCall.sysCall;
    * be skipped.
    */
   private boolean setUpFrame(int verbosity) {
-    // FIXME
-    if (VM.BuildWithRustMMTk && ip.GE(Address.fromIntZeroExtend(0xf7000000))) {
-      return false;
-    }
-
     /* get the compiled method ID for this frame */
     int compiledMethodId = Magic.getCompiledMethodID(fp);
 

@@ -378,7 +378,7 @@ public final class MemoryManager {
   @Interruptible
   public static void gc() {
     if (VM.BuildWithRustMMTk) {
-      sysCall.alignedHandleUserCollectionRequest(Magic.objectAsAddress(RVMThread
+      sysCall.sysHandleUserCollectionRequest(Magic.objectAsAddress(RVMThread
               .getCurrentThread()));
     } else {
       Selected.Plan.handleUserCollectionRequest();
@@ -1280,8 +1280,10 @@ public final class MemoryManager {
    */
   @Inline
   public static boolean mightBeTIB(ObjectReference obj) {
-    if (VM.BuildWithRustMMTk && verboseUnimplemented > 1) {
-      VM.sysFail("mightBeTIB unimplemented()");
+    if (VM.BuildWithRustMMTk) {
+      return !obj.isNull() &&
+             sysCall.sysIsMappedObject(obj) &&
+             sysCall.sysIsMappedObject(ObjectReference.fromObject(ObjectModel.getTIB(obj)));
     }
     return !obj.isNull() &&
            Space.isMappedObject(obj) &&

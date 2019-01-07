@@ -131,8 +131,7 @@
 
   <!-- Default heap layout -->
   <property name="target.heap-layout" value="32BIT"/>
-
-
+  
   <!-- **************************************************************************** -->
   <!-- *                                                                          * -->
   <!-- *             Property initialization section of the build                 * -->
@@ -1252,41 +1251,15 @@ Check to make sure all required properties are specified. This includes properti
              <equals arg1="${target.os}" arg2="OSX"/>
            </not>
          </conditions>
-        <sequential>
-          <if>
-            <conditions>
-              <equals arg1="${rust.build}" arg2="true"/>
-            </conditions>
             <sequential>
               <exec executable="${c.exe}" failonerror="true">
                 <arg line="${c.args} ${shared.flag}"/>
                 <arg line="-Xlinker --version-script=@{srcdir}/${target.dll-prefix}@{dllname}.exp"/>
                 <arg line="-o @{outdir}/${target.dll-prefix}@{dllname}@{suffix}"/>
                 <ObjectFiles/>
-                <arg line="${build.base}/${target.obj-prefix}glue${target.obj-ext}"/>
-                <arg line="-lmmtk"/>
-                <arg line="-L${mmtk.path}"/>
-                <arg line="-Wl,-rpath,${mmtk.path}"/>
               </exec>
             </sequential>
           </if>
-          <if>
-            <conditions>
-              <not>
-                <equals arg1="${rust.build}" arg2="true"/>
-              </not>
-            </conditions>
-            <sequential>
-              <exec executable="${c.exe}" failonerror="true">
-                <arg line="${c.args} ${shared.flag}"/>
-                <arg line="-Xlinker --version-script=@{srcdir}/${target.dll-prefix}@{dllname}.exp"/>
-                <arg line="-o @{outdir}/${target.dll-prefix}@{dllname}@{suffix}"/>
-                <ObjectFiles/>
-              </exec>
-             </sequential>
-          </if>
-        </sequential>
-      </if>
     </sequential>
   </macrodef>
 
@@ -1303,7 +1276,6 @@ Check to make sure all required properties are specified. This includes properti
         <arg value="-L@{outdir}"/>
         <ObjectFiles/>
         <arg line="@{lib}"/>
-
         <arg line="${classlib.libraries} ${perfevent.libraries} ${bootloader.libraries}"/>
       </exec>
     </sequential>
@@ -1729,7 +1701,6 @@ Check to make sure all required properties are specified. This includes properti
     <replaceregexp file="${build.base}/Primordials.txt" match=".*#.*" replace="" byline="true"/>
   </target>
 
-
   <target name="compile-rust-mmtk" if="${rust.build}">
     <exec executable="/usr/bin/as" failonerror="true">
       <arg line="--32 -o ${build.base}/${target.obj-prefix}glue${target.obj-ext} ${jikesrvm.dir}/rust_mmtk/src/vm/jikesrvm/glue.asm"/>
@@ -1745,8 +1716,9 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="-C"/>
       <arg value="force-frame-pointers=yes"/>
     </exec>
+    <copy file="${mmtk.path}/libmmtk.so" tofile="${build.base}/libmmtk.so">
+    </copy>
   </target>
-
 
   <target name="build-bootimage-writer" depends="gen-asm">
     <antcall target="compile-rust-mmtk"/>
@@ -2146,11 +2118,33 @@ const char *rvm_target_configuration = "${target.file}";
     <CompileCtoObj cfile="${bl.dir}/main.c"
                    objfile="${build.base}/${target.obj-prefix}main${target.obj-ext}"
                    cargs="${rvm.c.args}"/>
-		<CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext} ${jvm.vmi.lib.filter} -lm -lc" >
-      <ObjectFiles>
-        <arg value="${build.base}/${target.obj-prefix}main${target.obj-ext}"/>
-      </ObjectFiles>
-    </CreateEXE>
+    <if>
+      <conditions>
+        <equals arg1="${rust.build}" arg2="true"/>
+      </conditions>
+      <sequential>
+        <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext} ${jvm.vmi.lib.filter} -lmmtk -lm -lc" >
+          <ObjectFiles>
+            <arg value="${build.base}/${target.obj-prefix}main${target.obj-ext}"/>
+            <arg line="${build.base}/${target.obj-prefix}glue${target.obj-ext}"/>
+          </ObjectFiles>
+        </CreateEXE>
+      </sequential>
+    </if>
+    <if>
+      <conditions>
+        <not>
+          <equals arg1="${rust.build}" arg2="true"/>
+        </not>
+      </conditions>
+      <sequential>
+        <CreateEXE outdir="${build.base}" exename="JikesRVM" srcdir="${bl.dir}" lib="${lib.specifier}jvm${target.lib-ext} ${jvm.vmi.lib.filter} -lm -lc" >
+          <ObjectFiles>
+            <arg value="${build.base}/${target.obj-prefix}main${target.obj-ext}"/>
+          </ObjectFiles>
+        </CreateEXE>
+      </sequential>
+    </if>
 
     <antcall target="build-debug-symbols"/>
   </target>

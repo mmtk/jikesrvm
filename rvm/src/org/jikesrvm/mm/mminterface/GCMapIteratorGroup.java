@@ -136,4 +136,8 @@ public final class GCMapIteratorGroup {
     return null;
   }
 
+  @Uninterruptible
+  public AddressArray getRegisterLocations() {
+    return registerLocations;
+  }
 }
