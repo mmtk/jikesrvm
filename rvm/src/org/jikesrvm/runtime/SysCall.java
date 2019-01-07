@@ -234,6 +234,16 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract Address jikesrvm_alloc_slow(Address mutator, int size, int align, int offset, int allocator);
 
+
+  @Inline
+  public void sysObjectcReferenceWriteSlow(Address handle,ObjectReference src, Address slot, ObjectReference value, Word metaDataA, Word metaDataB, int mode){
+    jikesrvm_object_reference_write_slow(handle,src,slot,value,metaDataA,metaDataB,mode);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void jikesrvm_object_reference_write_slow(Address handle,ObjectReference src, Address slot, ObjectReference value, Word metaDataA, Word metaDataB, int mode);
+
   /**
    * TODO REDUNDANT
    * Allocation fast path that calls directly into Rust

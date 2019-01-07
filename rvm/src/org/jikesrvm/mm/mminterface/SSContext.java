@@ -73,6 +73,10 @@ public class SSContext extends SSMutator {
         return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
 
+
+
+
+
     @Override
     public Address alloc(int bytes, int align, int offset, int allocator, int site) {
         Address region;
@@ -116,4 +120,17 @@ public class SSContext extends SSMutator {
         Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
         sysCall.sysPostAlloc(handle, ref, typeRef, bytes, allocator);
     }
+
+
+    public void objectReferenceWrite(ObjectReference src, Address slot, ObjectReference value, Word metaDataA, Word metaDataB, int mode) {
+
+        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+        sysCall.sysObjectcReferenceWriteSlow(handle,src,slot,value,metaDataA,metaDataB,mode);
+//        org.mmtk.vm.VM.barriers.objectReferenceWrite(src, value, metaDataA, metaDataB, mode);
+
+    }
+
+
+
+
 }

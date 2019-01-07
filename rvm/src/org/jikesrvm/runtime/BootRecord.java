@@ -262,6 +262,7 @@ public class BootRecord {
   public Address bind_mutatorRIP;
   public Address jikesrvm_alloc_slowRIP;
   public Address alloc_slowRIP;
+  public Address jikesrvm_object_reference_write_slowRIP;
   public Address start_control_collectorRIP;
   public Address will_never_moveRIP;
   public Address report_delayed_root_edgeRIP;
