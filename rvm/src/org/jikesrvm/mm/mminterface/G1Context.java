@@ -17,6 +17,7 @@ import org.mmtk.plan.g1.G1Mutator;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import org.jikesrvm.runtime.Magic;
+import org.mmtk.plan.Plan;
 
 import static org.jikesrvm.runtime.EntrypointHelper.getField;
 import static org.jikesrvm.runtime.SysCall.sysCall;
@@ -73,41 +74,39 @@ public class G1Context extends G1Mutator {
 
     @Override
     public Address alloc(int bytes, int align, int offset, int allocator, int site) {
-        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
-        return sysCall.sysAlloc(handle, bytes, align, offset, allocator);
-        // Address region;
-        // Address cursor;
-        // Address sentinel;
-        // if (allocator == Plan.ALLOC_DEFAULT) {
-        //     cursor = this.cursor;
-        //     sentinel = this.limit;
-        // } else {
-        //     cursor = this.cursorImmortal;
-        //     sentinel = this.limitImmortal;
-        // }
+        // Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+        // return sysCall.sysAlloc(handle, bytes, align, offset, allocator);
+        Address region;
+        Address cursor;
+        Address limit;
+        if (allocator == Plan.ALLOC_DEFAULT) {
+            cursor = this.cursor;
+            limit = this.limit;
+        } else {
+            cursor = this.cursorImmortal;
+            limit = this.limitImmortal;
+        }
 
-        // // Align allocation
-        // Word mask = Word.fromIntSignExtend(align - 1);
-        // Word negOff = Word.fromIntSignExtend(-offset);
+        // Align allocation
+        Word mask = Word.fromIntSignExtend(align - 1);
+        Word negOff = Word.fromIntSignExtend(-offset);
+        Offset delta = negOff.minus(cursor.toWord()).and(mask).toOffset();
+        Address result = cursor.plus(delta);
 
-        // Offset delta = negOff.minus(cursor.toWord()).and(mask).toOffset();
+        Address newCursor = result.plus(bytes);
 
-        // Address result = cursor.plus(delta);
-
-        // Address newCursor = result.plus(bytes);
-
-        // if (newCursor.GT(sentinel)) {
-        //     Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
-        //     region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
-        // } else {
-        //     if (allocator == Plan.ALLOC_DEFAULT) {
-        //         this.cursor = newCursor;
-        //     } else {
-        //         this.cursorImmortal = newCursor;
-        //     }
-        //     region = result;
-        // }
-        // return region;
+        if (newCursor.GT(limit)) {
+            Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+            region = sysCall.sysAllocSlow(handle, bytes, align, offset, allocator);
+        } else {
+            if (allocator == Plan.ALLOC_DEFAULT) {
+                this.cursor = newCursor;
+            } else {
+                this.cursorImmortal = newCursor;
+            }
+            region = result;
+        }
+        return region;
     }
 
     @Override
