@@ -13,6 +13,7 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
+import org.mmtk.plan.Plan;
 import org.mmtk.plan.nogc.NoGCMutator;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -33,14 +34,24 @@ public class NoGCContext extends NoGCMutator {
     Address limit;
     @Entrypoint
     Address space;
+    @Entrypoint
+    Address threadIdLos;
+    @Entrypoint
+    Address spaceLos;
 
     static final Offset threadIdOffset = getField(NoGCContext.class, "threadId", Address.class).getOffset();
     static final Offset cursorOffset = getField(NoGCContext.class, "cursor", Address.class).getOffset();
     static final Offset limitOffset = getField(NoGCContext.class, "limit", Address.class).getOffset();
     static final Offset spaceOffset = getField(NoGCContext.class, "space", Address.class).getOffset();
+    static final Offset threadIdLosOffset = getField(NoGCContext.class, "threadIdLos", Address.class).getOffset();
+    static final Offset spaceLosOffset = getField(NoGCContext.class, "spaceLos", Address.class).getOffset();
 
     @Override
     public Address alloc(int bytes, int align, int offset, int allocator, int site) {
+        if (allocator == Plan.ALLOC_LOS) {
+            Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+            return sysCall.sysAlloc(handle, bytes, align, offset, allocator);
+        }
         Address region;
 
         // Align allocation
@@ -68,11 +79,15 @@ public class NoGCContext extends NoGCMutator {
             VM._assert(cursorOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(4));
             VM._assert(limitOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(8));
             VM._assert(spaceOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(12));
+            VM._assert(threadIdLosOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(16));
+            VM._assert(spaceLosOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(20));
         }
         threadId = mmtkHandle.loadAddress();
         cursor   = mmtkHandle.plus(BYTES_IN_WORD).loadAddress();
         limit    = mmtkHandle.plus(BYTES_IN_WORD * 2).loadAddress();
         space    = mmtkHandle.plus(BYTES_IN_WORD * 3).loadAddress();
+        threadIdLos = mmtkHandle.plus(BYTES_IN_WORD * 4).loadAddress();
+        spaceLos = mmtkHandle.plus(BYTES_IN_WORD * 5).loadAddress();
         return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
 
