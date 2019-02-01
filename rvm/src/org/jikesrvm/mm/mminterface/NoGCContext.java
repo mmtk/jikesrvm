@@ -76,11 +76,11 @@ public class NoGCContext extends NoGCMutator {
 
     public Address setBlock(Address mmtkHandle) {
         if (VM.VerifyAssertions) {
-            VM._assert(cursorOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(4));
-            VM._assert(limitOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(8));
-            VM._assert(spaceOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(12));
-            VM._assert(threadIdLosOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(16));
-            VM._assert(spaceLosOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(20));
+            VM._assert(cursorOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD));
+            VM._assert(limitOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 2));
+            VM._assert(spaceOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 3));
+            VM._assert(threadIdLosOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 4));
+            VM._assert(spaceLosOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 5));
         }
         threadId = mmtkHandle.loadAddress();
         cursor   = mmtkHandle.plus(BYTES_IN_WORD).loadAddress();
