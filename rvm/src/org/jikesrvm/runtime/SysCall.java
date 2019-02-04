@@ -244,13 +244,14 @@ public abstract class SysCall {
    * @param offset The offset at which the alignment is desired
    * @return The first byte of a suitably sized and aligned region of memory
    */
-  @Inline
+  @NoInline
   public Address sysAlloc(Address mutator, int size, int align, int offset, int allocator) {
-    return alloc(mutator, size, align, offset, allocator);
+    return jikesrvm_alloc(mutator, size, align, offset, allocator);
   }
+
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract Address alloc(Address mutator, int size, int align, int offset, int allocator);
+  public abstract Address jikesrvm_alloc(Address mutator, int size, int align, int offset, int allocator);
 
   @Inline
   public void sysPostAlloc(Address mutator, ObjectReference ref,

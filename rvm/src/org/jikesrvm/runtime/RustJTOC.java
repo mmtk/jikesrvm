@@ -44,5 +44,15 @@ public class RustJTOC {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+
+        try {
+            PrintWriter writer;
+            writer = new PrintWriter("./rust_mmtk/src/vm/jikesrvm/inc.asm");
+            writer.println(".set fp_offset, " + EntrypointHelper.getField("Lorg/jikesrvm/scheduler/RVMThread;",
+                    "framePointer", "Lorg/vmmagic/unboxed/Address;").getOffset().toString());
+            writer.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 }

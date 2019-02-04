@@ -259,6 +259,7 @@ public class BootRecord {
   public Address test_stack_alignmentRIP;
   public Address test_stack_alignment1RIP;
   public Address allocRIP;
+  public Address jikesrvm_allocRIP;
   public Address bind_mutatorRIP;
   public Address jikesrvm_alloc_slowRIP;
   public Address alloc_slowRIP;
