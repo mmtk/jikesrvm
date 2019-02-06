@@ -180,6 +180,14 @@ public final class MemoryManager {
     return a + 10;
   }
 
+  public static void harnessBegin() {
+    sysCall.harness_begin();
+  }
+
+  public static void harnessEnd() {
+    sysCall.harness_end();
+  }
+
   /**
    * Suppress default constructor to enforce noninstantiability.
    */

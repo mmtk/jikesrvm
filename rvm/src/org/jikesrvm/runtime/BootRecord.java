@@ -288,6 +288,8 @@ public class BootRecord {
   public Address add_soft_candidateRIP;
   public Address add_phantom_candidateRIP;
   public Address jikesrvm_handle_user_collection_requestRIP;
+  public Address harness_beginRIP;
+  public Address harness_endRIP;
 
   // startup/shutdown
   public Address sysExitIP;

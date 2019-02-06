@@ -440,6 +440,14 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract void jikesrvm_handle_user_collection_request(Address tls);
 
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void harness_begin();
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void harness_end();
+
   @SysCallTemplate
   public abstract Address sysMalloc(int length);
 
