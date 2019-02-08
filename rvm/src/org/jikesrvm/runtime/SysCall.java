@@ -442,7 +442,7 @@ public abstract class SysCall {
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract void harness_begin();
+  public abstract void harness_begin(Address tls);
 
   @RustSysCall
   @SysCallAlignedTemplate

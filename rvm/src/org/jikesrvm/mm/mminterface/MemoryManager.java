@@ -180,14 +180,16 @@ public final class MemoryManager {
     return a + 10;
   }
 
+  @Interruptible
   public static void harnessBegin() {
     if (VM.BuildWithRustMMTk) {
-      sysCall.harness_begin();
+      sysCall.harness_begin(Magic.objectAsAddress(RVMThread.getCurrentThread()));
     } else {
       Plan.harnessBegin();
     }
   }
 
+  @Interruptible
   public static void harnessEnd() {
     if (VM.BuildWithRustMMTk) {
       sysCall.harness_end();
