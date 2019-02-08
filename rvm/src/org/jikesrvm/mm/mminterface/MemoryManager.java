@@ -181,11 +181,19 @@ public final class MemoryManager {
   }
 
   public static void harnessBegin() {
-    sysCall.harness_begin();
+    if (VM.BuildWithRustMMTk) {
+      sysCall.harness_begin();
+    } else {
+      Plan.harnessBegin();
+    }
   }
 
   public static void harnessEnd() {
-    sysCall.harness_end();
+    if (VM.BuildWithRustMMTk) {
+      sysCall.harness_end();
+    } else {
+      Plan.harnessEnd();
+    }
   }
 
   /**
