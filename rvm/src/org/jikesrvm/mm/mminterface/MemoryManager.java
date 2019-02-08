@@ -183,7 +183,7 @@ public final class MemoryManager {
   @Interruptible
   public static void harnessBegin() {
     if (VM.BuildWithRustMMTk) {
-      sysCall.harness_begin(Magic.objectAsAddress(RVMThread.getCurrentThread()));
+      sysCall.jikesrvm_harness_begin(Magic.objectAsAddress(RVMThread.getCurrentThread()));
     } else {
       Plan.harnessBegin();
     }
