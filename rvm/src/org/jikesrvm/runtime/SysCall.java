@@ -266,6 +266,24 @@ public abstract class SysCall {
                                   int allocator);
 
   @Inline
+  public void sysObjectReferenceWriteSlow(Address mutator, ObjectReference src, Address slot, ObjectReference value) {
+    object_reference_write_slow(mutator, src, slot, value);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void object_reference_write_slow(Address mutator, ObjectReference src, Address slot, ObjectReference value);
+
+  @Inline
+  public void sysDeinitMutator(Address mutator) {
+    deinit_mutator(mutator);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void deinit_mutator(Address mutator);
+
+  @Inline
   public boolean sysIsValidRef(ObjectReference ref) {
     return is_valid_ref(ref);
   }

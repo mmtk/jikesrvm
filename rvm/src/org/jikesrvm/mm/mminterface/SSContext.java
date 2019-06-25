@@ -13,7 +13,9 @@
 package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
+import org.mmtk.plan.PlanConstraints;
 import org.mmtk.plan.semispace.SSMutator;
+import org.mmtk.policy.CopySpace;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import org.jikesrvm.runtime.Magic;
@@ -25,6 +27,26 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 
 @Uninterruptible
 public class SSContext extends SSMutator {
+    @Uninterruptible
+    public static class Constraints extends PlanConstraints {
+        @Override
+        public boolean movesObjects() {
+            return true;
+        }
+        @Override
+        public int gcHeaderBits() {
+            return CopySpace.LOCAL_GC_BITS_REQUIRED;
+        }
+        @Override
+        public int gcHeaderWords() {
+            return CopySpace.GC_HEADER_WORDS_REQUIRED;
+        }
+        @Override
+        public int numSpecializedScans() {
+            return 1;
+        }
+    }
+
 
     @Entrypoint
     Address threadId;

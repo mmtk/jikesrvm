@@ -272,6 +272,8 @@ public class BootRecord {
   public Address enable_collectionRIP;
   public Address processRIP;
   public Address post_allocRIP;
+  public Address object_reference_write_slowRIP;
+  public Address deinit_mutatorRIP;
   public Address is_valid_refRIP;
   public Address free_bytesRIP;
   public Address total_bytesRIP;

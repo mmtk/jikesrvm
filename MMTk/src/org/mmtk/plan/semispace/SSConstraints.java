@@ -31,7 +31,7 @@ public class SSConstraints extends StopTheWorldConstraints {
   }
   @Override
   public int gcHeaderWords() {
-    return CopySpace.GC_HEADER_WORDS_REQUIRED;
+    return 1;//CopySpace.GC_HEADER_WORDS_REQUIRED;
   }
   @Override
   public int numSpecializedScans() {

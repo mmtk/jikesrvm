@@ -56,7 +56,15 @@ public class Selected {
   }
 
   @Uninterruptible
+
+  @_RUST_MASK_START_@
   public static final class Constraints extends @_PLAN_@Constraints {
+  @_RUST_MASK_END_@
+
+  @_NO_RUST_MASK_START_@
+  public static final class Constraints extends @_PLAN_NAME_@Context.Constraints {
+  @_NO_RUST_MASK_END_@
+
     private static final Constraints constraints = new Constraints();
 
     @Inline
