@@ -129,6 +129,9 @@ public class SSContext extends SSMutator {
     public void postAlloc(ObjectReference ref, ObjectReference typeRef,
                           int bytes, int allocator) {
         Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
-        sysCall.sysPostAlloc(handle, ref, typeRef, bytes, allocator);
+        if (allocator != Plan.ALLOC_DEFAULT) {
+            // Call Rust only for LOS and immortal space to initialize headers
+            sysCall.sysPostAlloc(handle, ref, typeRef, bytes, allocator);
+        }
     }
 }
