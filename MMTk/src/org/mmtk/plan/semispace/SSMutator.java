@@ -78,8 +78,10 @@ public class SSMutator extends StopTheWorldMutator {
   public Address alloc(int bytes, int align, int offset, int allocator, int site) {
     if (allocator == SS.ALLOC_SS)
       return ss.alloc(bytes, align, offset);
+    else if (allocator == SS.ALLOC_LOS)
+      return los.alloc(bytes, align, offset);
     else
-      return super.alloc(bytes, align, offset, allocator, site);
+      return immortal.alloc(bytes, align, offset);
   }
 
   @Override
@@ -87,7 +89,10 @@ public class SSMutator extends StopTheWorldMutator {
   public void postAlloc(ObjectReference object, ObjectReference typeRef,
       int bytes, int allocator) {
     if (allocator == SS.ALLOC_SS) return;
-    super.postAlloc(object, typeRef, bytes, allocator);
+    else if (allocator == SS.ALLOC_LOS)
+      Plan.loSpace.initializeHeader(object, true);
+    else
+      Plan.immortalSpace.initializeHeader(object);
   }
 
   @Override
