@@ -14,6 +14,7 @@ package org.jikesrvm.mm.mminterface;
 
 import org.jikesrvm.VM;
 import org.mmtk.plan.Plan;
+import org.mmtk.plan.PlanConstraints;
 import org.mmtk.plan.nogc.NoGCMutator;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -25,6 +26,18 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 
 @Uninterruptible
 public class NoGCContext extends NoGCMutator {
+
+    @Uninterruptible
+    public static class Constraints extends PlanConstraints {
+       @Override
+        public int gcHeaderBits() {
+          return 0;
+        }
+        @Override
+        public int gcHeaderWords() {
+          return 0;
+        }
+    }
 
     @Entrypoint
     Address threadId;
