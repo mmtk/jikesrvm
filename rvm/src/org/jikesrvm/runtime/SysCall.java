@@ -284,6 +284,24 @@ public abstract class SysCall {
   public abstract void deinit_mutator(Address mutator);
 
   @Inline
+  public void sysFlush(Address mutator) {
+    flush(mutator);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void flush(Address mutator);
+
+  @Inline
+  public void sysFlushRememberedSets(Address mutator) {
+    flush_remembered_sets(mutator);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void flush_remembered_sets(Address mutator);
+
+  @Inline
   public boolean sysIsValidRef(ObjectReference ref) {
     return is_valid_ref(ref);
   }

@@ -181,12 +181,6 @@ public class GenCopyContext extends MutatorContext {
         VM.sysFail("unreachable");
     }
 
-    @Override
-    public void deinitMutator() {
-        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
-        sysCall.sysDeinitMutator(handle);
-    }
-
     static final Address NURSERY_START = Address.fromIntZeroExtend(0xa5400000);
 
     @Inline

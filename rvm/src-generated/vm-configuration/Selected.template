@@ -97,6 +97,21 @@ public class Selected {
         this.mmtkHandle = this.setBlock(mmtkHandle);
       }
     }
+    @Override
+    public void deinitMutator() {
+        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+        sysCall.sysDeinitMutator(handle);
+    }
+    @Override
+    public void flush() {
+        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+        sysCall.sysFlush(handle);
+    }
+    @Override
+    public void flushRememberedSets() {
+        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
+        sysCall.sysFlushRememberedSets(handle);
+    }
 @_NO_RUST_MASK_END_@
     public void setHandle(Address handle){
       mmtkHandle = handle;
