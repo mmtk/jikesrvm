@@ -64,7 +64,7 @@ public class GenCopyContext extends MutatorContext {
         }
         @Override
         public int gcHeaderWords() {
-            return 1;
+            return 0;
         }
         @Override
         public int numSpecializedScans() {
