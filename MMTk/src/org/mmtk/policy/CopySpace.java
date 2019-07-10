@@ -45,6 +45,7 @@ import org.vmmagic.pragma.*;
   public static final int GC_HEADER_WORDS_REQUIRED = 0;
 
   private static final int META_DATA_PAGES_PER_REGION = CARD_META_PAGES_PER_REGION;
+  public static long copycount = 0;
 
 
   /****************************************************************************
@@ -206,6 +207,7 @@ import org.vmmagic.pragma.*;
       return ForwardingWord.extractForwardingPointer(forwardingWord);
     } else {
       /* We are the designated copier, so forward it and enqueue it */
+      copycount += 1;
       ObjectReference newObject = VM.objectModel.copy(object, allocator);
       ForwardingWord.setForwardingPointer(object, newObject);
       trace.processNode(newObject); // Scan it later

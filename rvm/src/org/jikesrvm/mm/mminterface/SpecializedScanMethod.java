@@ -51,7 +51,7 @@ import org.vmmagic.unboxed.ObjectReference;
 public final class SpecializedScanMethod extends SpecializedMethod {
 
   /** Use specialized scanning ? */
-  public static final boolean ENABLED = true;
+  public static final boolean ENABLED = false;
 
   /** This method's signature: the object to be scanned and the trace to use */
   private static final TypeReference[] signature = new TypeReference[] {

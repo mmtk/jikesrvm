@@ -16,6 +16,7 @@ import org.mmtk.plan.TraceLocal;
 import org.mmtk.plan.Trace;
 import org.mmtk.policy.Space;
 
+import org.mmtk.utility.Log;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 
@@ -25,7 +26,8 @@ import org.vmmagic.unboxed.*;
  */
 @Uninterruptible
 public class SSTraceLocal extends TraceLocal {
-
+  public long ss0count;
+  public long ss1count;
   public SSTraceLocal(Trace trace, boolean specialized) {
     super(specialized ? SS.SCAN_SS : -1, trace);
   }
@@ -77,5 +79,21 @@ public class SSTraceLocal extends TraceLocal {
   public boolean willNotMoveInCurrentCollection(ObjectReference object) {
     return (SS.hi && !Space.isInSpace(SS.SS0, object)) ||
            (!SS.hi && !Space.isInSpace(SS.SS1, object));
+  }
+
+  @Override
+  public void logObject(ObjectReference object) {
+    if (Space.isInSpace(SS.SS0, object))
+      ss0count+=1;
+    if (Space.isInSpace(SS.SS1, object))
+      ss1count+=1;
+    super.logObject(object);
+  }
+
+  @Override
+  public void completeTrace() {
+    super.completeTrace();
+    Log.writeln("ss0count", ss0count);
+    Log.writeln("ss1count", ss1count);
   }
 }

@@ -12,6 +12,7 @@
  */
 package org.mmtk.plan;
 
+import org.mmtk.policy.CopySpace;
 import org.mmtk.policy.Space;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.*;
@@ -42,6 +43,10 @@ public abstract class TraceLocal extends TransitiveClosure {
   protected final ObjectReferenceDeque values;
   /** delayed root slots */
   protected final AddressDeque rootLocations;
+  public long count;
+  public long copycount;
+  public long immortalcount;
+  public long vmspacecount;
 
   /****************************************************************************
    *
@@ -178,8 +183,10 @@ public abstract class TraceLocal extends TransitiveClosure {
   @Inline
   protected void scanObject(ObjectReference object) {
     if (specializedScan >= 0) {
+      this.count += 1;
       VM.scanning.specializedScanObject(specializedScan, this, object);
     } else {
+      this.count += 1;
       VM.scanning.scanObject(this, object);
     }
   }
@@ -492,11 +499,16 @@ public abstract class TraceLocal extends TransitiveClosure {
     do {
       while (!values.isEmpty()) {
         ObjectReference v = values.pop();
+        logObject(v);
         scanObject(v);
       }
       processRememberedSets();
     } while (!values.isEmpty());
     assertMutatorRemsetsFlushed();
+    Log.writeln("deque count", this.count);
+    Log.writeln("copy count", CopySpace.copycount);
+    Log.writeln("immortal space", immortalcount);
+    Log.writeln("vmspace", vmspacecount);
   }
 
   /**
@@ -558,5 +570,12 @@ public abstract class TraceLocal extends TransitiveClosure {
       Log.write("    ");
       Log.writeln(message);
     }
+  }
+
+  public void logObject(ObjectReference object) {
+    if (Space.isInSpace(Plan.IMMORTAL, object))
+      immortalcount +=1;
+    if (Space.isInSpace(Plan.VM_SPACE, object))
+      vmspacecount +=1;
   }
 }
