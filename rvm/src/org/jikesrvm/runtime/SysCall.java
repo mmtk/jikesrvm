@@ -275,6 +275,25 @@ public abstract class SysCall {
   public abstract void object_reference_write_slow(Address mutator, ObjectReference src, Address slot, ObjectReference value);
 
   @Inline
+  public void sysObjectReferenceTryCompareAndSwapSlow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt) {
+    object_reference_try_compare_and_swap_slow(mutator, src, slot, old, tgt);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void object_reference_try_compare_and_swap_slow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt);
+
+  
+  @Inline
+  public ObjectReference sysJavaLangReferenceReadSlow(Address mutator, ObjectReference ref) {
+    return java_lang_reference_read_slow(mutator, ref);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract ObjectReference java_lang_reference_read_slow(Address mutator, ObjectReference ref);
+
+  @Inline
   public void sysDeinitMutator(Address mutator) {
     deinit_mutator(mutator);
   }

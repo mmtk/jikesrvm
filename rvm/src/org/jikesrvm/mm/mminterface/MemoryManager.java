@@ -284,6 +284,29 @@ public final class MemoryManager {
     throw RVMThread.getOutOfMemoryError();
   }
 
+  private static RVMThread.SoftHandshakeVisitor mutatorFlushVisitor =
+    new RVMThread.SoftHandshakeVisitor() {
+      @Override
+      @Uninterruptible
+      public boolean checkAndSignal(RVMThread t) {
+        t.flushRequested = true;
+        return true;
+      }
+      @Override
+      @Uninterruptible
+      public void notifyStuckInNative(RVMThread t) {
+        t.flush();
+        t.flushRequested = false;
+      }
+    };
+
+  @Entrypoint
+  @UninterruptibleNoWarn
+  public static void requestMutatorFlush() {
+    Selected.Mutator.get().flush();
+    RVMThread.softHandshake(mutatorFlushVisitor);
+  }
+
   /**
    * Notify the MM that the host VM is now fully booted.
    */

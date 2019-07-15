@@ -273,6 +273,8 @@ public class BootRecord {
   public Address processRIP;
   public Address post_allocRIP;
   public Address object_reference_write_slowRIP;
+  public Address object_reference_try_compare_and_swap_slowRIP;
+  public Address java_lang_reference_read_slowRIP;
   public Address deinit_mutatorRIP;
   public Address flushRIP;
   public Address flush_remembered_setsRIP;
