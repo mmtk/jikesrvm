@@ -12,8 +12,6 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.jikesrvm.VM;
-import org.mmtk.plan.Plan;
 import org.mmtk.plan.PlanConstraints;
 import org.mmtk.plan.nogc.NoGCMutator;
 import org.vmmagic.pragma.*;

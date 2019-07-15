@@ -283,7 +283,6 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract void object_reference_try_compare_and_swap_slow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt);
 
-  
   @Inline
   public ObjectReference sysJavaLangReferenceReadSlow(Address mutator, ObjectReference ref) {
     return java_lang_reference_read_slow(mutator, ref);
