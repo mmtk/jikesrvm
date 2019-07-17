@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.jikesrvm.VM;
 import org.mmtk.plan.PlanConstraints;
 import org.mmtk.plan.semispace.SSMutator;
 import org.mmtk.policy.CopySpace;
@@ -20,7 +19,6 @@ import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.Plan;
-import org.mmtk.utility.ForwardingWord;
 
 import static org.jikesrvm.runtime.EntrypointHelper.getField;
 import static org.jikesrvm.runtime.SysCall.sysCall;
@@ -81,7 +79,7 @@ public class ConcSSContext extends SSMutator {
     public boolean barrierActive() {
         return !barrierActive.isZero();
     }
-    
+
     public Address setBlock(Address mmtkHandle) {
         threadId         = mmtkHandle.plus(BYTES_IN_WORD * 0).loadAddress();
         cursor           = mmtkHandle.plus(BYTES_IN_WORD * 1).loadAddress();
