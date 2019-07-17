@@ -218,6 +218,15 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract Address bind_mutator(Address tls);
 
+  @Inline
+  public void sysMarkAsMapped(Address start, int bytes) {
+    mark_as_mapped(start, bytes);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void mark_as_mapped(Address start, int bytes);
+
   /**
    * Allocation slow path
    * @param mutator The mutator instance to be used for this allocation
@@ -275,13 +284,22 @@ public abstract class SysCall {
   public abstract void object_reference_write_slow(Address mutator, ObjectReference src, Address slot, ObjectReference value);
 
   @Inline
-  public void sysObjectReferenceTryCompareAndSwapSlow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt) {
-    object_reference_try_compare_and_swap_slow(mutator, src, slot, old, tgt);
+  public ObjectReference sysObjectReferenceReadSlow(Address mutator, ObjectReference src, Address slot) {
+    return object_reference_read_slow(mutator, src, slot);
   }
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract void object_reference_try_compare_and_swap_slow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt);
+  public abstract ObjectReference object_reference_read_slow(Address mutator, ObjectReference src, Address slot);
+
+  @Inline
+  public boolean sysObjectReferenceTryCompareAndSwapSlow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt) {
+    return object_reference_try_compare_and_swap_slow(mutator, src, slot, old, tgt);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract boolean object_reference_try_compare_and_swap_slow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt);
 
   @Inline
   public ObjectReference sysJavaLangReferenceReadSlow(Address mutator, ObjectReference ref) {
@@ -291,6 +309,24 @@ public abstract class SysCall {
   @RustSysCall
   @SysCallAlignedTemplate
   public abstract ObjectReference java_lang_reference_read_slow(Address mutator, ObjectReference ref);
+
+  @Inline
+  public ObjectReference sysObjectReferenceNonHeapReadSlow(Address mutator, Address slot) {
+    return object_reference_non_heap_read_slow(mutator, slot);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract ObjectReference object_reference_non_heap_read_slow(Address mutator, Address slot);
+
+  @Inline
+  public void sysObjectReferenceNonHeapWriteSlow(Address mutator, Address slot, ObjectReference tgt) {
+    object_reference_non_heap_write_slow(mutator, slot, tgt);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void object_reference_non_heap_write_slow(Address mutator, Address slot, ObjectReference tgt);
 
   @Inline
   public void sysDeinitMutator(Address mutator) {

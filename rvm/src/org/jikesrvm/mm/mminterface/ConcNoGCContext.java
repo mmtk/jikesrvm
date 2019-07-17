@@ -89,9 +89,9 @@ public class ConcNoGCContext extends NoGCMutator {
     @Inline
     @Override
     public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
-      boolean result = org.mmtk.vm.VM.barriers.objectReferenceTryCompareAndSwap(src, old, tgt, metaDataA, metaDataB, mode);
-      sysCall.sysObjectReferenceTryCompareAndSwapSlow(getHandle(), src, slot, old, tgt);
-      return result;
+    //   boolean result = org.mmtk.vm.VM.barriers.objectReferenceTryCompareAndSwap(src, old, tgt, metaDataA, metaDataB, mode);
+    //   sysCall.sysObjectReferenceTryCompareAndSwapSlow(getHandle(), src, slot, old, tgt);
+      return sysCall.sysObjectReferenceTryCompareAndSwapSlow(getHandle(), src, slot, old, tgt);
     }
 
     @Inline
