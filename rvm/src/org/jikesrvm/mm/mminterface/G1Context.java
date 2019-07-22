@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.mm.mminterface;
 
-import org.jikesrvm.VM;
 import org.mmtk.plan.g1.G1Mutator;
 import org.vmmagic.pragma.*;
 import org.vmmagic.unboxed.*;
@@ -63,7 +62,7 @@ public class G1Context extends G1Mutator {
     @Entrypoint Address spaceImmortal;
 
     static final Offset threadIdOffset = getField(SSContext.class, "threadId", Address.class).getOffset();
-    
+
     public Address setBlock(Address mmtkHandle) {
         threadId         = mmtkHandle.plus(BYTES_IN_WORD * 0).loadAddress();
         cursor           = mmtkHandle.plus(BYTES_IN_WORD * 1).loadAddress();
