@@ -180,6 +180,14 @@ public final class MemoryManager {
     return a + 10;
   }
 
+  public static void harnessBegin() {
+    sysCall.harness_begin();
+  }
+
+  public static void harnessEnd() {
+    sysCall.harness_end();
+  }
+
   /**
    * Suppress default constructor to enforce noninstantiability.
    */
@@ -198,6 +206,10 @@ public final class MemoryManager {
     org.jikesrvm.runtime.Memory.setPageSize(pageSize);
     HeapLayout.mmapper.markAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
     HeapLayout.mmapper.markAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
+    if (VM.BuildWithRustMMTk) {
+      sysCall.sysMarkAsMapped(BOOT_IMAGE_DATA_START, BOOT_IMAGE_DATA_SIZE);
+      sysCall.sysMarkAsMapped(BOOT_IMAGE_CODE_START, BOOT_IMAGE_CODE_SIZE);
+    }
     HeapGrowthManager.boot(theBootRecord.initialHeapSize, theBootRecord.maximumHeapSize);
     DebugUtil.boot(theBootRecord);
     Selected.Plan.get().enableAllocation();
@@ -274,6 +286,29 @@ public final class MemoryManager {
   @UninterruptibleNoWarn
   public static void outOfMemory() {
     throw RVMThread.getOutOfMemoryError();
+  }
+
+  private static RVMThread.SoftHandshakeVisitor mutatorFlushVisitor =
+    new RVMThread.SoftHandshakeVisitor() {
+      @Override
+      @Uninterruptible
+      public boolean checkAndSignal(RVMThread t) {
+        t.flushRequested = true;
+        return true;
+      }
+      @Override
+      @Uninterruptible
+      public void notifyStuckInNative(RVMThread t) {
+        t.flush();
+        t.flushRequested = false;
+      }
+    };
+
+  @Entrypoint
+  @UninterruptibleNoWarn
+  public static void requestMutatorFlush() {
+    Selected.Mutator.get().flush();
+    RVMThread.softHandshake(mutatorFlushVisitor);
   }
 
   /**

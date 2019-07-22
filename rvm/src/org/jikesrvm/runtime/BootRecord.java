@@ -259,7 +259,9 @@ public class BootRecord {
   public Address test_stack_alignmentRIP;
   public Address test_stack_alignment1RIP;
   public Address allocRIP;
+  public Address jikesrvm_allocRIP;
   public Address bind_mutatorRIP;
+  public Address mark_as_mappedRIP;
   public Address jikesrvm_alloc_slowRIP;
   public Address alloc_slowRIP;
   public Address start_control_collectorRIP;
@@ -271,6 +273,15 @@ public class BootRecord {
   public Address enable_collectionRIP;
   public Address processRIP;
   public Address post_allocRIP;
+  public Address object_reference_write_slowRIP;
+  public Address object_reference_read_slowRIP;
+  public Address object_reference_try_compare_and_swap_slowRIP;
+  public Address java_lang_reference_read_slowRIP;
+  public Address object_reference_non_heap_write_slowRIP;
+  public Address object_reference_non_heap_read_slowRIP;
+  public Address deinit_mutatorRIP;
+  public Address flushRIP;
+  public Address flush_remembered_setsRIP;
   public Address is_valid_refRIP;
   public Address free_bytesRIP;
   public Address total_bytesRIP;
@@ -287,6 +298,8 @@ public class BootRecord {
   public Address add_soft_candidateRIP;
   public Address add_phantom_candidateRIP;
   public Address jikesrvm_handle_user_collection_requestRIP;
+  public Address harness_beginRIP;
+  public Address harness_endRIP;
 
   // startup/shutdown
   public Address sysExitIP;

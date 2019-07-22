@@ -218,6 +218,15 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract Address bind_mutator(Address tls);
 
+  @Inline
+  public void sysMarkAsMapped(Address start, int bytes) {
+    mark_as_mapped(start, bytes);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void mark_as_mapped(Address start, int bytes);
+
   /**
    * Allocation slow path
    * @param mutator The mutator instance to be used for this allocation
@@ -244,13 +253,14 @@ public abstract class SysCall {
    * @param offset The offset at which the alignment is desired
    * @return The first byte of a suitably sized and aligned region of memory
    */
-  @Inline
+  @NoInline
   public Address sysAlloc(Address mutator, int size, int align, int offset, int allocator) {
-    return alloc(mutator, size, align, offset, allocator);
+    return jikesrvm_alloc(mutator, size, align, offset, allocator);
   }
+
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract Address alloc(Address mutator, int size, int align, int offset, int allocator);
+  public abstract Address jikesrvm_alloc(Address mutator, int size, int align, int offset, int allocator);
 
   @Inline
   public void sysPostAlloc(Address mutator, ObjectReference ref,
@@ -263,6 +273,87 @@ public abstract class SysCall {
   public abstract void post_alloc(Address mutator, ObjectReference ref,
                                   ObjectReference typeRef, int bytes,
                                   int allocator);
+
+  @Inline
+  public void sysObjectReferenceWriteSlow(Address mutator, ObjectReference src, Address slot, ObjectReference value) {
+    object_reference_write_slow(mutator, src, slot, value);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void object_reference_write_slow(Address mutator, ObjectReference src, Address slot, ObjectReference value);
+
+  @Inline
+  public ObjectReference sysObjectReferenceReadSlow(Address mutator, ObjectReference src, Address slot) {
+    return object_reference_read_slow(mutator, src, slot);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract ObjectReference object_reference_read_slow(Address mutator, ObjectReference src, Address slot);
+
+  @Inline
+  public boolean sysObjectReferenceTryCompareAndSwapSlow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt) {
+    return object_reference_try_compare_and_swap_slow(mutator, src, slot, old, tgt);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract boolean object_reference_try_compare_and_swap_slow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt);
+
+  @Inline
+  public ObjectReference sysJavaLangReferenceReadSlow(Address mutator, ObjectReference ref) {
+    return java_lang_reference_read_slow(mutator, ref);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract ObjectReference java_lang_reference_read_slow(Address mutator, ObjectReference ref);
+
+  @Inline
+  public ObjectReference sysObjectReferenceNonHeapReadSlow(Address mutator, Address slot) {
+    return object_reference_non_heap_read_slow(mutator, slot);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract ObjectReference object_reference_non_heap_read_slow(Address mutator, Address slot);
+
+  @Inline
+  public void sysObjectReferenceNonHeapWriteSlow(Address mutator, Address slot, ObjectReference tgt) {
+    object_reference_non_heap_write_slow(mutator, slot, tgt);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void object_reference_non_heap_write_slow(Address mutator, Address slot, ObjectReference tgt);
+
+  @Inline
+  public void sysDeinitMutator(Address mutator) {
+    deinit_mutator(mutator);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void deinit_mutator(Address mutator);
+
+  @Inline
+  public void sysFlush(Address mutator) {
+    flush(mutator);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void flush(Address mutator);
+
+  @Inline
+  public void sysFlushRememberedSets(Address mutator) {
+    flush_remembered_sets(mutator);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void flush_remembered_sets(Address mutator);
 
   @Inline
   public boolean sysIsValidRef(ObjectReference ref) {
@@ -438,6 +529,14 @@ public abstract class SysCall {
   @RustSysCall
   @SysCallAlignedTemplate
   public abstract void jikesrvm_handle_user_collection_request(Address tls);
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void harness_begin();
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void harness_end();
 
   @SysCallTemplate
   public abstract Address sysMalloc(int length);

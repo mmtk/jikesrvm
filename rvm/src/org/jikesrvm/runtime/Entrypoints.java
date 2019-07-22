@@ -151,6 +151,9 @@ public class Entrypoints {
   public static final NormalMethod outOfMemoryMethod =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "outOfMemory",
                   "()V");
+  public static final NormalMethod requestMutatorFlushMethod =
+          getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "requestMutatorFlush",
+                  "()V");
   public static final NormalMethod snipObsoleteCompiledMethodsMethod =
           getMethod(org.jikesrvm.compilers.common.CompiledMethods.class, "snipObsoleteCompiledMethods", "()V");
   public static final NormalMethod getReferenceSlotSizeMethod =

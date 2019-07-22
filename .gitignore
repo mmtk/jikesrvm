@@ -51,3 +51,4 @@ JikesRVM x86_64-linux production.iml
 /venv/
 log
 dacapo/
+*.iml
