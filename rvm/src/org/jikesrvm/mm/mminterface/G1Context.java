@@ -48,6 +48,14 @@ public class G1Context extends G1Mutator {
         public int maxNonLOSDefaultAllocBytes() {
           return (1 << (6 + 12)) * 3 / 4;
         }
+        @Override
+        public boolean needsObjectReferenceWriteBarrier() {
+            return true;
+        }
+        @Override
+        public boolean needsJavaLangReferenceReadBarrier() {
+            return true;
+        }
     }
 
     @Entrypoint Address threadId;
@@ -60,6 +68,8 @@ public class G1Context extends G1Mutator {
     @Entrypoint Address cursorImmortal;
     @Entrypoint Address limitImmortal;
     @Entrypoint Address spaceImmortal;
+    @Entrypoint Address modbuf;
+    @Entrypoint Address barrierActive;
 
     static final Offset threadIdOffset = getField(SSContext.class, "threadId", Address.class).getOffset();
 
@@ -74,6 +84,8 @@ public class G1Context extends G1Mutator {
         cursorImmortal   = mmtkHandle.plus(BYTES_IN_WORD * 7).loadAddress();
         limitImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 8).loadAddress();
         spaceImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 9).loadAddress();
+        modbuf           = mmtkHandle.plus(BYTES_IN_WORD * 10).loadAddress();
+        barrierActive    = mmtkHandle.plus(BYTES_IN_WORD * 11).loadAddress();
         return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
 
@@ -119,5 +131,36 @@ public class G1Context extends G1Mutator {
                           int bytes, int allocator) {
         Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
         sysCall.sysPostAlloc(handle, ref, typeRef, bytes, allocator);
+    }
+
+    @Inline
+    public boolean barrierActive() {
+        return !barrierActive.isZero();
+    }
+
+    @Inline
+    public Address handle() {
+        return Magic.objectAsAddress(this).plus(threadIdOffset);
+    }
+
+    @Inline
+    @Override
+    public void objectReferenceWrite(ObjectReference src, Address slot, ObjectReference value, Word metaDataA, Word metaDataB, int mode) {
+        if (!this.barrierActive()) org.mmtk.vm.VM.barriers.objectReferenceWrite(src, value, metaDataA, metaDataB, mode);
+        else sysCall.sysObjectReferenceWriteSlow(handle(), src, slot, value);
+    }
+
+    @Inline
+    @Override
+    public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
+        if (!this.barrierActive()) return org.mmtk.vm.VM.barriers.objectReferenceTryCompareAndSwap(src, old, tgt, metaDataA, metaDataB, mode);
+        return sysCall.sysObjectReferenceTryCompareAndSwapSlow(handle(), src, slot, old, tgt);
+    }
+
+    @Inline
+    @Override
+    public ObjectReference javaLangReferenceReadBarrier(ObjectReference ref) {
+        if (!this.barrierActive()) return ref;
+        return sysCall.sysJavaLangReferenceReadSlow(handle(), ref);
     }
 }
