@@ -280,6 +280,7 @@ public class BootRecord {
   public Address object_reference_non_heap_write_slowRIP;
   public Address object_reference_non_heap_read_slowRIP;
   public Address deinit_mutatorRIP;
+  public Address report_fake_tibRIP;
   public Address flushRIP;
   public Address flush_remembered_setsRIP;
   public Address is_valid_refRIP;

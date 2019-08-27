@@ -1059,7 +1059,9 @@ public final class MemoryManager {
 
     Object result = ObjectModel.initializeArray(region, fakeTib, elements, size);
     mutator.postAlloc(ObjectReference.fromObject(result), ObjectReference.fromObject(fakeTib), size, type.getMMAllocator());
-
+    if (VM.BuildWithRustMMTk) {
+      sysCall.sysReportFakeTIB(ObjectReference.fromObject(realTib));
+    }
     /* Now we replace the TIB */
     ObjectModel.setTIB(result, realTib);
 
@@ -1140,7 +1142,7 @@ public final class MemoryManager {
     int align = ObjectModel.getAlignment(fakeType);
     int offset = ObjectModel.getOffsetForAlignment(fakeType, false);
     int width = fakeType.getLogElementSize();
-
+    
     /* Allocate a word array */
     Object array = allocateArray(size,
                                  width,
@@ -1152,6 +1154,9 @@ public final class MemoryManager {
                                  Plan.DEFAULT_SITE);
 
     /* Now we replace the TIB */
+    if (VM.BuildWithRustMMTk) {
+      sysCall.sysReportFakeTIB(ObjectReference.fromObject(realTib));
+    }
     ObjectModel.setTIB(array, realTib);
     return array;
   }

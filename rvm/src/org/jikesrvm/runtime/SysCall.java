@@ -338,6 +338,15 @@ public abstract class SysCall {
   public abstract void deinit_mutator(Address mutator);
 
   @Inline
+  public void sysReportFakeTIB(ObjectReference tib) {
+    report_fake_tib(tib.toAddress());
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void report_fake_tib(Address tib);
+
+  @Inline
   public void sysFlush(Address mutator) {
     flush(mutator);
   }
