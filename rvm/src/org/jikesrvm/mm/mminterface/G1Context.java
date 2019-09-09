@@ -35,7 +35,7 @@ public class G1Context extends G1Mutator {
         }
         @Override
         public int gcHeaderBits() {
-            return 0;
+            return 4;
         }
         @Override
         public int gcHeaderWords() {
@@ -47,7 +47,7 @@ public class G1Context extends G1Mutator {
         }
         @Override
         public int maxNonLOSDefaultAllocBytes() {
-          return (1 << (6 + 12)) / 2;
+          return 512 * 1024;
         }
         @Override
         public boolean needsObjectReferenceWriteBarrier() {
@@ -77,9 +77,8 @@ public class G1Context extends G1Mutator {
     @Entrypoint Address modbuf;
     @Entrypoint Address dirtyCardQueue;
     @Entrypoint Address barrierActive;
-    @Entrypoint Address remset;
 
-    static final Offset threadIdOffset = getField(SSContext.class, "threadId", Address.class).getOffset();
+    static final Offset threadIdOffset = getField(G1Context.class, "threadId", Address.class).getOffset();
 
     public Address setBlock(Address mmtkHandle) {
         threadId         = mmtkHandle.plus(BYTES_IN_WORD * 0).loadAddress();
@@ -88,16 +87,19 @@ public class G1Context extends G1Mutator {
         space            = mmtkHandle.plus(BYTES_IN_WORD * 3).loadAddress();
         refills          = mmtkHandle.plus(BYTES_IN_WORD * 4).loadAddress();
         tlabSize         = mmtkHandle.plus(BYTES_IN_WORD * 5).loadAddress();
+
         threadIdLos      = mmtkHandle.plus(BYTES_IN_WORD * 6).loadAddress();
         spaceLos         = mmtkHandle.plus(BYTES_IN_WORD * 7).loadAddress();
+
         threadIdImmortal = mmtkHandle.plus(BYTES_IN_WORD * 8).loadAddress();
         cursorImmortal   = mmtkHandle.plus(BYTES_IN_WORD * 9).loadAddress();
         limitImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 10).loadAddress();
         spaceImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 11).loadAddress();
+
         modbuf           = mmtkHandle.plus(BYTES_IN_WORD * 12).loadAddress();
         dirtyCardQueue   = mmtkHandle.plus(BYTES_IN_WORD * 13).loadAddress();
         barrierActive    = mmtkHandle.plus(BYTES_IN_WORD * 14).loadAddress();
-        remset           = mmtkHandle.plus(BYTES_IN_WORD * 15).loadAddress();
+        
         return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
 
