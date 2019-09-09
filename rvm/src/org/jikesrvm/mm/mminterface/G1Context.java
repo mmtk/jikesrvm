@@ -18,7 +18,6 @@ import org.vmmagic.unboxed.*;
 import org.jikesrvm.runtime.Magic;
 import org.mmtk.plan.Plan;
 import org.mmtk.plan.PlanConstraints;
-import org.mmtk.policy.CopySpace;
 import org.jikesrvm.VM;
 
 import static org.jikesrvm.runtime.EntrypointHelper.getField;
@@ -73,7 +72,7 @@ public class G1Context extends G1Mutator {
     @Entrypoint Address cursorImmortal;
     @Entrypoint Address limitImmortal;
     @Entrypoint Address spaceImmortal;
-    
+
     @Entrypoint Address modbuf;
     @Entrypoint Address dirtyCardQueue;
     @Entrypoint Address barrierActive;
@@ -99,7 +98,7 @@ public class G1Context extends G1Mutator {
         modbuf           = mmtkHandle.plus(BYTES_IN_WORD * 12).loadAddress();
         dirtyCardQueue   = mmtkHandle.plus(BYTES_IN_WORD * 13).loadAddress();
         barrierActive    = mmtkHandle.plus(BYTES_IN_WORD * 14).loadAddress();
-        
+
         return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
 
