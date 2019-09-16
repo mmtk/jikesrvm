@@ -64,6 +64,7 @@ public class G1Context extends G1Mutator {
     @Entrypoint Address space;
     @Entrypoint Address refills;
     @Entrypoint Address tlabSize;
+    @Entrypoint Address gen;
 
     @Entrypoint Address threadIdLos;
     @Entrypoint Address spaceLos;
@@ -86,18 +87,19 @@ public class G1Context extends G1Mutator {
         space            = mmtkHandle.plus(BYTES_IN_WORD * 3).loadAddress();
         refills          = mmtkHandle.plus(BYTES_IN_WORD * 4).loadAddress();
         tlabSize         = mmtkHandle.plus(BYTES_IN_WORD * 5).loadAddress();
+        gen              = mmtkHandle.plus(BYTES_IN_WORD * 6).loadAddress();
 
-        threadIdLos      = mmtkHandle.plus(BYTES_IN_WORD * 6).loadAddress();
-        spaceLos         = mmtkHandle.plus(BYTES_IN_WORD * 7).loadAddress();
+        threadIdLos      = mmtkHandle.plus(BYTES_IN_WORD * 7).loadAddress();
+        spaceLos         = mmtkHandle.plus(BYTES_IN_WORD * 8).loadAddress();
 
-        threadIdImmortal = mmtkHandle.plus(BYTES_IN_WORD * 8).loadAddress();
-        cursorImmortal   = mmtkHandle.plus(BYTES_IN_WORD * 9).loadAddress();
-        limitImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 10).loadAddress();
-        spaceImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 11).loadAddress();
+        threadIdImmortal = mmtkHandle.plus(BYTES_IN_WORD * 9).loadAddress();
+        cursorImmortal   = mmtkHandle.plus(BYTES_IN_WORD * 10).loadAddress();
+        limitImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 11).loadAddress();
+        spaceImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 12).loadAddress();
 
-        modbuf           = mmtkHandle.plus(BYTES_IN_WORD * 12).loadAddress();
-        dirtyCardQueue   = mmtkHandle.plus(BYTES_IN_WORD * 13).loadAddress();
-        barrierActive    = mmtkHandle.plus(BYTES_IN_WORD * 14).loadAddress();
+        modbuf           = mmtkHandle.plus(BYTES_IN_WORD * 13).loadAddress();
+        dirtyCardQueue   = mmtkHandle.plus(BYTES_IN_WORD * 14).loadAddress();
+        barrierActive    = mmtkHandle.plus(BYTES_IN_WORD * 15).loadAddress();
 
         return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
@@ -159,10 +161,10 @@ public class G1Context extends G1Mutator {
     }
 
     @Override
-    public void postAlloc(ObjectReference ref, ObjectReference typeRef,
-                          int bytes, int allocator) {
-        Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
-        sysCall.sysPostAlloc(handle, ref, typeRef, bytes, allocator);
+    public void postAlloc(ObjectReference ref, ObjectReference typeRef, int bytes, int allocator) {
+        // if (allocator != 0) {
+            sysCall.sysPostAlloc(handle(), ref, typeRef, bytes, allocator);
+        // }
     }
 
     @Inline
