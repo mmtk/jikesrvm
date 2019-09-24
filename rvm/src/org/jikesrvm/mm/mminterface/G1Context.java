@@ -162,9 +162,9 @@ public class G1Context extends G1Mutator {
 
     @Override
     public void postAlloc(ObjectReference ref, ObjectReference typeRef, int bytes, int allocator) {
-        // if (allocator != 0) {
+        if (allocator != 0) {
             sysCall.sysPostAlloc(handle(), ref, typeRef, bytes, allocator);
-        // }
+        }
     }
 
     @Inline
