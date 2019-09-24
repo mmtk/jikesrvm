@@ -151,7 +151,7 @@ public class ConcSSContext extends SSMutator {
     @Override
     public void objectReferenceWrite(ObjectReference src, Address slot, ObjectReference value, Word metaDataA, Word metaDataB, int mode) {
         if (!this.barrierActive()) org.mmtk.vm.VM.barriers.objectReferenceWrite(src, value, metaDataA, metaDataB, mode);
-        else sysCall.sysObjectReferenceWriteSlow(handle(), src, slot, value);
+        else sysCall.sysObjectReferenceWriteSlow(handle(), src, slot, value, 0);
         // org.mmtk.vm.VM.barriers.objectReferenceWrite(src, value, metaDataA, metaDataB, mode);
     }
 
@@ -159,14 +159,14 @@ public class ConcSSContext extends SSMutator {
     @Override
     public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
         if (!this.barrierActive()) return org.mmtk.vm.VM.barriers.objectReferenceTryCompareAndSwap(src, old, tgt, metaDataA, metaDataB, mode);
-        return sysCall.sysObjectReferenceTryCompareAndSwapSlow(handle(), src, slot, old, tgt);
+        return sysCall.sysObjectReferenceTryCompareAndSwapSlow(handle(), src, slot, old, tgt, 0);
     }
 
     @Inline
     @Override
     public ObjectReference javaLangReferenceReadBarrier(ObjectReference ref) {
         if (!this.barrierActive()) return ref;
-        return sysCall.sysJavaLangReferenceReadSlow(handle(), ref);
+        return sysCall.sysJavaLangReferenceReadSlow(handle(), ref, 0);
     }
 
     @Inline
@@ -176,7 +176,7 @@ public class ConcSSContext extends SSMutator {
 
     @NoInline
     public ObjectReference objectReferenceReadSlow(ObjectReference src, Address slot) {
-        return sysCall.object_reference_read_slow(Magic.objectAsAddress(this).plus(threadIdOffset), src, slot);
+        return sysCall.object_reference_read_slow(Magic.objectAsAddress(this).plus(threadIdOffset), src, slot, 0);
     }
 
     @Inline

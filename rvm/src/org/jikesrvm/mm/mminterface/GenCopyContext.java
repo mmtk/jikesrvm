@@ -198,7 +198,7 @@ public class GenCopyContext extends MutatorContext {
     void fastPath(ObjectReference src, Address slot, ObjectReference value) {
         if (!inNursery(slot) && inNursery(value)) {
             Address handle = Magic.objectAsAddress(this).plus(threadIdOffset);
-            sysCall.sysObjectReferenceWriteSlow(handle, src, slot, value);
+            sysCall.sysObjectReferenceWriteSlow(handle, src, slot, value, 0);
         }
     }
 

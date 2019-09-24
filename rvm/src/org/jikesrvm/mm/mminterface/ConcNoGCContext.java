@@ -82,7 +82,7 @@ public class ConcNoGCContext extends NoGCMutator {
     @Override
     @Inline
     public void objectReferenceWrite(ObjectReference src, Address slot, ObjectReference value, Word metaDataA, Word metaDataB, int mode) {
-        sysCall.sysObjectReferenceWriteSlow(getHandle(), src, slot, value);
+        sysCall.sysObjectReferenceWriteSlow(getHandle(), src, slot, value, 0);
         org.mmtk.vm.VM.barriers.objectReferenceWrite(src, value, metaDataA, metaDataB, mode);
     }
 
@@ -91,12 +91,12 @@ public class ConcNoGCContext extends NoGCMutator {
     public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
     //   boolean result = org.mmtk.vm.VM.barriers.objectReferenceTryCompareAndSwap(src, old, tgt, metaDataA, metaDataB, mode);
     //   sysCall.sysObjectReferenceTryCompareAndSwapSlow(getHandle(), src, slot, old, tgt);
-      return sysCall.sysObjectReferenceTryCompareAndSwapSlow(getHandle(), src, slot, old, tgt);
+      return sysCall.sysObjectReferenceTryCompareAndSwapSlow(getHandle(), src, slot, old, tgt, 0);
     }
 
     @Inline
     @Override
     public ObjectReference javaLangReferenceReadBarrier(ObjectReference ref) {
-        return sysCall.sysJavaLangReferenceReadSlow(getHandle(), ref);
+        return sysCall.sysJavaLangReferenceReadSlow(getHandle(), ref, 0);
     }
 }

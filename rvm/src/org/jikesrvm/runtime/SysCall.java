@@ -275,58 +275,58 @@ public abstract class SysCall {
                                   int allocator);
 
   @Inline
-  public void sysObjectReferenceWriteSlow(Address mutator, ObjectReference src, Address slot, ObjectReference value) {
-    object_reference_write_slow(mutator, src, slot, value);
+  public void sysObjectReferenceWriteSlow(Address mutator, ObjectReference src, Address slot, ObjectReference value, int meta) {
+    object_reference_write_slow(mutator, src, slot, value, meta);
   }
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract void object_reference_write_slow(Address mutator, ObjectReference src, Address slot, ObjectReference value);
+  public abstract void object_reference_write_slow(Address mutator, ObjectReference src, Address slot, ObjectReference value, int meta);
 
   @Inline
-  public ObjectReference sysObjectReferenceReadSlow(Address mutator, ObjectReference src, Address slot) {
-    return object_reference_read_slow(mutator, src, slot);
+  public ObjectReference sysObjectReferenceReadSlow(Address mutator, ObjectReference src, Address slot, int meta) {
+    return object_reference_read_slow(mutator, src, slot, meta);
   }
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract ObjectReference object_reference_read_slow(Address mutator, ObjectReference src, Address slot);
+  public abstract ObjectReference object_reference_read_slow(Address mutator, ObjectReference src, Address slot, int meta);
 
   @Inline
-  public boolean sysObjectReferenceTryCompareAndSwapSlow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt) {
-    return object_reference_try_compare_and_swap_slow(mutator, src, slot, old, tgt);
+  public boolean sysObjectReferenceTryCompareAndSwapSlow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt, int meta) {
+    return object_reference_try_compare_and_swap_slow(mutator, src, slot, old, tgt, meta);
   }
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract boolean object_reference_try_compare_and_swap_slow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt);
+  public abstract boolean object_reference_try_compare_and_swap_slow(Address mutator, ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt, int meta);
 
   @Inline
-  public ObjectReference sysJavaLangReferenceReadSlow(Address mutator, ObjectReference ref) {
-    return java_lang_reference_read_slow(mutator, ref);
+  public ObjectReference sysJavaLangReferenceReadSlow(Address mutator, ObjectReference ref, int meta) {
+    return java_lang_reference_read_slow(mutator, ref, meta);
   }
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract ObjectReference java_lang_reference_read_slow(Address mutator, ObjectReference ref);
+  public abstract ObjectReference java_lang_reference_read_slow(Address mutator, ObjectReference ref, int meta);
 
   @Inline
-  public ObjectReference sysObjectReferenceNonHeapReadSlow(Address mutator, Address slot) {
-    return object_reference_non_heap_read_slow(mutator, slot);
+  public ObjectReference sysObjectReferenceNonHeapReadSlow(Address mutator, Address slot, int meta) {
+    return object_reference_non_heap_read_slow(mutator, slot, meta);
   }
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract ObjectReference object_reference_non_heap_read_slow(Address mutator, Address slot);
+  public abstract ObjectReference object_reference_non_heap_read_slow(Address mutator, Address slot, int meta);
 
   @Inline
-  public void sysObjectReferenceNonHeapWriteSlow(Address mutator, Address slot, ObjectReference tgt) {
-    object_reference_non_heap_write_slow(mutator, slot, tgt);
+  public void sysObjectReferenceNonHeapWriteSlow(Address mutator, Address slot, ObjectReference tgt, int meta) {
+    object_reference_non_heap_write_slow(mutator, slot, tgt, meta);
   }
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract void object_reference_non_heap_write_slow(Address mutator, Address slot, ObjectReference tgt);
+  public abstract void object_reference_non_heap_write_slow(Address mutator, Address slot, ObjectReference tgt, int meta);
 
   @Inline
   public void sysDeinitMutator(Address mutator) {

@@ -77,7 +77,9 @@ public class G1Context extends G1Mutator {
     @Entrypoint Address modbuf;
     @Entrypoint Address dirtyCardQueue;
     @Entrypoint Address barrierActive;
+    @Entrypoint Address cardTable;
 
+    static Address catdTableStatic = Address.zero();
     static final Offset threadIdOffset = getField(G1Context.class, "threadId", Address.class).getOffset();
 
     public Address setBlock(Address mmtkHandle) {
@@ -100,7 +102,9 @@ public class G1Context extends G1Mutator {
         modbuf           = mmtkHandle.plus(BYTES_IN_WORD * 13).loadAddress();
         dirtyCardQueue   = mmtkHandle.plus(BYTES_IN_WORD * 14).loadAddress();
         barrierActive    = mmtkHandle.plus(BYTES_IN_WORD * 15).loadAddress();
-
+        cardTable        = mmtkHandle.plus(BYTES_IN_WORD * 16).loadAddress();
+        
+        catdTableStatic = cardTable;
         return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
 
@@ -177,25 +181,109 @@ public class G1Context extends G1Mutator {
         return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
 
+    static final int OBJECT_REFERENCE_SLOW_FOR_LOGGED_OBJECT = 1;
+    static final int OBJECT_REFERENCE_SLOW_FOR_CROSS_REGION_REF = 2;
+    static final Word LOG_BIT = Word.fromIntZeroExtend(1 << 2);
+    static final int LOG_BYTES_IN_REGION = 20;
+    static final int LOG_BYTES_IN_CARD = 9;
+
     @Inline
+    public static boolean isUnlogged(ObjectReference object) {
+        Word old = org.jikesrvm.objectmodel.JavaHeader.readAvailableBitsWord(object.toObject());
+        return old.and(LOG_BIT).isZero();
+        
+        // while (true) {
+        //     Word old = org.jikesrvm.objectmodel.ObjectModel.prepareAvailableBits(object.toObject());
+        //     if (old.and(UNLOGGED_BIT).EQ(UNLOGGED_BIT)) {
+        //         return false; // Already unlogged
+        //     }
+        //     Word new_ = old.or(UNLOGGED_BIT);
+        //     if (org.jikesrvm.objectmodel.ObjectModel.attemptAvailableBits(object, old, new_)) {
+        //         return true;
+        //     }
+        // }
+    }
+
+    @Inline
+    public static boolean attemptLog(ObjectReference object) {
+        while (true) {
+            Word old = org.jikesrvm.objectmodel.ObjectModel.prepareAvailableBits(object.toObject());
+            if (!old.and(LOG_BIT).isZero()) {
+                return false; // Already unlogged
+            }
+            Word new_ = old.or(LOG_BIT);
+            if (org.jikesrvm.objectmodel.ObjectModel.attemptAvailableBits(object, old, new_)) {
+                return true;
+            }
+        }
+    }
+
+    @Inline
+    static boolean isCrossRegionRef(Address slot, ObjectReference value) {
+        if (value.isNull()) {
+            return false;
+        }
+        Word x = slot.toWord();
+        Word y = org.jikesrvm.objectmodel.ObjectModel.getPointerInMemoryRegion(value).toWord();
+        return !x.xor(y).rshl(LOG_BYTES_IN_REGION).isZero();
+    }
+
+    @Inline
+    static boolean tryMarkCard(ObjectReference src) {
+        Address addr = org.jikesrvm.objectmodel.JavaHeader.objectStartRef(src);
+        // Address card = addr.rshl(LOG_BYTES_IN_CARD).lsh(LOG_BYTES_IN_CARD);
+        Offset index = addr.diff(org.mmtk.vm.VM.HEAP_START).toWord().rshl(LOG_BYTES_IN_CARD).toOffset();
+        // Offset index = Offset.fromIntZeroExtend((addr.toInt() - org.mmtk.vm.VM.HEAP_START.toInt()) >>> LOG_BYTES_IN_CARD);
+        return catdTableStatic.loadByte(index) == (byte) 0;
+        //     catdTableStatic.store((byte) 1, index);
+        //     return true;
+        // }
+        // return false;
+    }
+
+    @Inline
+    @NoNullCheck
     @Override
     public void objectReferenceWrite(ObjectReference src, Address slot, ObjectReference value, Word metaDataA, Word metaDataB, int mode) {
         // if (!this.barrierActive()) org.mmtk.vm.VM.barriers.objectReferenceWrite(src, value, metaDataA, metaDataB, mode);
         // else sysCall.sysObjectReferenceWriteSlow(handle(), src, slot, value);
-        sysCall.sysObjectReferenceWriteSlow(handle(), src, slot, value);
+        if (this.barrierActive()) {
+            ObjectReference old = slot.loadObjectReference();
+            if (!old.isNull() && attemptLog(old)) {
+                sysCall.sysObjectReferenceWriteSlow(handle(), src, slot, value, OBJECT_REFERENCE_SLOW_FOR_LOGGED_OBJECT);
+                return;
+            }
+        }
+        // slot.store(value);
+        org.mmtk.vm.VM.barriers.objectReferenceWrite(src, value, metaDataA, metaDataB, mode);
+        if (tryMarkCard(src)) {
+            sysCall.sysObjectReferenceWriteSlow(handle(), src, slot, value, OBJECT_REFERENCE_SLOW_FOR_CROSS_REGION_REF);
+        }
+        // if (isCrossRegionRef(slot, value)) {
+            // if (tryMarkCard(src)) {
+            //     sysCall.sysObjectReferenceWriteSlow(handle(), src, slot, value, OBJECT_REFERENCE_SLOW_FOR_CROSS_REGION_REF);
+            // }
+        // }
+        // sysCall.sysObjectReferenceWriteSlow(handle(), src, slot, value, 0);
     }
 
     @Inline
     @Override
     public boolean objectReferenceTryCompareAndSwap(ObjectReference src, Address slot, ObjectReference old, ObjectReference tgt, Word metaDataA, Word metaDataB, int mode) {
         // if (!this.barrierActive()) return org.mmtk.vm.VM.barriers.objectReferenceTryCompareAndSwap(src, old, tgt, metaDataA, metaDataB, mode);
-        return sysCall.sysObjectReferenceTryCompareAndSwapSlow(handle(), src, slot, old, tgt);
+        return sysCall.sysObjectReferenceTryCompareAndSwapSlow(handle(), src, slot, old, tgt, 0);
     }
 
     @Inline
     @Override
     public ObjectReference javaLangReferenceReadBarrier(ObjectReference ref) {
-        if (!this.barrierActive()) return ref;
-        return sysCall.sysJavaLangReferenceReadSlow(handle(), ref);
+        if (this.barrierActive()) {
+            if (!ref.isNull() && attemptLog(ref)) {
+                return sysCall.sysJavaLangReferenceReadSlow(handle(), ref, 0);
+            }
+        }
+        return ref;
+        // if (!this.barrierActive()) return ref;
+        // return sysCall.sysJavaLangReferenceReadSlow(handle(), ref, 0);
     }
 }
