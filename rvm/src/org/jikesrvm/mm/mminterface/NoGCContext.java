@@ -25,7 +25,7 @@ import static org.jikesrvm.runtime.UnboxedSizeConstants.BYTES_IN_WORD;
 
 @Uninterruptible
 public class NoGCContext extends NoGCMutator {
-
+    // BumpAllocator
     @Entrypoint
     Address threadId;
     @Entrypoint
@@ -35,16 +35,24 @@ public class NoGCContext extends NoGCMutator {
     @Entrypoint
     Address space;
     @Entrypoint
+    Address planNoGC;
+    // LargeObjectAllocator
+    @Entrypoint
     Address threadIdLos;
     @Entrypoint
     Address spaceLos;
+    @Entrypoint
+    Address planLos;
 
     static final Offset threadIdOffset = getField(NoGCContext.class, "threadId", Address.class).getOffset();
     static final Offset cursorOffset = getField(NoGCContext.class, "cursor", Address.class).getOffset();
     static final Offset limitOffset = getField(NoGCContext.class, "limit", Address.class).getOffset();
     static final Offset spaceOffset = getField(NoGCContext.class, "space", Address.class).getOffset();
+    static final Offset planNoGCOffset = getField(NoGCContext.class, "planNoGC", Address.class).getOffset();
+
     static final Offset threadIdLosOffset = getField(NoGCContext.class, "threadIdLos", Address.class).getOffset();
     static final Offset spaceLosOffset = getField(NoGCContext.class, "spaceLos", Address.class).getOffset();
+    static final Offset planLosOffset = getField(NoGCContext.class, "planLos", Address.class).getOffset();
 
     @Override
     public Address alloc(int bytes, int align, int offset, int allocator, int site) {
@@ -79,15 +87,22 @@ public class NoGCContext extends NoGCMutator {
             VM._assert(cursorOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD));
             VM._assert(limitOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 2));
             VM._assert(spaceOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 3));
-            VM._assert(threadIdLosOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 4));
-            VM._assert(spaceLosOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 5));
+            VM._assert(planNoGCOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 4));
+
+            VM._assert(threadIdLosOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 5));
+            VM._assert(spaceLosOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 6));
+            VM._assert(planLosOffset.minus(threadIdOffset) == Offset.fromIntSignExtend(BYTES_IN_WORD * 7));
         }
         threadId = mmtkHandle.loadAddress();
         cursor   = mmtkHandle.plus(BYTES_IN_WORD).loadAddress();
         limit    = mmtkHandle.plus(BYTES_IN_WORD * 2).loadAddress();
         space    = mmtkHandle.plus(BYTES_IN_WORD * 3).loadAddress();
-        threadIdLos = mmtkHandle.plus(BYTES_IN_WORD * 4).loadAddress();
-        spaceLos = mmtkHandle.plus(BYTES_IN_WORD * 5).loadAddress();
+        planNoGC = mmtkHandle.plus(BYTES_IN_WORD * 4).loadAddress();
+
+        threadIdLos = mmtkHandle.plus(BYTES_IN_WORD * 5).loadAddress();
+        spaceLos = mmtkHandle.plus(BYTES_IN_WORD * 6).loadAddress();
+        planLos = mmtkHandle.plus(BYTES_IN_WORD* 7).loadAddress();
+
         return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
 
