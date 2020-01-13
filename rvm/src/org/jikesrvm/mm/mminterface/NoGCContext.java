@@ -101,7 +101,7 @@ public class NoGCContext extends NoGCMutator {
 
         threadIdLos = mmtkHandle.plus(BYTES_IN_WORD * 5).loadAddress();
         spaceLos = mmtkHandle.plus(BYTES_IN_WORD * 6).loadAddress();
-        planLos = mmtkHandle.plus(BYTES_IN_WORD* 7).loadAddress();
+        planLos = mmtkHandle.plus(BYTES_IN_WORD * 7).loadAddress();
 
         return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
