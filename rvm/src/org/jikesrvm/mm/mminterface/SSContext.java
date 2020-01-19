@@ -46,6 +46,8 @@ public class SSContext extends SSMutator {
     Address threadIdLos;
     @Entrypoint
     Address spaceLos;
+    @Entrypoint
+    Address planRef;
 
     static final Offset threadIdOffset = getField(SSContext.class, "threadId", Address.class).getOffset();
     static final Offset cursorOffset = getField(SSContext.class, "cursor", Address.class).getOffset();
@@ -57,6 +59,7 @@ public class SSContext extends SSMutator {
     static final Offset spaceImmortalOffset = getField(SSContext.class, "spaceImmortal", Address.class).getOffset();
     static final Offset threadIdLosOffset = getField(SSContext.class, "threadIdLos", Address.class).getOffset();
     static final Offset spaceLosOffset = getField(SSContext.class, "spaceLos", Address.class).getOffset();
+    static final Offset planRefOffset = getField(SSContext.class, "planRef", Address.class).getOffset();
 
     public Address setBlock(Address mmtkHandle) {
         if (VM.VerifyAssertions) {
@@ -80,6 +83,7 @@ public class SSContext extends SSMutator {
         spaceImmortal    = mmtkHandle.plus(BYTES_IN_WORD * 7).loadAddress();
         threadIdLos = mmtkHandle.plus(BYTES_IN_WORD * 8).loadAddress();
         spaceLos = mmtkHandle.plus(BYTES_IN_WORD * 9).loadAddress();
+        planRef = mmtkHandle.plus(BYTES_IN_WORD * 10).loadAddress();
         return Magic.objectAsAddress(this).plus(threadIdOffset);
     }
 
