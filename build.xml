@@ -1718,7 +1718,7 @@ Check to make sure all required properties are specified. This includes properti
       <arg value="-C"/>
       <arg value="force-frame-pointers=yes"/>
     </exec>
-    <copy file="${mmtk.path}/libmmtk.so" tofile="${build.base}/libmmtk.so">
+    <copy file="${mmtk.path}/libmmtk_jikesrvm.so" tofile="${build.base}/libmmtk.so">
     </copy>
   </target>
 
