@@ -1702,21 +1702,23 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="compile-rust-mmtk" if="${rust.build}">
+    <property name="mmtk.crate.base" location="${jikesrvm.dir}/rust_mmtk/vmbindings/jikesrvm"/>
     <exec executable="/usr/bin/as" failonerror="true">
-      <arg line="--32 -o ${build.base}/${target.obj-prefix}glue${target.obj-ext} -I ${jikesrvm.dir}/rust_mmtk/src/vm/jikesrvm ${jikesrvm.dir}/rust_mmtk/src/vm/jikesrvm/glue.asm"/>
+      <arg line="--32 -o ${build.base}/${target.obj-prefix}glue${target.obj-ext} -I ${mmtk.crate.base}/src ${mmtk.crate.base}/src/glue.asm"/>
     </exec>
     <exec executable="cargo" dir="rust_mmtk" failonerror="true">
       <arg value="+nightly"/>
       <arg value="rustc"/>
+      <arg value="--manifest-path=${mmtk.crate.base}/Cargo.toml"/>
       <arg value="--target=i686-unknown-linux-gnu"/>
-      <arg value="--features=jikesrvm ${rust.features}"/>
+      <arg value="--features=${rust.features}"/>
       <arg value="--no-default-features"/>
       <arg line="${rust.args}"/>
       <arg value="--"/>
       <arg value="-C"/>
       <arg value="force-frame-pointers=yes"/>
     </exec>
-    <copy file="${mmtk.path}/libmmtk.so" tofile="${build.base}/libmmtk.so">
+    <copy file="${mmtk.path}/libmmtk_jikesrvm.so" tofile="${build.base}/libmmtk.so">
     </copy>
   </target>
 
