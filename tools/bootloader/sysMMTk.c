@@ -1,6 +1,6 @@
 #include "sys.h"
 #ifdef RUST_BUILD
-    #include "../../rust_mmtk/api/mmtk.h" // the api of the GC
+    #include "../../rust_mmtk/vmbindings/jikesrvm/api/mmtk.h" // the api of the GC
 #endif
 #include <stdlib.h> // malloc and others
 #include <errno.h> // error numbers
