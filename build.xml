@@ -1702,11 +1702,11 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <target name="compile-rust-mmtk" if="${rust.build}">
-    <property name="mmtk.crate.base" location="${jikesrvm.dir}/rust_mmtk/vmbindings/jikesrvm"/>
+    <property name="mmtk.crate.base" location="${jikesrvm.dir}/mmtk-jikesrvm/mmtk"/>
     <exec executable="/usr/bin/as" failonerror="true">
       <arg line="--32 -o ${build.base}/${target.obj-prefix}glue${target.obj-ext} -I ${mmtk.crate.base}/src ${mmtk.crate.base}/src/glue.asm"/>
     </exec>
-    <exec executable="cargo" dir="rust_mmtk" failonerror="true">
+    <exec executable="cargo" dir="mmtk-jikesrvm" failonerror="true">
       <arg value="+nightly"/>
       <arg value="rustc"/>
       <arg value="--manifest-path=${mmtk.crate.base}/Cargo.toml"/>

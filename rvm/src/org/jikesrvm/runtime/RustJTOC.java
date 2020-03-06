@@ -24,7 +24,7 @@ import java.lang.reflect.Field;
  * Rust MMTk.
  */
 public class RustJTOC {
-    private static final String path = "./rust_mmtk/vmbindings/jikesrvm/src/";
+    private static final String path = "./mmtk-jikesrvm/mmtk/src/";
     public static void compileMMTk() {
         try {
             PrintWriter writer;
