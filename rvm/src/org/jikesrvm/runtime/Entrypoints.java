@@ -674,9 +674,6 @@ public class Entrypoints {
       optNew2DArrayMethod = null;
       sysArrayCopy = null;
     }
-    if (VM.BuildWithRustMMTk) {
-      RustJTOC.compileMMTk();
-    }
   }
 
   public static final RVMField classLoaderDefinedPackages;

@@ -1701,29 +1701,11 @@ Check to make sure all required properties are specified. This includes properti
     <replaceregexp file="${build.base}/Primordials.txt" match=".*#.*" replace="" byline="true"/>
   </target>
 
-  <target name="compile-rust-mmtk" if="${rust.build}">
-    <property name="mmtk.crate.base" location="${jikesrvm.dir}/mmtk-jikesrvm/mmtk"/>
-    <exec executable="/usr/bin/as" failonerror="true">
-      <arg line="--32 -o ${build.base}/${target.obj-prefix}glue${target.obj-ext} -I ${mmtk.crate.base}/src ${mmtk.crate.base}/src/glue.asm"/>
-    </exec>
-    <exec executable="cargo" dir="mmtk-jikesrvm" failonerror="true">
-      <arg value="+nightly"/>
-      <arg value="rustc"/>
-      <arg value="--manifest-path=${mmtk.crate.base}/Cargo.toml"/>
-      <arg value="--target=i686-unknown-linux-gnu"/>
-      <arg value="--features=${rust.features}"/>
-      <arg value="--no-default-features"/>
-      <arg line="${rust.args}"/>
-      <arg value="--"/>
-      <arg value="-C"/>
-      <arg value="force-frame-pointers=yes"/>
-    </exec>
-    <copy file="${mmtk.path}/libmmtk_jikesrvm.so" tofile="${build.base}/libmmtk.so">
-    </copy>
+  <target name="build-third-party-heap" depends="gen-asm" if="${rust.build}">
+    <ant antfile="${config.third-party-heap}/build.xml" inheritAll="true"/>
   </target>
 
-  <target name="build-bootimage-writer" depends="gen-asm">
-    <antcall target="compile-rust-mmtk"/>
+  <target name="build-bootimage-writer" depends="gen-asm,build-third-party-heap">
     <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
     <mkdir dir="${build.bootimage-writer.dir}"/>
     <javac srcdir="${basedir}/tools/bootImageWriter/src" destdir="${build.bootimage-writer.dir}" debug="true"

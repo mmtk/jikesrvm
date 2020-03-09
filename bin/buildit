@@ -201,6 +201,7 @@ my $javaHomeCmd;
 my $clearcc;
 my $timestampfile;
 my $email_report;
+my $use_third_party_heap;
 my $unit_tests;
 
 GetOptions(
@@ -250,7 +251,9 @@ GetOptions(
   "comp-cache-dir=s" => \$compcachedir,
   "clear-cc" => \$clearcc,
   "timestamp-file=s" => \$timestampfile,
-  "e|email-report" => \$email_report) or bad_usage();
+  "e|email-report" => \$email_report,
+  "use-third-party-heap=s" => \$use_third_party_heap,
+) or bad_usage();
 
 if ($with_acheck) {
   $x87 = $with_acheck;
@@ -627,6 +630,13 @@ if ($email_report) {
   }
 }
 
+if (defined $use_third_party_heap) {
+  print($use_third_party_heap."\n");
+  if (!-e $use_third_party_heap || !-d $use_third_party_heap) {
+    bad_usage("Could not find folder for third party heap '$use_third_party_heap'");
+  }
+}
+
 my $bindir = "bin";
 my $configdir = "config";
 my $sourcedirs = "";
@@ -824,6 +834,9 @@ if ($ok) {
 		if (defined $unit_tests) {
 			$defs 			= $defs."-Drequire.unit-tests=true ";
 		}
+    if (defined $use_third_party_heap) {
+      $defs .= "-Dconfig.third-party-heap=$use_third_party_heap "
+    }
 
     my $hostdefs   = $defs."-Dhost.name=$hostConfig ";
     my $targetdefs = $defs."-Dhost.name=$targetConfig ";
