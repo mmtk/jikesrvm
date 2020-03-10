@@ -202,6 +202,7 @@ my $clearcc;
 my $timestampfile;
 my $email_report;
 my $use_third_party_heap;
+my $use_third_party_build_configs;
 my $unit_tests;
 
 GetOptions(
@@ -253,6 +254,7 @@ GetOptions(
   "timestamp-file=s" => \$timestampfile,
   "e|email-report" => \$email_report,
   "use-third-party-heap=s" => \$use_third_party_heap,
+  "use-third-party-build-configs=s" => \$use_third_party_build_configs,
 ) or bad_usage();
 
 if ($with_acheck) {
@@ -602,9 +604,16 @@ if ($#gcs == -1) {
   }
 }
 
+if (defined $use_third_party_build_configs) {
+  $use_third_party_build_configs = abs_path($localRoot."/".$use_third_party_build_configs);
+  if (!-e $use_third_party_build_configs || !-d $use_third_party_build_configs) {
+    bad_usage("Could not find folder for third party build configs '$use_third_party_build_configs'");
+  }
+}
+
 foreach my $g (@gcs) {
-  $config = $compiler.$g; 
-  if (! -e $localRoot."/build/configs/".$config.".properties") {
+  $config = $compiler.$g;
+  if (! -e $localRoot."/build/configs/".$config.".properties" and (!defined $use_third_party_build_configs or (defined $use_third_party_build_configs and ! -e $use_third_party_build_configs."/".$config.".properties"))) {
     bad_usage("Could not find configuration '$config'");
   } 
 }
@@ -631,7 +640,6 @@ if ($email_report) {
 }
 
 if (defined $use_third_party_heap) {
-  print($use_third_party_heap."\n");
   if (!-e $use_third_party_heap || !-d $use_third_party_heap) {
     bad_usage("Could not find folder for third party heap '$use_third_party_heap'");
   }
@@ -836,6 +844,9 @@ if ($ok) {
 		}
     if (defined $use_third_party_heap) {
       $defs .= "-Dconfig.third-party-heap=$use_third_party_heap "
+    }
+    if (defined $use_third_party_build_configs) {
+      $defs .= "-Dconfig.third-party-build-configs=$use_third_party_build_configs "
     }
 
     my $hostdefs   = $defs."-Dhost.name=$hostConfig ";
