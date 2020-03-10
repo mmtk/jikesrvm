@@ -27,12 +27,10 @@
 #include "cAttributePortability.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <string.h> // for strcmp
 #include <jni.h>
 #include <signal.h> // for siginfo
-#ifdef RUST_BUILD
-    #include "../../mmtk-jikesrvm/mmtk/api/mmtk.h" // the api of the GC
-#endif
 #ifdef __MACH__
 #include <mach/mach_time.h>
 #endif
@@ -244,20 +242,70 @@ EXTERNAL void sysHelloWorld();
 EXTERNAL void alignedJikesrvmGcInit(void* jtoc, size_t heap_size) __attribute__((force_align_arg_pointer));
 EXTERNAL void test_stack_alignment();
 EXTERNAL void test_stack_alignment1(int a, int b, int c, int d, int e);
-EXTERNAL void* alignedSysAlloc(MMTk_Mutator mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
-EXTERNAL MMTk_Mutator alignedSysBindMutator(size_t thread_id) __attribute__((force_align_arg_pointer));
-EXTERNAL void* alignedSysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
+EXTERNAL void* alignedSysAlloc(void* mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
+EXTERNAL void* alignedSysBindMutator(size_t thread_id) __attribute__((force_align_arg_pointer));
+EXTERNAL void* alignedSysAllocSlow(void* mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedStartControlCollector(size_t thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL bool alignedWillNeverMove(void* object) __attribute__((force_align_arg_pointer));
-EXTERNAL void alignedReportDelayedRootEdge(MMTk_TraceLocal trace_local, void* addr) __attribute__((force_align_arg_pointer));
-EXTERNAL bool alignedWillNotMoveInCurrentCollection(MMTk_TraceLocal trace_local, void* obj) __attribute__((force_align_arg_pointer));
-EXTERNAL void alignedProcessInteriorEdge(MMTk_TraceLocal trace_local, void* target, void* slot, bool root) __attribute__((force_align_arg_pointer));
+EXTERNAL void alignedReportDelayedRootEdge(void* trace_local, void* addr) __attribute__((force_align_arg_pointer));
+EXTERNAL bool alignedWillNotMoveInCurrentCollection(void* trace_local, void* obj) __attribute__((force_align_arg_pointer));
+EXTERNAL void alignedProcessInteriorEdge(void* trace_local, void* target, void* slot, bool root) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedStartWorker(size_t thread_id, void* worker) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedEnableCollection(size_t thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL bool alignedProcess(char* name, char* value) __attribute__((force_align_arg_pointer));
-EXTERNAL void alignedPostAlloc(MMTk_Mutator mutator, void* refer, void* type_refer, int bytes, int allocator) __attribute__((force_align_arg_pointer));
+EXTERNAL void alignedPostAlloc(void* mutator, void* refer, void* type_refer, int bytes, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL bool alignedIsValidRef(void* ref) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedHandleUserCollectionRequest(size_t thread_id) __attribute__((force_align_arg_pointer));
+
+EXTERNAL void* bind_mutator(void *tls);
+EXTERNAL void destroy_mutator(void* mutator);
+EXTERNAL void* alloc(void* mutator, size_t size,
+    size_t align, size_t offset, int allocator);
+EXTERNAL void* alloc_slow(void* mutator, size_t size,
+    size_t align, size_t offset, int allocator);
+EXTERNAL void post_alloc(void* mutator, void* refer, void* type_refer,
+    int bytes, int allocator);
+EXTERNAL bool is_valid_ref(void* ref);
+EXTERNAL bool is_mapped_object(void* ref);
+EXTERNAL bool is_mapped_address(void* addr);
+EXTERNAL void modify_check(void* ref);
+EXTERNAL void report_delayed_root_edge(void* trace_local,
+                                     void* addr);
+EXTERNAL bool will_not_move_in_current_collection(void* trace_local,
+                                                void* obj);
+EXTERNAL void process_interior_edge(void* trace_local, void* target,
+                                  void* slot, bool root);
+EXTERNAL void* trace_get_forwarded_referent(void* trace_local, void* obj);
+EXTERNAL void* trace_get_forwarded_reference(void* trace_local, void* obj);
+EXTERNAL void* trace_retain_referent(void* trace_local, void* obj);
+EXTERNAL bool trace_is_live(void* trace_local, void* obj);
+EXTERNAL void* trace_root_object(void* trace_local, void* obj);
+EXTERNAL void process_edge(void* trace, void* obj);
+EXTERNAL void gc_init(size_t heap_size);
+EXTERNAL bool will_never_move(void* object);
+EXTERNAL bool process(char* name, char* value);
+EXTERNAL void scan_region();
+EXTERNAL void handle_user_collection_request(void *tls);
+EXTERNAL void start_control_collector(void *tls);
+EXTERNAL void start_worker(void *tls, void* worker);
+EXTERNAL void jikesrvm_gc_init(void* jtoc, size_t heap_size);
+EXTERNAL void enable_collection(void *tls);
+EXTERNAL void* jikesrvm_alloc(void* mutator, size_t size,
+    size_t align, size_t offset, int allocator);
+EXTERNAL void* jikesrvm_alloc_slow(void* mutator, size_t size,
+    size_t align, size_t offset, int allocator);
+EXTERNAL void jikesrvm_handle_user_collection_request(void *tls);
+EXTERNAL void jikesrvm_harness_begin(void *tls);
+EXTERNAL size_t free_bytes();
+EXTERNAL size_t total_bytes();
+EXTERNAL size_t used_bytes();
+EXTERNAL void* starting_heap_address();
+EXTERNAL void* last_heap_address();
+EXTERNAL void add_weak_candidate(void* ref, void* referent);
+EXTERNAL void add_soft_candidate(void* ref, void* referent);
+EXTERNAL void add_phantom_candidate(void* ref, void* referent);
+EXTERNAL void harness_begin(void *tls);
+EXTERNAL void harness_end();
 #endif
 
 // sysMisc
