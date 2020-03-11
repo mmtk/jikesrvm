@@ -203,6 +203,7 @@ my $timestampfile;
 my $email_report;
 my $use_third_party_heap;
 my $use_third_party_build_configs;
+my $use_external_source;
 my $unit_tests;
 
 GetOptions(
@@ -255,6 +256,7 @@ GetOptions(
   "e|email-report" => \$email_report,
   "use-third-party-heap=s" => \$use_third_party_heap,
   "use-third-party-build-configs=s" => \$use_third_party_build_configs,
+  "use-external-source=s" => \$use_external_source,
 ) or bad_usage();
 
 if ($with_acheck) {
@@ -645,6 +647,12 @@ if (defined $use_third_party_heap) {
   }
 }
 
+if (defined $use_external_source) {
+  if (!-e $use_external_source || !-d $use_external_source) {
+    bad_usage("Could not find folder for external source '$use_external_source'");
+  }
+}
+
 my $bindir = "bin";
 my $configdir = "config";
 my $sourcedirs = "";
@@ -654,7 +662,7 @@ my $sourcedirs = "";
 #
 my @dirs = ("rvm", "MMTk", "bin", "build", "testing", "tools", "tools-external", 
          "common", "build.xml", "libraryInterface", "external", "test.xml",
-         "mmtk-jikesrvm", "scripts");
+         "scripts");
 
 #
 # The files needed to be transferred to a host in order to complete a
@@ -848,6 +856,9 @@ if ($ok) {
     if (defined $use_third_party_build_configs) {
       $defs .= "-Dconfig.third-party-build-configs=$use_third_party_build_configs "
     }
+    if (defined $use_external_source) {
+      $defs .= "-Dconfig.external_source=$use_external_source "
+    }
 
     my $hostdefs   = $defs."-Dhost.name=$hostConfig ";
     my $targetdefs = $defs."-Dhost.name=$targetConfig ";
@@ -870,7 +881,7 @@ if ($ok) {
     if ($skip_build) {
       $build .= "echo Skipping build ";
     } elsif ($skip_jikesrvm) {
-      $build .= " ant check-config-properties compile-rust-mmtk ".
+      $build .= " ant check-config-properties build-third-party-heap ".
                 "$hostdefs ";
     } else {
       $build .= "$sshHostCmdT '$shell \"$ulimit ".

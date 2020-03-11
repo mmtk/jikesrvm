@@ -42,6 +42,9 @@
   <property name="mmtk-harness-vmmagic.java" location="MMTk/harness/vmmagic"/>
   <property name="mmtk-vm-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
   <property name="mmtk-vm-harness.java" location="MMTk/ext/vm/harness"/>
+  <condition property="external.java" value="${config.external_source}" else="">
+    <isset property="config.external_source"/>
+  </condition>
   <condition property="mmtk.java" value="">
     <equals arg1="${rust.build}" arg2="true"/>
   </condition>
@@ -479,7 +482,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <!-- we are compiling mmtk independently to ensure that it can build independent of the rvm -->
-  <target name="compile-mmtk" depends="compile-vmmagic-stub,compile-options" unless="${rust.build}" description="Compile MMTk toolkit.">
+  <target name="compile-mmtk" depends="compile-vmmagic-stub,compile-options" description="Compile MMTk toolkit.">
     <property name="build.mmtk.classes" location="${build.dir}/mmtk/classes"/>
     <mkdir dir="${build.mmtk.classes}"/>
     <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source"
@@ -1331,6 +1334,7 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
       </conditions>
       <sequential>
+        <echo message="Compiling extern"/>
         <javac destdir="${build.classes}"
                debug="true"
                fork="true"
@@ -1338,8 +1342,8 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="${rvm.java.version}"
                target="${rvm.java.version}"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}:${external.java}"
+               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}:${external.java}"
                includeantruntime="false">
           <bootclasspath>
             <pathelement location="${classpath.lib.dir}/classpath.jar"/>
