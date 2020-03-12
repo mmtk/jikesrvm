@@ -7,6 +7,13 @@ import glob, os  # retrieve files in directory
 a = os.path.abspath(os.path.join(__file__, "..", ".."))
 os.chdir(a)  # change to base directory
 
+# any arguments after -- will be passed directly to buildit
+extra_buildit_args = ""
+if "--" in sys.argv:
+    index = sys.argv.index("--")
+    extra_buildit_args = " ".join(sys.argv[index + 1:])
+    sys.argv = sys.argv[:index]
+
 # Arguments to be passed
 parser = argparse.ArgumentParser(description="Runs tests to verify it compiles and builds")
 parser.add_argument("-g", dest="collector", default="", help="Specifies which garbage collector to use", type=str)
@@ -49,20 +56,6 @@ def exe(cmd, env=None):
     p.wait()
     return p.returncode
 
-########################################
-# Generate list of all valid GC schemes#
-########################################
-
-# Generates a list of all garbage collectors supported by MMTk
-if args.test_run != "":
-    garbage_collector_list = [""]
-else:
-    garbage_collector_list = []
-for file in glob.glob(os.path.join("build", "configs", "*.properties")):
-    name = os.path.basename(file)
-    fname, lname = name.split(".")
-    garbage_collector_list.append(fname)
-
 b = os.path.abspath(os.path.join(__file__, "..", ".."))  # files in directory
 os.chdir(b)
 
@@ -71,10 +64,6 @@ os.chdir(b)
 ########################################
 
 # Valid GC
-if not args.collector in garbage_collector_list:
-    print ("Garbage Collector chosen is not a valid collection scheme")
-    exit(1)
-
 # Check that the build and test flags are not both set
 if args.build_only and args.test_only:
     print ("Must either build or test compiler")
@@ -111,7 +100,7 @@ for _ in range(0, args.tests):
         # All other build errors return errors as usual
         for _ in range(0, 3):
             rc = exe(("bin/buildit localhost -j " + args.java_home + " --answer-yes " +
-                      args.build_args + args.collector + args.test + args.test_run + " --nuke").split())
+                      args.build_args + args.collector + args.test + args.test_run + " --nuke " + extra_buildit_args).split())
             if rc != 3:
                 build = rc == 0
                 break
