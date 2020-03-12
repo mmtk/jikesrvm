@@ -139,9 +139,6 @@ public class Entrypoints {
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test2", "(II)I");
   public static final NormalMethod test3Method =
           getMethod(org.jikesrvm.mm.mminterface.MemoryManager.class, "test3", "(IIII)I");
-  public static final NormalMethod scanThreadMethod =
-          getMethod(org.jikesrvm.mm.mminterface.RustScanThread.class, "scanThread",
-                  "(Lorg/jikesrvm/scheduler/RVMThread;Lorg/vmmagic/unboxed/Address;ZZ)V");
   public static final NormalMethod dumpRefMethod =
           getMethod(org.jikesrvm.mm.mminterface.DebugUtil.class, "dumpRef",
                   "(Lorg/vmmagic/unboxed/ObjectReference;)V");

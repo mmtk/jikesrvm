@@ -1322,6 +1322,9 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
 
+    <property name="temp-source" location="${build.base}/temp-source"/>
+    <mkdir dir="${temp-source}"/>
+
     <!--
      FIXME: When we can capture the primordials based on reachability
      we will not need to delete class dir here. We will also be able to
@@ -1334,7 +1337,23 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
       </conditions>
       <sequential>
-        <echo message="Compiling extern"/>
+        <copy todir="${temp-source}">
+          <fileset dir="${main.java}"/>
+          <fileset dir="${classlib.library-interface.common.java}"/>
+          <fileset dir="${classlib.library-interface.cpl.java}"/>
+          <fileset dir="${classlib.library-interface.non-cpl.java}"/>
+          <fileset dir="${classlib.library-interface.non-cpl2.java}"/>
+          <fileset dir="${mmtk-vm-rvm.java}"/>
+          <fileset dir="${tuningforklib.java}"/>
+          <fileset dir="${mmtk.java}"/>
+          <fileset dir="${options.java}"/>
+          <fileset dir="${generated.java}"/>
+          <fileset dir="${generated.config.java}"/>
+        </copy>
+        <copy todir="${temp-source}" overwrite="true">
+          <!--External files may overwrite files in the JikesRVM-->
+          <fileset dir="${external.java}"/>
+        </copy>
         <javac destdir="${build.classes}"
                debug="true"
                fork="true"
@@ -1342,8 +1361,7 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="${rvm.java.version}"
                target="${rvm.java.version}"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}:${external.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}:${external.java}"
+               srcdir="${temp-source}"
                includeantruntime="false">
           <bootclasspath>
             <pathelement location="${classpath.lib.dir}/classpath.jar"/>
@@ -1371,6 +1389,22 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${classlib.provider}" arg2="Harmony"/>
       </conditions>
       <sequential>
+        <copy todir="${temp-source}">
+          <fileset dir="${main.java}"/>
+          <fileset dir="${classlib.library-interface.common.java}"/>
+          <fileset dir="${classlib.library-interface.cpl.java}"/>
+          <fileset dir="${classlib.library-interface.non-cpl.java}"/>
+          <fileset dir="${mmtk-vm-rvm.java}"/>
+          <fileset dir="${tuningforklib.java}"/>
+          <fileset dir="${mmtk.java}"/>
+          <fileset dir="${options.java}"/>
+          <fileset dir="${generated.java}"/>
+          <fileset dir="${generated.config.java}"/>
+        </copy>
+        <copy todir="${temp-source}" overwrite="true">
+          <!--External files may overwrite files in the JikesRVM-->
+          <fileset dir="${external.java}"/>
+        </copy>
         <javac destdir="${build.classes}"
                debug="true"
                fork="true"
@@ -1378,8 +1412,7 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="${rvm.java.version}"
                target="${rvm.java.version}"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               srcdir="${temp-source}"
                includeantruntime="false">
           <bootclasspath>
             <pathelement location="${harmony.lib.dir}/luni-kernel-stubs.jar"/>
