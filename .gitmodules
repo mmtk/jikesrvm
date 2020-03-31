@@ -1,3 +1,0 @@
-[submodule "rust_mmtk"]
-	path = rust_mmtk
-	url = ../mmtk.git

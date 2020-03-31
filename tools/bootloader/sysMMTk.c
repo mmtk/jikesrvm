@@ -1,7 +1,4 @@
 #include "sys.h"
-#ifdef RUST_BUILD
-    #include "../../rust_mmtk/api/mmtk.h" // the api of the GC
-#endif
 #include <stdlib.h> // malloc and others
 #include <errno.h> // error numbers
 #include <string.h> // memcpy & memmove
@@ -19,15 +16,15 @@ EXTERNAL void alignedJikesrvmGcInit(void* jtoc, size_t heap_size) {
 }
 EXTERNAL void test_stack_alignment();
 EXTERNAL void test_stack_alignment1(int a, int b, int c, int d, int e);
-EXTERNAL void* alignedSysAlloc(MMTk_Mutator mutator, int size, int align, int offset, int allocator) {
+EXTERNAL void* alignedSysAlloc(void* mutator, int size, int align, int offset, int allocator) {
 	return alloc(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
 }
 
-EXTERNAL MMTk_Mutator alignedSysBindMutator(size_t thread_id){
+EXTERNAL void* alignedSysBindMutator(size_t thread_id){
     return bind_mutator(thread_id);
 }
 
-EXTERNAL void* alignedSysAllocSlow(MMTk_Mutator mutator, int size, int align, int offset, int allocator) {
+EXTERNAL void* alignedSysAllocSlow(void* mutator, int size, int align, int offset, int allocator) {
     return jikesrvm_alloc_slow(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
 }
 
@@ -39,15 +36,15 @@ EXTERNAL bool alignedWillNeverMove(void* object){
     return will_never_move(object);
 }
 
-EXTERNAL void alignedReportDelayedRootEdge(MMTk_TraceLocal trace_local, void* addr){
+EXTERNAL void alignedReportDelayedRootEdge(void* trace_local, void* addr){
     report_delayed_root_edge(trace_local, addr);
 }
 
-EXTERNAL bool alignedWillNotMoveInCurrentCollection(MMTk_TraceLocal trace_local, void* obj){
+EXTERNAL bool alignedWillNotMoveInCurrentCollection(void* trace_local, void* obj){
     return will_not_move_in_current_collection(trace_local, obj);
 }
 
-EXTERNAL void alignedProcessInteriorEdge(MMTk_TraceLocal trace_local, void* target, void* slot, bool root){
+EXTERNAL void alignedProcessInteriorEdge(void* trace_local, void* target, void* slot, bool root){
     process_interior_edge(trace_local, target, slot, root);
 }
 
@@ -63,7 +60,7 @@ EXTERNAL bool alignedProcess(char* name, char* value){
     return process(name, value);
 }
 
-EXTERNAL void alignedPostAlloc(MMTk_Mutator mutator, void* refer, void* type_refer, int bytes, int allocator){
+EXTERNAL void alignedPostAlloc(void* mutator, void* refer, void* type_refer, int bytes, int allocator){
     post_alloc(mutator, refer, type_refer, bytes, allocator);
 }
 

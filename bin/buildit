@@ -201,6 +201,9 @@ my $javaHomeCmd;
 my $clearcc;
 my $timestampfile;
 my $email_report;
+my $use_third_party_heap;
+my $use_third_party_build_configs;
+my $use_external_source;
 my $unit_tests;
 
 GetOptions(
@@ -250,7 +253,11 @@ GetOptions(
   "comp-cache-dir=s" => \$compcachedir,
   "clear-cc" => \$clearcc,
   "timestamp-file=s" => \$timestampfile,
-  "e|email-report" => \$email_report) or bad_usage();
+  "e|email-report" => \$email_report,
+  "use-third-party-heap=s" => \$use_third_party_heap,
+  "use-third-party-build-configs=s" => \$use_third_party_build_configs,
+  "use-external-source=s" => \$use_external_source,
+) or bad_usage();
 
 if ($with_acheck) {
   $x87 = $with_acheck;
@@ -599,9 +606,16 @@ if ($#gcs == -1) {
   }
 }
 
+if (defined $use_third_party_build_configs) {
+  $use_third_party_build_configs = abs_path($localRoot."/".$use_third_party_build_configs);
+  if (!-e $use_third_party_build_configs || !-d $use_third_party_build_configs) {
+    bad_usage("Could not find folder for third party build configs '$use_third_party_build_configs'");
+  }
+}
+
 foreach my $g (@gcs) {
-  $config = $compiler.$g; 
-  if (! -e $localRoot."/build/configs/".$config.".properties") {
+  $config = $compiler.$g;
+  if (! -e $localRoot."/build/configs/".$config.".properties" and (!defined $use_third_party_build_configs or (defined $use_third_party_build_configs and ! -e $use_third_party_build_configs."/".$config.".properties"))) {
     bad_usage("Could not find configuration '$config'");
   } 
 }
@@ -627,6 +641,18 @@ if ($email_report) {
   }
 }
 
+if (defined $use_third_party_heap) {
+  if (!-e $use_third_party_heap || !-d $use_third_party_heap) {
+    bad_usage("Could not find folder for third party heap '$use_third_party_heap'");
+  }
+}
+
+if (defined $use_external_source) {
+  if (!-e $use_external_source || !-d $use_external_source) {
+    bad_usage("Could not find folder for external source '$use_external_source'");
+  }
+}
+
 my $bindir = "bin";
 my $configdir = "config";
 my $sourcedirs = "";
@@ -636,7 +662,7 @@ my $sourcedirs = "";
 #
 my @dirs = ("rvm", "MMTk", "bin", "build", "testing", "tools", "tools-external", 
          "common", "build.xml", "libraryInterface", "external", "test.xml",
-         "rust_mmtk", "scripts");
+         "scripts");
 
 #
 # The files needed to be transferred to a host in order to complete a
@@ -824,6 +850,15 @@ if ($ok) {
 		if (defined $unit_tests) {
 			$defs 			= $defs."-Drequire.unit-tests=true ";
 		}
+    if (defined $use_third_party_heap) {
+      $defs .= "-Dconfig.third-party-heap=$use_third_party_heap "
+    }
+    if (defined $use_third_party_build_configs) {
+      $defs .= "-Dconfig.third-party-build-configs=$use_third_party_build_configs "
+    }
+    if (defined $use_external_source) {
+      $defs .= "-Dconfig.external_source=$use_external_source "
+    }
 
     my $hostdefs   = $defs."-Dhost.name=$hostConfig ";
     my $targetdefs = $defs."-Dhost.name=$targetConfig ";
@@ -846,7 +881,7 @@ if ($ok) {
     if ($skip_build) {
       $build .= "echo Skipping build ";
     } elsif ($skip_jikesrvm) {
-      $build .= " ant check-config-properties compile-rust-mmtk ".
+      $build .= " ant check-config-properties build-third-party-heap ".
                 "$hostdefs ";
     } else {
       $build .= "$sshHostCmdT '$shell \"$ulimit ".

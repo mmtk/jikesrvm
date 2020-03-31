@@ -20,7 +20,8 @@
   <import file="build/tasks.xml"/>
   <import file="build/checkstyle-plugins.xml"/>
 
-  <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
+  <available property="config.file" value="${jikesrvm.dir}/build/configs/${config.name}.properties" file="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
+  <available property="config.file" value="${config.third-party-build-configs}/${config.name}.properties" file="${config.third-party-build-configs}/${config.name}.properties"/>
 
   <!-- configuration data -->
   <property file="${config.file}"/>
@@ -41,6 +42,9 @@
   <property name="mmtk-harness-vmmagic.java" location="MMTk/harness/vmmagic"/>
   <property name="mmtk-vm-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
   <property name="mmtk-vm-harness.java" location="MMTk/ext/vm/harness"/>
+  <condition property="external.java" value="${config.external_source}" else="">
+    <isset property="config.external_source"/>
+  </condition>
   <condition property="mmtk.java" value="">
     <equals arg1="${rust.build}" arg2="true"/>
   </condition>
@@ -478,7 +482,7 @@ Check to make sure all required properties are specified. This includes properti
   </target>
 
   <!-- we are compiling mmtk independently to ensure that it can build independent of the rvm -->
-  <target name="compile-mmtk" depends="compile-vmmagic-stub,compile-options" unless="${rust.build}" description="Compile MMTk toolkit.">
+  <target name="compile-mmtk" depends="compile-vmmagic-stub,compile-options" description="Compile MMTk toolkit.">
     <property name="build.mmtk.classes" location="${build.dir}/mmtk/classes"/>
     <mkdir dir="${build.mmtk.classes}"/>
     <javac srcdir="${mmtk.java}" destdir="${build.mmtk.classes}" debug="true" debugLevel="lines,source"
@@ -1318,6 +1322,9 @@ Check to make sure all required properties are specified. This includes properti
       <equals arg1="${target.arch}" arg2="ia32"/>
     </condition>
 
+    <property name="temp-source" location="${build.base}/temp-source"/>
+    <mkdir dir="${temp-source}"/>
+
     <!--
      FIXME: When we can capture the primordials based on reachability
      we will not need to delete class dir here. We will also be able to
@@ -1330,6 +1337,23 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${classlib.provider}" arg2="GNU Classpath"/>
       </conditions>
       <sequential>
+        <copy todir="${temp-source}">
+          <fileset dir="${main.java}"/>
+          <fileset dir="${classlib.library-interface.common.java}"/>
+          <fileset dir="${classlib.library-interface.cpl.java}"/>
+          <fileset dir="${classlib.library-interface.non-cpl.java}"/>
+          <fileset dir="${classlib.library-interface.non-cpl2.java}"/>
+          <fileset dir="${mmtk-vm-rvm.java}"/>
+          <fileset dir="${tuningforklib.java}"/>
+          <fileset dir="${mmtk.java}"/>
+          <fileset dir="${options.java}"/>
+          <fileset dir="${generated.java}"/>
+          <fileset dir="${generated.config.java}"/>
+        </copy>
+        <copy todir="${temp-source}" overwrite="true">
+          <!--External files may overwrite files in the JikesRVM-->
+          <fileset dir="${external.java}"/>
+        </copy>
         <javac destdir="${build.classes}"
                debug="true"
                fork="true"
@@ -1337,8 +1361,7 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="${rvm.java.version}"
                target="${rvm.java.version}"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.non-cpl2.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               srcdir="${temp-source}"
                includeantruntime="false">
           <bootclasspath>
             <pathelement location="${classpath.lib.dir}/classpath.jar"/>
@@ -1366,6 +1389,22 @@ Check to make sure all required properties are specified. This includes properti
         <equals arg1="${classlib.provider}" arg2="Harmony"/>
       </conditions>
       <sequential>
+        <copy todir="${temp-source}">
+          <fileset dir="${main.java}"/>
+          <fileset dir="${classlib.library-interface.common.java}"/>
+          <fileset dir="${classlib.library-interface.cpl.java}"/>
+          <fileset dir="${classlib.library-interface.non-cpl.java}"/>
+          <fileset dir="${mmtk-vm-rvm.java}"/>
+          <fileset dir="${tuningforklib.java}"/>
+          <fileset dir="${mmtk.java}"/>
+          <fileset dir="${options.java}"/>
+          <fileset dir="${generated.java}"/>
+          <fileset dir="${generated.config.java}"/>
+        </copy>
+        <copy todir="${temp-source}" overwrite="true">
+          <!--External files may overwrite files in the JikesRVM-->
+          <fileset dir="${external.java}"/>
+        </copy>
         <javac destdir="${build.classes}"
                debug="true"
                fork="true"
@@ -1373,8 +1412,7 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="lines,source"
                source="${rvm.java.version}"
                target="${rvm.java.version}"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.non-cpl.java}:${classlib.library-interface.cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               srcdir="${temp-source}"
                includeantruntime="false">
           <bootclasspath>
             <pathelement location="${harmony.lib.dir}/luni-kernel-stubs.jar"/>
@@ -1701,29 +1739,11 @@ Check to make sure all required properties are specified. This includes properti
     <replaceregexp file="${build.base}/Primordials.txt" match=".*#.*" replace="" byline="true"/>
   </target>
 
-  <target name="compile-rust-mmtk" if="${rust.build}">
-    <property name="mmtk.crate.base" location="${jikesrvm.dir}/rust_mmtk/vmbindings/jikesrvm"/>
-    <exec executable="/usr/bin/as" failonerror="true">
-      <arg line="--32 -o ${build.base}/${target.obj-prefix}glue${target.obj-ext} -I ${mmtk.crate.base}/src ${mmtk.crate.base}/src/glue.asm"/>
-    </exec>
-    <exec executable="cargo" dir="rust_mmtk" failonerror="true">
-      <arg value="+nightly"/>
-      <arg value="rustc"/>
-      <arg value="--manifest-path=${mmtk.crate.base}/Cargo.toml"/>
-      <arg value="--target=i686-unknown-linux-gnu"/>
-      <arg value="--features=${rust.features}"/>
-      <arg value="--no-default-features"/>
-      <arg line="${rust.args}"/>
-      <arg value="--"/>
-      <arg value="-C"/>
-      <arg value="force-frame-pointers=yes"/>
-    </exec>
-    <copy file="${mmtk.path}/libmmtk_jikesrvm.so" tofile="${build.base}/libmmtk.so">
-    </copy>
+  <target name="build-third-party-heap" depends="gen-asm" if="${rust.build}">
+    <ant antfile="${config.third-party-heap}/build.xml" inheritAll="true"/>
   </target>
 
-  <target name="build-bootimage-writer" depends="gen-asm">
-    <antcall target="compile-rust-mmtk"/>
+  <target name="build-bootimage-writer" depends="gen-asm,build-third-party-heap">
     <property name="build.bootimage-writer.dir" value="${build.base}/bootimage-writer"/>
     <mkdir dir="${build.bootimage-writer.dir}"/>
     <javac srcdir="${basedir}/tools/bootImageWriter/src" destdir="${build.bootimage-writer.dir}" debug="true"
