@@ -244,7 +244,9 @@ EXTERNAL void test_stack_alignment();
 EXTERNAL void test_stack_alignment1(int a, int b, int c, int d, int e);
 EXTERNAL void* alignedSysAlloc(void* mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void* alignedSysBindMutator(size_t thread_id) __attribute__((force_align_arg_pointer));
-EXTERNAL void* alignedSysAllocSlow(void* mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
+EXTERNAL void* alignedSysAllocSlowBumpMonotoneImmortal(void* mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
+EXTERNAL void* alignedSysAllocSlowBumpMonotoneCopy(void* mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
+EXTERNAL void* alignedSysAllocSlowLargeobject(void* mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedStartControlCollector(size_t thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL bool alignedWillNeverMove(void* object) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedReportDelayedRootEdge(void* trace_local, void* addr) __attribute__((force_align_arg_pointer));
@@ -261,7 +263,11 @@ EXTERNAL void* bind_mutator(void *tls);
 EXTERNAL void destroy_mutator(void* mutator);
 EXTERNAL void* alloc(void* mutator, size_t size,
     size_t align, size_t offset, int allocator);
-EXTERNAL void* alloc_slow(void* mutator, size_t size,
+EXTERNAL void* alloc_slow_bump_monotone_immortal(void* mutator, size_t size,
+    size_t align, size_t offset, int allocator);
+EXTERNAL void* alloc_slow_bump_monotone_copy(void* mutator, size_t size,
+    size_t align, size_t offset, int allocator);
+EXTERNAL void* alloc_slow_largeobject(void* mutator, size_t size,
     size_t align, size_t offset, int allocator);
 EXTERNAL void post_alloc(void* mutator, void* refer, void* type_refer,
     int bytes, int allocator);
@@ -292,7 +298,11 @@ EXTERNAL void jikesrvm_gc_init(void* jtoc, size_t heap_size);
 EXTERNAL void enable_collection(void *tls);
 EXTERNAL void* jikesrvm_alloc(void* mutator, size_t size,
     size_t align, size_t offset, int allocator);
-EXTERNAL void* jikesrvm_alloc_slow(void* mutator, size_t size,
+EXTERNAL void* jikesrvm_alloc_slow_bump_monotone_immortal(void* mutator, size_t size,
+    size_t align, size_t offset, int allocator);
+EXTERNAL void* jikesrvm_alloc_slow_bump_monotone_copy(void* mutator, size_t size,
+    size_t align, size_t offset, int allocator);
+EXTERNAL void* jikesrvm_alloc_slow_largeobject(void* mutator, size_t size,
     size_t align, size_t offset, int allocator);
 EXTERNAL void jikesrvm_handle_user_collection_request(void *tls);
 EXTERNAL void jikesrvm_harness_begin(void *tls);

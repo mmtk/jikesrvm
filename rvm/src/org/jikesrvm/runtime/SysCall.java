@@ -130,7 +130,15 @@ public abstract class SysCall {
 
   @RustSysCall
   @SysCallTemplate
-  public abstract Address alignedSysAllocSlow(Address mutator, int size, int align, int offset, int allocator);
+  public abstract Address alignedSysAllocSlowBumpMonotoneImmortal(Address mutator, int size, int align, int offset, int allocator);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract Address alignedSysAllocSlowBumpMonotoneCopy(Address mutator, int size, int align, int offset, int allocator);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract Address alignedSysAllocSlowLargeobject(Address mutator, int size, int align, int offset, int allocator);
 
   @RustSysCall
   @SysCallTemplate
@@ -227,13 +235,28 @@ public abstract class SysCall {
    * @return The first byte of a suitably sized and aligned region of memory
    */
   @NoInline
-  public Address sysAllocSlow(Address mutator, int size, int align, int offset, int allocator) {
-    return jikesrvm_alloc_slow(mutator,size,align,offset,allocator);
+  public Address sysAllocSlowBumpMonotoneImmortal(Address mutator, int size, int align, int offset, int allocator) {
+    return jikesrvm_alloc_slow_bump_monotone_immortal(mutator,size,align,offset,allocator);
   }
-
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract Address jikesrvm_alloc_slow(Address mutator, int size, int align, int offset, int allocator);
+  public abstract Address jikesrvm_alloc_slow_bump_monotone_immortal(Address mutator, int size, int align, int offset, int allocator);
+
+  @NoInline
+  public Address sysAllocSlowBumpMonotoneCopy(Address mutator, int size, int align, int offset, int allocator) {
+    return jikesrvm_alloc_slow_bump_monotone_copy(mutator,size,align,offset,allocator);
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract Address jikesrvm_alloc_slow_bump_monotone_copy(Address mutator, int size, int align, int offset, int allocator);
+
+  @NoInline
+  public Address sysAllocSlowLargeobject(Address mutator, int size, int align, int offset, int allocator) {
+    return jikesrvm_alloc_slow_largeobject(mutator,size,align,offset,allocator);
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract Address jikesrvm_alloc_slow_largeobject(Address mutator, int size, int align, int offset, int allocator);
 
   /**
    * TODO REDUNDANT

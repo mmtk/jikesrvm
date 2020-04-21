@@ -241,7 +241,9 @@ public class BootRecord {
   public Address alignedJikesrvmGcInitRIP;
   public Address alignedSysAllocRIP;
   public Address alignedSysBindMutatorRIP;
-  public Address alignedSysAllocSlowRIP;
+  public Address alignedSysAllocSlowBumpMonotoneImmortalRIP;
+  public Address alignedSysAllocSlowBumpMonotoneCopyRIP;
+  public Address alignedSysAllocSlowLargeobjectRIP;
   public Address alignedStartControlCollectorRIP;
   public Address alignedWillNeverMoveRIP;
   public Address alignedReportDelayedRootEdgeRIP;
@@ -261,8 +263,12 @@ public class BootRecord {
   public Address allocRIP;
   public Address jikesrvm_allocRIP;
   public Address bind_mutatorRIP;
-  public Address jikesrvm_alloc_slowRIP;
-  public Address alloc_slowRIP;
+  public Address alloc_slow_bump_monotone_immortalRIP;
+  public Address jikesrvm_alloc_slow_bump_monotone_immortalRIP;
+  public Address alloc_slow_bump_monotone_copyRIP;
+  public Address jikesrvm_alloc_slow_bump_monotone_copyRIP;
+  public Address alloc_slow_largeobjectRIP;
+  public Address jikesrvm_alloc_slow_largeobjectRIP;
   public Address start_control_collectorRIP;
   public Address will_never_moveRIP;
   public Address report_delayed_root_edgeRIP;
