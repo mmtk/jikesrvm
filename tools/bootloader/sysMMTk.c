@@ -24,8 +24,19 @@ EXTERNAL void* alignedSysBindMutator(size_t thread_id){
     return bind_mutator(thread_id);
 }
 
-EXTERNAL void* alignedSysAllocSlow(void* mutator, int size, int align, int offset, int allocator) {
-    return jikesrvm_alloc_slow(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
+EXTERNAL void* alignedSysAllocSlowBumpMonotoneImmortal(void* mutator, int size,
+    int align, int offset, int allocator) {
+    return jikesrvm_alloc_slow_bump_monotone_immortal(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
+}
+
+EXTERNAL void* alignedSysAllocSlowBumpMonotoneCopy(void* mutator, int size,
+    int align, int offset, int allocator) {
+    return jikesrvm_alloc_slow_bump_monotone_copy(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
+}
+
+EXTERNAL void* alignedSysAllocSlowLargeobject(void* mutator, int size,
+    int align, int offset, int allocator) {
+    return jikesrvm_alloc_slow_largeobject(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
 }
 
 EXTERNAL void alignedStartControlCollector(size_t thread_id){
