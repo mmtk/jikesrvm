@@ -390,12 +390,12 @@ public abstract class SysCall {
   public abstract ObjectReference trace_get_forwarded_reference(Address trace, ObjectReference object);
 
   @Inline
-  public boolean sysTraceIsLive(Address trace, ObjectReference object) {
-    return trace_is_live(trace, object);
+  public boolean sysIsLiveObject(ObjectReference object) {
+    return is_live_object(object);
   }
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract boolean trace_is_live(Address trace, ObjectReference object);
+  public abstract boolean is_live_object(ObjectReference object);
 
   @Inline
   public ObjectReference sysTraceRetainReferent(Address trace, ObjectReference object) {

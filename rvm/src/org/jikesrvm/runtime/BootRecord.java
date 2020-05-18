@@ -283,8 +283,8 @@ public class BootRecord {
   public Address last_heap_addressRIP;
   public Address trace_get_forwarded_referenceRIP;
   public Address trace_get_forwarded_referentRIP;
-  public Address trace_is_liveRIP;
   public Address trace_retain_referentRIP;
+  public Address is_live_objectRIP;
   public Address is_mapped_objectRIP;
   public Address is_mapped_addressRIP;
   public Address modify_checkRIP;
