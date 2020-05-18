@@ -75,10 +75,6 @@ EXTERNAL void alignedPostAlloc(void* mutator, void* refer, void* type_refer, int
     post_alloc(mutator, refer, type_refer, bytes, allocator);
 }
 
-EXTERNAL bool alignedIsValidRef(void* ref) {
-    return is_valid_ref(ref);
-}
-
 EXTERNAL void alignedHandleUserCollectionRequest(size_t thread_id) {
     return handle_user_collection_request(thread_id);
 }

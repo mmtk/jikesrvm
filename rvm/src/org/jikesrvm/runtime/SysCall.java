@@ -178,10 +178,6 @@ public abstract class SysCall {
 
   @RustSysCall
   @SysCallTemplate
-  public abstract boolean alignedIsValidRef(ObjectReference ref);
-
-  @RustSysCall
-  @SysCallTemplate
   public abstract void alignedHandleUserCollectionRequest(Address tls);
 
 
@@ -287,15 +283,6 @@ public abstract class SysCall {
   public abstract void post_alloc(Address mutator, ObjectReference ref,
                                   ObjectReference typeRef, int bytes,
                                   int allocator);
-
-  @Inline
-  public boolean sysIsValidRef(ObjectReference ref) {
-    return is_valid_ref(ref);
-  }
-
-  @RustSysCall
-  @SysCallTemplate
-  public abstract boolean is_valid_ref(ObjectReference ref);
 
   @Inline
   public boolean sysProcess(byte[] name, byte[] value) {

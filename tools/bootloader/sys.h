@@ -256,7 +256,6 @@ EXTERNAL void alignedStartWorker(size_t thread_id, void* worker) __attribute__((
 EXTERNAL void alignedEnableCollection(size_t thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL bool alignedProcess(char* name, char* value) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedPostAlloc(void* mutator, void* refer, void* type_refer, int bytes, int allocator) __attribute__((force_align_arg_pointer));
-EXTERNAL bool alignedIsValidRef(void* ref) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedHandleUserCollectionRequest(size_t thread_id) __attribute__((force_align_arg_pointer));
 
 EXTERNAL void* bind_mutator(void *tls);
@@ -271,7 +270,6 @@ EXTERNAL void* alloc_slow_largeobject(void* mutator, size_t size,
     size_t align, size_t offset, int allocator);
 EXTERNAL void post_alloc(void* mutator, void* refer, void* type_refer,
     int bytes, int allocator);
-EXTERNAL bool is_valid_ref(void* ref);
 EXTERNAL bool is_mapped_object(void* ref);
 EXTERNAL bool is_mapped_address(void* addr);
 EXTERNAL void modify_check(void* ref);

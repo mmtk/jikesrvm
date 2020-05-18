@@ -253,7 +253,6 @@ public class BootRecord {
   public Address alignedEnableCollectionRIP;
   public Address alignedProcessRIP;
   public Address alignedPostAllocRIP;
-  public Address alignedIsValidRefRIP;
   public Address alignedHandleUserCollectionRequestRIP;
 
   //mmtk.h - Rust Functions
@@ -278,7 +277,6 @@ public class BootRecord {
   public Address enable_collectionRIP;
   public Address processRIP;
   public Address post_allocRIP;
-  public Address is_valid_refRIP;
   public Address free_bytesRIP;
   public Address total_bytesRIP;
   public Address starting_heap_addressRIP;

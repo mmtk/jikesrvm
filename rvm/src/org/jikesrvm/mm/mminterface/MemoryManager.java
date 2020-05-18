@@ -417,7 +417,7 @@ public final class MemoryManager {
   public static boolean validRef(ObjectReference ref) {
     if (booted) {
       if (VM.BuildWithRustMMTk) {
-        return sysCall.sysIsValidRef(ref);
+        return sysCall.sysIsMappedObject(ref);
       } else {
         return DebugUtil.validRef(ref);
       }
