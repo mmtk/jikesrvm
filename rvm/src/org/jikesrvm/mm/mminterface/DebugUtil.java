@@ -111,7 +111,8 @@ public class DebugUtil {
       VM.sysWrite("validRef: REF outside heap, ref = ");
       VM.sysWrite(ref);
       VM.sysWriteln();
-      Space.printVMMap();
+      if (!VM.BuildWithRustMMTk)
+        Space.printVMMap();
       return false;
     }
     if (MOVES_OBJECTS) {
@@ -133,7 +134,8 @@ public class DebugUtil {
       VM.sysWrite(" tib = ");
       VM.sysWrite(tibAddr);
       VM.sysWriteln();
-      ObjectModel.dumpHeader(ref);
+      if (!VM.BuildWithRustMMTk)
+        ObjectModel.dumpHeader(ref);
       return false;
     }
     if (tibAddr.isZero()) {
