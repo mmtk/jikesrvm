@@ -64,8 +64,8 @@ public class DebugUtil {
    */
   @Uninterruptible
   public static boolean validType(ObjectReference typeAddress) {
-    if (!Space.isMappedObject(typeAddress)) {
-      return false;  // type address is outside of heap
+    if (!isMapped(typeAddress)) {
+     return false;  // type address is outside of heap
     }
 
     // check if types tib is one of three possible values
@@ -96,17 +96,26 @@ public class DebugUtil {
   }
 
   @Uninterruptible
-  public static boolean validRef(ObjectReference ref) {
+  private static boolean isMapped(ObjectReference ref) {
+    if (VM.BuildWithRustMMTk) {
+      if (VM.VerifyAssertions && addrInBootImage(ref.toAddress()))
+        VM._assert(sysCall.sysIsMappedObject(ref));
+      return sysCall.sysIsMappedObject(ref);
+    } else
+      return Space.isMappedObject(ref); 
+  }
 
+  @Uninterruptible
+  public static boolean validRef(ObjectReference ref) {
     if (ref.isNull()) return true;
-    if (!VM.BuildWithRustMMTk) {
-      if (!Space.isMappedObject(ref)) {
-        VM.sysWrite("validRef: REF outside heap, ref = ");
-        VM.sysWrite(ref);
-        VM.sysWriteln();
+
+    if (!isMapped(ref)) {
+      VM.sysWrite("validRef: REF outside heap, ref = ");
+      VM.sysWrite(ref);
+      VM.sysWriteln();
+      if (!VM.BuildWithRustMMTk)
         Space.printVMMap();
-        return false;
-      }
+      return false;
     }
     if (MOVES_OBJECTS) {
       /*
@@ -121,16 +130,15 @@ public class DebugUtil {
 
     TIB tib = ObjectModel.getTIB(ref);
     Address tibAddr = Magic.objectAsAddress(tib);
-    if (!VM.BuildWithRustMMTk) {
-      if (!Space.isMappedObject(ObjectReference.fromObject(tib))) {
-        VM.sysWrite("validRef: TIB outside heap, ref = ");
-        VM.sysWrite(ref);
-        VM.sysWrite(" tib = ");
-        VM.sysWrite(tibAddr);
-        VM.sysWriteln();
+    if (!isMapped(ObjectReference.fromObject(tib))) {
+      VM.sysWrite("validRef: TIB outside heap, ref = ");
+      VM.sysWrite(ref);
+      VM.sysWrite(" tib = ");
+      VM.sysWrite(tibAddr);
+      VM.sysWriteln();
+      if (!VM.BuildWithRustMMTk)
         ObjectModel.dumpHeader(ref);
-        return false;
-      }
+      return false;
     }
     if (tibAddr.isZero()) {
       VM.sysWrite("validRef: TIB is Zero! ");
@@ -167,6 +175,8 @@ public class DebugUtil {
   @Uninterruptible
   public static boolean mappedVMRef(ObjectReference ref) {
     if (VM.BuildWithRustMMTk) {
+      if (VM.VerifyAssertions && addrInBootImage(ref.toAddress()))
+        VM._assert(sysCall.sysIsMappedObject(ref));
       return sysCall.sysIsMappedObject(ref);
     } else {
       return Space.isMappedObject(ref) && HeapLayout.mmapper.objectIsMapped(ref);
