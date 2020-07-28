@@ -353,7 +353,7 @@ public final class RVMThread extends ThreadContext {
 
   // call this only when holding the lock or if you really know what you're
   // doing.
-  private void setExecStatus(int newState) {
+  public void setExecStatus(int newState) {
     observeStateTransition(execStatus,newState);
     execStatus = newState;
   }
