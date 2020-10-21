@@ -78,4 +78,12 @@ EXTERNAL void alignedPostAlloc(void* mutator, void* refer, void* type_refer, int
 EXTERNAL void alignedHandleUserCollectionRequest(size_t thread_id) {
     return handle_user_collection_request(thread_id);
 }
+
+EXTERNAL void sysDynamicCall1(void (func_ptr*)(void*), void* arg0){
+    return func_ptr(arg0);
+}
+
+EXTERNAL void sysDynamicCall2(void (func_ptr*)(void*, void*), void* arg0, void* arg1) {
+    return func_ptr(arg0, arg1);
+}
 #endif

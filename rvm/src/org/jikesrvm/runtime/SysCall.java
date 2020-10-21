@@ -180,6 +180,13 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract void alignedHandleUserCollectionRequest(Address tls);
 
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void sysDynamicCall1(Address funcPtr);
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void sysDynamicCall2(Address funcPtr, Address arg0);
+
 
    /**
    * Initialises information about the control collector
