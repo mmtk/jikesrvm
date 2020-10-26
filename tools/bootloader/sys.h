@@ -249,16 +249,13 @@ EXTERNAL void* alignedSysAllocSlowBumpMonotoneCopy(void* mutator, int size, int 
 EXTERNAL void* alignedSysAllocSlowLargeobject(void* mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedStartControlCollector(size_t thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL bool alignedWillNeverMove(void* object) __attribute__((force_align_arg_pointer));
-EXTERNAL void alignedReportDelayedRootEdge(void* trace_local, void* addr) __attribute__((force_align_arg_pointer));
-EXTERNAL bool alignedWillNotMoveInCurrentCollection(void* trace_local, void* obj) __attribute__((force_align_arg_pointer));
-EXTERNAL void alignedProcessInteriorEdge(void* trace_local, void* target, void* slot, bool root) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedStartWorker(size_t thread_id, void* worker) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedEnableCollection(size_t thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL bool alignedProcess(char* name, char* value) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedPostAlloc(void* mutator, void* refer, void* type_refer, int bytes, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedHandleUserCollectionRequest(size_t thread_id) __attribute__((force_align_arg_pointer));
-EXTERNAL void sysDynamicCall1(void (func_ptr*)(void*), void* arg0) __attribute__((force_align_arg_pointer));
-EXTERNAL void sysDynamicCall2(void (func_ptr*)(void*, void*), void* arg0, void* arg1) __attribute__((force_align_arg_pointer));
+EXTERNAL void sysDynamicCall1(void* (*func_ptr)(void*), void* arg0) __attribute__((force_align_arg_pointer));
+EXTERNAL void sysDynamicCall2(void* (*func_ptr)(void*, void*), void* arg0, void* arg1) __attribute__((force_align_arg_pointer));
 
 EXTERNAL void* bind_mutator(void *tls);
 EXTERNAL void destroy_mutator(void* mutator);
@@ -276,15 +273,6 @@ EXTERNAL bool is_mapped_object(void* ref);
 EXTERNAL bool is_mapped_address(void* addr);
 EXTERNAL bool is_live_object(void* obj);
 EXTERNAL void modify_check(void* ref);
-EXTERNAL void report_delayed_root_edge(void* trace_local,
-                                     void* addr);
-EXTERNAL bool will_not_move_in_current_collection(void* trace_local,
-                                                void* obj);
-EXTERNAL void process_interior_edge(void* trace_local, void* target,
-                                  void* slot, bool root);
-EXTERNAL void* trace_get_forwarded_referent(void* trace_local, void* obj);
-EXTERNAL void* trace_get_forwarded_reference(void* trace_local, void* obj);
-EXTERNAL void* trace_retain_referent(void* trace_local, void* obj);
 EXTERNAL void* trace_root_object(void* trace_local, void* obj);
 EXTERNAL void process_edge(void* trace, void* obj);
 EXTERNAL void gc_init(size_t heap_size);
