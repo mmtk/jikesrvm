@@ -170,10 +170,10 @@ public abstract class SysCall {
 
   @RustSysCall
   @SysCallTemplate
-  public abstract Address sysDynamicCall1(Address funcPtr);
+  public abstract Address sysDynamicCall1(Address funcPtr, Word arg0);
   @RustSysCall
   @SysCallTemplate
-  public abstract Address sysDynamicCall2(Address funcPtr, Address arg0);
+  public abstract Address sysDynamicCall2(Address funcPtr, Word arg0, Word arg1);
 
 
    /**
