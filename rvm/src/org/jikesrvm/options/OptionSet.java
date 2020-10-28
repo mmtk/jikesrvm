@@ -84,6 +84,16 @@ public final class OptionSet extends org.vmutil.options.OptionSet {
     byte[] valueBytes = stringToBytes("converting value", value);
 
     if (VM.BuildWithRustMMTk) {
+      if (name.equals("noReferenceTypes")) {
+          Option o = getOption(name);
+          if (o != null) {
+            if (value.equals("true")) {
+              ((BooleanOption) o).setValue(true);
+            } else if (value.equals("false")) {
+              ((BooleanOption) o).setValue(false);
+            }
+          }
+      }
       if (SysCall.sysCall.sysProcess(nameBytes, valueBytes)) {
         return true;
       }
