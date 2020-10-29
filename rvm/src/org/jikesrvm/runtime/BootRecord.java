@@ -255,6 +255,7 @@ public class BootRecord {
   public Address sysDynamicCall2RIP;
 
   //mmtk.h - Rust Functions
+  public Address release_bufferRIP;
   public Address jikesrvm_gc_initRIP;
   public Address test_stack_alignmentRIP;
   public Address test_stack_alignment1RIP;

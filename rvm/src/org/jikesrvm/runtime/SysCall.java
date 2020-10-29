@@ -175,6 +175,10 @@ public abstract class SysCall {
   @SysCallTemplate
   public abstract Address sysDynamicCall2(Address funcPtr, Word arg0, Word arg1);
 
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void release_buffer(Address buffer);
+
 
    /**
    * Initialises information about the control collector
