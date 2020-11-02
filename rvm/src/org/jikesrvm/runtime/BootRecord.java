@@ -246,16 +246,16 @@ public class BootRecord {
   public Address alignedSysAllocSlowLargeobjectRIP;
   public Address alignedStartControlCollectorRIP;
   public Address alignedWillNeverMoveRIP;
-  public Address alignedReportDelayedRootEdgeRIP;
-  public Address alignedWillNotMoveInCurrentCollectionRIP;
-  public Address alignedProcessInteriorEdgeRIP;
   public Address alignedStartWorkerRIP;
   public Address alignedEnableCollectionRIP;
   public Address alignedProcessRIP;
   public Address alignedPostAllocRIP;
   public Address alignedHandleUserCollectionRequestRIP;
+  public Address sysDynamicCall1RIP;
+  public Address sysDynamicCall2RIP;
 
   //mmtk.h - Rust Functions
+  public Address release_bufferRIP;
   public Address jikesrvm_gc_initRIP;
   public Address test_stack_alignmentRIP;
   public Address test_stack_alignment1RIP;
@@ -270,9 +270,6 @@ public class BootRecord {
   public Address jikesrvm_alloc_slow_largeobjectRIP;
   public Address start_control_collectorRIP;
   public Address will_never_moveRIP;
-  public Address report_delayed_root_edgeRIP;
-  public Address will_not_move_in_current_collectionRIP;
-  public Address process_interior_edgeRIP;
   public Address start_workerRIP;
   public Address enable_collectionRIP;
   public Address processRIP;
@@ -281,9 +278,6 @@ public class BootRecord {
   public Address total_bytesRIP;
   public Address starting_heap_addressRIP;
   public Address last_heap_addressRIP;
-  public Address trace_get_forwarded_referenceRIP;
-  public Address trace_get_forwarded_referentRIP;
-  public Address trace_retain_referentRIP;
   public Address is_live_objectRIP;
   public Address is_mapped_objectRIP;
   public Address is_mapped_addressRIP;

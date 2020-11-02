@@ -22,6 +22,6 @@ public final class NoReferenceTypes extends org.vmutil.options.BooleanOption {
   public NoReferenceTypes() {
     super(Options.set, "No Reference Types",
           "Should reference type processing be disabled?",
-          false);
+          true);
   }
 }

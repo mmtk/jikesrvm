@@ -150,18 +150,6 @@ public abstract class SysCall {
 
   @RustSysCall
   @SysCallTemplate
-  public abstract void alignedReportDelayedRootEdge(Address trace_local, Address addr);
-
-  @RustSysCall
-  @SysCallTemplate
-  public abstract boolean alignedWillNotMoveInCurrentCollection(Address trace_local, ObjectReference obj);
-
-  @RustSysCall
-  @SysCallTemplate
-  public abstract void alignedProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root);
-
-  @RustSysCall
-  @SysCallTemplate
   public abstract void alignedStartWorker(Address tls, Address workerInstance);
 
   @RustSysCall
@@ -179,6 +167,17 @@ public abstract class SysCall {
   @RustSysCall
   @SysCallTemplate
   public abstract void alignedHandleUserCollectionRequest(Address tls);
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract Address sysDynamicCall1(Address funcPtr, Word arg0);
+  @RustSysCall
+  @SysCallTemplate
+  public abstract Address sysDynamicCall2(Address funcPtr, Word arg0, Word arg1);
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void release_buffer(Address buffer);
 
 
    /**
@@ -292,31 +291,6 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract boolean process(byte[] name, byte[] value);
 
-
-  @Inline
-  public void sysReportDelayedRootEdge(Address trace_local, Address addr) {
-    report_delayed_root_edge(trace_local,addr);
-  }
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract void report_delayed_root_edge(Address trace_local, Address addr);
-
-  @Inline
-  public boolean sysWillNotMoveInCurrentCollection(Address trace_local, ObjectReference obj) {
-    return will_not_move_in_current_collection(trace_local, obj);
-  }
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract boolean will_not_move_in_current_collection(Address trace_local, ObjectReference obj);
-
-  @Inline
-  public void sysProcessInteriorEdge(Address trace_local, ObjectReference target, Address slot, boolean root) {
-    process_interior_edge(trace_local, target, slot, root);
-  }
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract void process_interior_edge(Address trace_local, ObjectReference target, Address slot, boolean root);
-
   @Inline
   public void sysStartWorker(Address tls, Address workerInstance) {
     start_worker(tls, workerInstance);
@@ -374,36 +348,12 @@ public abstract class SysCall {
   public abstract Address last_heap_address();
 
   @Inline
-  public ObjectReference sysTraceGetForwardedReferent(Address trace, ObjectReference object) {
-    return trace_get_forwarded_referent(trace, object);
-  }
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract ObjectReference trace_get_forwarded_referent(Address trace, ObjectReference object);
-
-  @Inline
-  public ObjectReference sysTraceGetForwardedReference(Address trace, ObjectReference object) {
-    return trace_get_forwarded_reference(trace, object);
-  }
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract ObjectReference trace_get_forwarded_reference(Address trace, ObjectReference object);
-
-  @Inline
   public boolean sysIsLiveObject(ObjectReference object) {
     return is_live_object(object);
   }
   @RustSysCall
   @SysCallAlignedTemplate
   public abstract boolean is_live_object(ObjectReference object);
-
-  @Inline
-  public ObjectReference sysTraceRetainReferent(Address trace, ObjectReference object) {
-    return trace_retain_referent(trace, object);
-  }
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract ObjectReference trace_retain_referent(Address trace, ObjectReference object);
 
   @Inline
   public boolean sysIsMappedObject(ObjectReference object) {
