@@ -4023,6 +4023,10 @@ public final class RVMThread extends ThreadContext {
       RVMThread.handshakeThreads[i] = null; // Help GC
     }
     RVMThread.handshakeLock.unlock();
+
+    if (VM.BuildWithRustMMTk) {
+      FinalizerThread.schedule();
+    }
   }
 
   @Uninterruptible
