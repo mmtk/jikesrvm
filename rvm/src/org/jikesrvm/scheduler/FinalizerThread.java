@@ -18,6 +18,7 @@ import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.NonMoving;
 import static org.jikesrvm.runtime.SysCall.sysCall;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Finalizer thread.
@@ -48,6 +49,7 @@ public class FinalizerThread extends SystemThread {
   }
 
   @Uninterruptible
+  @Entrypoint
   public static void schedule() {
     schedLock.lockNoHandshake();
     shouldRun = true;
