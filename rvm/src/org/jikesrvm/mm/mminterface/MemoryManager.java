@@ -376,7 +376,6 @@ public final class MemoryManager {
    * @return The maximum amount of memory VM will attempt to use.
    */
   public static Extent maxMemory() {
-    //FIXME RUST
     return HeapGrowthManager.getMaxHeapSize();
   }
 
@@ -1254,7 +1253,7 @@ public final class MemoryManager {
    * @return The max heap size in bytes (as set by -Xmx).
    */
   public static Extent getMaxHeapSize() {
-    //FIXME RUST
+    //FIXME add support for RustMMTk
     return HeapGrowthManager.getMaxHeapSize();
   }
 

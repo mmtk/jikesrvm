@@ -104,7 +104,7 @@ public class ScanBootImage {
    */
   @Inline
   @Uninterruptible
-  public static void processChunk(Address chunkStart, Address imageStart,
+  private static void processChunk(Address chunkStart, Address imageStart,
       Address mapStart, Address mapEnd, TraceLocal trace) {
     int value;
     Offset offset = Offset.zero();
