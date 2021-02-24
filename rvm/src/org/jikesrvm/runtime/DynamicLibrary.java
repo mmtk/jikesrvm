@@ -174,7 +174,7 @@ public final class DynamicLibrary {
    * unload a dynamic library
    */
   public void unload() {
-    VM.sysWriteln("DynamicLibrary.unload: not implemented yet");
+    VM.sysWriteln("DynamicLibrary.unload: not implemented yet. libName: " + libName);
   }
 
   /**
@@ -242,5 +242,14 @@ public final class DynamicLibrary {
       }
     }
     return Address.zero();
+  }
+
+  public static synchronized Address getHandleForLibrary(String libName) {
+    DynamicLibrary dl = dynamicLibraries.get(libName);
+    if (dl != null) {
+      return dl.libHandler;
+    } else {
+      return Address.zero();
+    }
   }
 }

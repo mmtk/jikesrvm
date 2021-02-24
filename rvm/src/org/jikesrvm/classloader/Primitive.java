@@ -354,6 +354,7 @@ public final class Primitive extends RVMType {
    * (composed with supertypes, if any).
    * @return zero length array
    */
+  @Uninterruptible
   @Override
   @Pure
   public RVMField[] getInstanceFields() {

@@ -13,12 +13,14 @@
 package org.jikesrvm.classloader;
 
 import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
+import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.security.ProtectionDomain;
 
 import org.jikesrvm.Properties;
 import org.jikesrvm.VM;
+import org.jikesrvm.classlibrary.JavaLangInstrument;
 
 /**
  * Manufacture type descriptions as needed by the running virtual machine.
@@ -148,12 +150,72 @@ public class RVMClassLoader {
   }
 
   /**
+   * Overwrites the application repositories with the given classpath.
+   * <p>
+   * Only for tests.
+   *
+   * @param classpath the new classpath
+   */
+  static void overwriteApplicationRepositoriesForUnitTest(String classpath) {
+    applicationRepositories = classpath;
+  }
+
+  /**
+   * Overwrites the agent repositories with the given classpath.
+   * <p>
+   * Only for tests.
+   *
+   * @param classpath the new classpath
+   */
+  static void overwriteAgentPathForUnitTest(String classpath) {
+    agentRepositories = classpath;
+  }
+
+  private static String buildRealClasspath(String classpath) {
+    if (agentRepositories == null) {
+      return classpath;
+    }
+    return classpath + File.pathSeparator + agentRepositories;
+  }
+
+  /**
    * Get list of places currently being searched for application
    * classes and resources.
    * @return names of directories, .zip files, and .jar files
    */
   public static String getApplicationRepositories() {
     return applicationRepositories;
+  }
+
+  /**
+   * The classpath entries that are added implicitly by Java Agents for
+   * the jars that contain the agents.
+   */
+  private static String agentRepositories;
+
+  /**
+   * Adds repositories for a Java Agent.
+   *
+   * @param agentClasspath the classpath entry to add
+   */
+  public static void addAgentRepositories(String agentClasspath) {
+    if (agentRepositories == null) {
+      agentRepositories = agentClasspath;
+    } else {
+      agentRepositories = agentRepositories + File.pathSeparator + agentClasspath;
+    }
+  }
+
+  /**
+   * Rebuilds the application repositories to include jars for Java agents.
+   * Called after command line arg parsing is done.
+   */
+  public static void rebuildApplicationRepositoriesWithAgents() {
+    if (agentRepositories == null) {
+      return;
+    }
+    String newApplicationRepositories = applicationRepositories + File.pathSeparator + agentRepositories;
+    setApplicationRepositories(newApplicationRepositories);
   }
 
   /** Are we getting the application CL?  Access is synchronized via the
@@ -305,44 +367,50 @@ public class RVMClassLoader {
   }
 
   public static RVMType defineClassInternal(String className, byte[] classRep, int offset, int length,
+      ClassLoader classloader, ProtectionDomain pd) throws ClassFormatError {
+    if (VM.BuildForOpenJDK && VM.runningVM && JavaLangInstrument.instrumentationReady()) {
+      try {
+        String classNameInternal = ClassNameHelpers.convertClassnameToInternalName(className);
+        byte[] res = (byte[]) JavaLangInstrument.getTransformMethod().invoke(JavaLangInstrument.getInstrumenter(), classloader, classNameInternal, null, pd, classRep, false);
+        if (res != null) {
+          classRep = res;
+        }
+      } catch (SecurityException e) {
+        ignoreExceptionOnNormalBuildsAndFailOnAssserionEnabledBuilds(e);
+      } catch (IllegalArgumentException e) {
+        ignoreExceptionOnNormalBuildsAndFailOnAssserionEnabledBuilds(e);
+      } catch (IllegalAccessException e) {
+        ignoreExceptionOnNormalBuildsAndFailOnAssserionEnabledBuilds(e);
+      } catch (InvocationTargetException e) {
+        ignoreExceptionOnNormalBuildsAndFailOnAssserionEnabledBuilds(e);
+      }
+    }
+    return defineClassInternal(className, classRep, offset, length, classloader);
+  }
+
+  private static void ignoreExceptionOnNormalBuildsAndFailOnAssserionEnabledBuilds(Exception e) {
+    if (VM.VerifyAssertions) {
+      e.printStackTrace();
+      VM._assert(VM.NOT_REACHED, "Transformation of class failed with exception");
+    } else {
+      // continue with untransformed class
+    }
+  }
+
+  public static RVMType defineClassInternal(String className, InputStream is, ClassLoader classloader,
+      ProtectionDomain pd) throws ClassFormatError {
+    return defineClassInternal(className, is, classloader);
+  }
+
+  static RVMType defineClassInternal(String className, byte[] classRep, int offset, int length,
                                             ClassLoader classloader) throws ClassFormatError {
     return defineClassInternal(className, new ByteArrayInputStream(classRep, offset, length), classloader);
   }
 
-  public static RVMType defineClassInternal(String className, InputStream is, ClassLoader classloader)
+  static RVMType defineClassInternal(String className, InputStream is, ClassLoader classloader)
       throws ClassFormatError {
-    TypeReference tRef;
-    if (className == null) {
-      // NUTS: Our caller hasn't bothered to tell us what this class is supposed
-      //       to be called, so we must read the input stream and discover it ourselves
-      //       before we actually can create the RVMClass instance.
-      try {
-        is.mark(is.available());
-        tRef = ClassFileReader.getClassTypeRef(new DataInputStream(is), classloader);
-        is.reset();
-      } catch (IOException e) {
-        ClassFormatError cfe = new ClassFormatError(e.getMessage());
-        cfe.initCause(e);
-        throw cfe;
-      }
-    } else {
-      Atom classDescriptor = Atom.findOrCreateAsciiAtom(className).descriptorFromClassName();
-      tRef = TypeReference.findOrCreate(classloader, classDescriptor);
-    }
-
-    try {
-      if (VM.VerifyAssertions) VM._assert(tRef.isClassType());
-      if (VM.TraceClassLoading && VM.runningVM) {
-        VM.sysWriteln("loading \"" + tRef.getName() + "\" with " + classloader);
-      }
-      RVMClass ans = ClassFileReader.readClass(tRef, new DataInputStream(is));
-      tRef.setType(ans);
-      return ans;
-    } catch (IOException e) {
-      ClassFormatError cfe = new ClassFormatError(e.getMessage());
-      cfe.initCause(e);
-      throw cfe;
-    }
+    ClassFileReader reader = new ClassFileReader(is);
+    return reader.readClass(className, classloader);
   }
 
   /**

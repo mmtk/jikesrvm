@@ -173,6 +173,8 @@ public final class TypeReference {
   public static final TypeReference BaselineSaveLSRegisters = findOrCreate(org.vmmagic.pragma.BaselineSaveLSRegisters.class);
   public static final TypeReference ReferenceFieldsVary = findOrCreate(org.vmmagic.pragma.ReferenceFieldsVary.class);
 
+  public static final TypeReference ReplaceClass = findOrCreate(org.vmmagic.pragma.ReplaceClass.class);
+  public static final TypeReference ReplaceMember = findOrCreate(org.vmmagic.pragma.ReplaceMember.class);
 
   public static final TypeReference ReferenceMaps =
       findOrCreate(org.jikesrvm.compilers.baseline.ReferenceMaps.class);
@@ -278,7 +280,7 @@ public final class TypeReference {
       String className = klass.getName();
       if (className.startsWith("[")) {
         // an array
-        Atom classAtom = Atom.findOrCreateAsciiAtom(className.replace('.', '/'));
+        Atom classAtom = Atom.findOrCreateAsciiAtom(ClassNameHelpers.convertClassnameToInternalName(className));
         return findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classAtom);
       } else {
         Atom classDescriptor;
@@ -286,7 +288,7 @@ public final class TypeReference {
         if (primitiveTypeRef != null) {
           classDescriptor = primitiveTypeRef.name;
         } else {
-          Atom classAtom = Atom.findOrCreateAsciiAtom(className.replace('.', '/'));
+          Atom classAtom = Atom.findOrCreateAsciiAtom(ClassNameHelpers.convertClassnameToInternalName(className));
           classDescriptor = classAtom.descriptorFromClassName();
         }
         return findOrCreate(BootstrapClassLoader.getBootstrapClassLoader(), classDescriptor);

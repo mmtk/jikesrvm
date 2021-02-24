@@ -21,6 +21,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classlibrary.JavaLangInstrument;
 import org.jikesrvm.classloader.Atom;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
@@ -46,9 +47,10 @@ public final class MainThread extends Thread {
    * Create "main" thread.
    * @param args {@code args[0]}: name of class containing "main" method;
    *  {@code args[1..N]}: parameters to pass to "main" method
+   * @param threadGroup thread group for the main thread
    */
-  public MainThread(String[] args) {
-    super("MainThread");
+  public MainThread(String[] args, ThreadGroup threadGroup) {
+    super(threadGroup, "MainThread");
     setDaemon(false); // NB otherwise we inherit the boot threads daemon status
     this.agents = CommandLineArgs.getJavaAgentArgs();
     this.args = args;
@@ -58,16 +60,17 @@ public final class MainThread extends Thread {
   }
 
   private void runAgents(ClassLoader cl) {
+    Instrumentation instrumenter = null;
     if (agents.length > 0) {
-      Instrumentation instrumenter = null;
-      if (VM.BuildForGnuClasspath) {
-        try {
-          instrumenter = (Instrumentation)Class.forName("gnu.java.lang.JikesRVMSupport")
-            .getMethod("createInstrumentation").invoke(null);
-          java.lang.JikesRVMSupport.initializeInstrumentation(instrumenter);
-        } catch (Exception e) {
-        }
+      if (VM.verboseBoot >= 1) VM.sysWriteln("Booting instrumentation for agents");
+      try {
+        JavaLangInstrument.boot();
+        instrumenter = JavaLangInstrument.getInstrumenter();
+      } catch (Exception e) {
+        if (VM.verboseBoot >= 1) VM.sysWriteln("Booting instrumentation for agents FAILED");
       }
+      if (VM.verboseBoot >= 1) VM.sysWriteln("Booted instrumentation for agents");
+
       for (String agent : agents) {
         /*
          * Parse agent string according to the form
@@ -88,6 +91,7 @@ public final class MainThread extends Thread {
           agentJar = agent;
           agentOptions = "";
         }
+        if (VM.verboseBoot >= 1) VM.sysWriteln("Handling agent " + agentJar + " with options " + agentOptions);
         runAgent(instrumenter, cl, agentJar, agentOptions);
       }
     }
@@ -150,6 +154,8 @@ public final class MainThread extends Thread {
     // Set up application class loader
     ClassLoader cl = RVMClassLoader.getApplicationClassLoader();
     setContextClassLoader(cl);
+
+    if (dbg) VM.sysWriteln("Classloader set, about to run agents ");
 
     runAgents(cl);
 

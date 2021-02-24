@@ -27,8 +27,10 @@ import static org.jikesrvm.runtime.JavaSizeConstants.BITS_IN_SHORT;
 
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.jikesrvm.VM;
+import org.jikesrvm.classlibrary.ClassLibraryHelpers;
 import org.jikesrvm.runtime.Statics;
 
 /**
@@ -52,6 +54,13 @@ public class ClassFileReader {
   public static final byte TAG_INTERFACE_METHODREF = 11;
   public static final byte TAG_MEMBERNAME_AND_DESCRIPTOR = 12;
 
+  private InputStream inputStream;
+  private LoggingInputStream loggingStream;
+
+  public ClassFileReader(InputStream inputStream) {
+    this.inputStream = inputStream;
+  }
+
   /**
    * Parse and return the constant pool in a class file
    * @param typeRef the canonical type reference for this type.
@@ -59,7 +68,7 @@ public class ClassFileReader {
    * @return constant pool as int array
    * @throws IOException if it occurs during reading of the input stream
    */
-  private static int[] readConstantPool(TypeReference typeRef, DataInputStream input)  throws ClassFormatError, IOException {
+  private int[] readConstantPool(TypeReference typeRef, DataInputStream input)  throws ClassFormatError, IOException {
 
     int magic = input.readInt();
     if (magic != 0xCAFEBABE) {
@@ -80,7 +89,7 @@ public class ClassFileReader {
       case 50: // we only support up to 50.0 (ie Java 1.6.0)
         if (minor == 0) break;
       default:
-        throw new UnsupportedClassVersionError("unsupported class file version " + major + "." + minor);
+        throw new UnsupportedClassVersionError("unsupported class file version " + major + "." + minor + " for type " + typeRef);
     }
 
     //
@@ -235,7 +244,7 @@ public class ClassFileReader {
    * @throws IOException when a problems occurs while reading the input stream
    * @throws ClassFormatError when the read type ref does not match up with the expected type ref
    */
-  private static int readTypeRef(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException, ClassFormatError {
+  private int readTypeRef(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException, ClassFormatError {
     int myTypeIndex = input.readUnsignedShort();
     TypeReference myTypeRef = ConstantPool.getTypeRef(constantPool, myTypeIndex);
     if (myTypeRef != typeRef) {
@@ -258,7 +267,7 @@ public class ClassFileReader {
     return myTypeIndex;
   }
 
-  private static RVMClass readSuperClass(DataInputStream input, int[] constantPool,
+  private RVMClass readSuperClass(DataInputStream input, int[] constantPool,
       short modifiers) throws IOException, NoClassDefFoundError {
     TypeReference superType = ConstantPool.getTypeRef(constantPool, input.readUnsignedShort()); // possibly null
     RVMClass superClass = null;
@@ -268,7 +277,7 @@ public class ClassFileReader {
     return superClass;
   }
 
-  private static RVMClass[] readDeclaredInterfaces(DataInputStream input, int[] constantPool) throws IOException, NoClassDefFoundError {
+  private RVMClass[] readDeclaredInterfaces(DataInputStream input, int[] constantPool) throws IOException, NoClassDefFoundError {
     int numInterfaces = input.readUnsignedShort();
     RVMClass[] declaredInterfaces;
     if (numInterfaces == 0) {
@@ -283,7 +292,7 @@ public class ClassFileReader {
     return declaredInterfaces;
   }
 
-  private static RVMField[] readDeclaredFields(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
+  private RVMField[] readDeclaredFields(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
     int numFields = input.readUnsignedShort();
     RVMField[] declaredFields;
     if (numFields == 0) {
@@ -300,13 +309,14 @@ public class ClassFileReader {
           fmodifiers -= ACC_FINAL;
         }
         MemberReference memRef = MemberReference.findOrCreate(typeRef, fieldName, fieldDescriptor);
-        declaredFields[i] = RVMField.readField(typeRef, constantPool, memRef, fmodifiers, input);
+        declaredFields[i] = RVMField.readField(typeRef, constantPool, memRef, fmodifiers, input, loggingStream);
       }
     }
+    declaredFields = ClassLibraryHelpers.modifyDeclaredFields(declaredFields, typeRef);
     return declaredFields;
   }
 
-  private static RVMMethod[] readDeclaredMethods(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
+  private RVMMethod[] readDeclaredMethods(TypeReference typeRef, DataInputStream input, int[] constantPool) throws IOException {
     int numMethods = input.readUnsignedShort();
     RVMMethod[] declaredMethods;
     if (numMethods == 0) {
@@ -338,7 +348,7 @@ public class ClassFileReader {
    *  the skipping of attributes does not work as expected
    * @return the newly created method
    */
-  private static RVMMethod readMethod(TypeReference declaringClass, int[] constantPool, MemberReference memRef,
+  private RVMMethod readMethod(TypeReference declaringClass, int[] constantPool, MemberReference memRef,
                               short modifiers, DataInputStream input) throws IOException {
     short tmp_localWords = 0;
     short tmp_operandWords = 0;
@@ -351,6 +361,9 @@ public class ClassFileReader {
     RVMAnnotation[] annotations = null;
     RVMAnnotation[][] parameterAnnotations = null;
     Object tmp_annotationDefault = null;
+    byte[] rawAnnotations = null;
+    byte[] rawParameterAnnotations = null;
+    byte[] rawAnnotationDefault = null;
 
     // Read the attributes
     for (int i = 0, n = input.readUnsignedShort(); i < n; i++) {
@@ -403,17 +416,31 @@ public class ClassFileReader {
       } else if (attName == RVMClassLoader.signatureAttributeName) {
         tmp_signature = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
+        loggingStream.startLogging();
         annotations = AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
+        loggingStream.stopLogging();
+        rawAnnotations = loggingStream.getLoggedBytes();
+        loggingStream.clearLoggedBytes();
       } else if (attName == RVMClassLoader.runtimeVisibleParameterAnnotationsAttributeName) {
+        loggingStream.startLogging();
         int numParameters = input.readByte() & 0xFF;
         parameterAnnotations = new RVMAnnotation[numParameters][];
         for (int a = 0; a < numParameters; ++a) {
           parameterAnnotations[a] = AnnotatedElement.readAnnotations(constantPool, input, declaringClass.getClassLoader());
         }
+        loggingStream.stopLogging();
+        rawParameterAnnotations = loggingStream.getLoggedBytes();
+        loggingStream.clearLoggedBytes();
       } else if (attName == RVMClassLoader.annotationDefaultAttributeName) {
         try {
+          loggingStream.startLogging();
           tmp_annotationDefault = RVMAnnotation.readValue(memRef.asMethodReference().getReturnType(), constantPool, input, declaringClass.getClassLoader());
+          loggingStream.stopLogging();
+          rawAnnotationDefault = loggingStream.getLoggedBytes();
+          loggingStream.clearLoggedBytes();
         } catch (ClassNotFoundException e) {
+          loggingStream.stopLogging();
+          loggingStream.clearLoggedBytes();
           throw new Error(e);
         }
       } else {
@@ -424,6 +451,10 @@ public class ClassFileReader {
         }
       }
     }
+    MethodAnnotations methodAnnotations = new MethodAnnotations(annotations, parameterAnnotations, tmp_annotationDefault);
+    methodAnnotations.setRawAnnotations(rawAnnotations);
+    methodAnnotations.setRawParameterAnnotations(rawParameterAnnotations);
+    methodAnnotations.setRawAnnotationDefault(rawAnnotationDefault);
     RVMMethod method;
     if ((modifiers & ACC_NATIVE) != 0) {
       method =
@@ -432,9 +463,7 @@ public class ClassFileReader {
                               modifiers,
                               tmp_exceptionTypes,
                               tmp_signature,
-                              annotations,
-                              parameterAnnotations,
-                              tmp_annotationDefault);
+                              methodAnnotations);
     } else if ((modifiers & ACC_ABSTRACT) != 0) {
       method =
           new AbstractMethod(declaringClass,
@@ -442,9 +471,7 @@ public class ClassFileReader {
                                 modifiers,
                                 tmp_exceptionTypes,
                                 tmp_signature,
-                                annotations,
-                                parameterAnnotations,
-                                tmp_annotationDefault);
+                                methodAnnotations);
 
     } else {
       method =
@@ -460,9 +487,7 @@ public class ClassFileReader {
                               tmp_localVariableTable,
                               constantPool,
                               tmp_signature,
-                              annotations,
-                              parameterAnnotations,
-                              tmp_annotationDefault);
+                              methodAnnotations);
     }
     return method;
   }
@@ -474,7 +499,7 @@ public class ClassFileReader {
    * @return the class initializer method {@code <clinit>} of the class or {@code null}
    *  if none was found
    */
-  private static RVMMethod getClassInitializerMethod(RVMMethod[] declaredMethods) {
+  private RVMMethod getClassInitializerMethod(RVMMethod[] declaredMethods) {
     for (RVMMethod method : declaredMethods) {
       if (method.isClassInitializer()) return method;
     }
@@ -490,17 +515,17 @@ public class ClassFileReader {
    *  skipping during class construction reads less data than expected
    * @throws ClassFormatError when the class data is corrupt
    */
-  static RVMClass readClass(TypeReference typeRef, DataInputStream input) throws ClassFormatError, IOException {
+  private RVMClass readClass(TypeReference typeRef, DataInputStream input) throws ClassFormatError, IOException {
 
     if (RVMClass.isClassLoadingDisabled()) {
       throw new RuntimeException("ClassLoading Disabled : " + typeRef);
     }
 
-    if (VM.TraceClassLoading && VM.runningVM) {
-      VM.sysWriteln("RVMClass: (begin) load file " + typeRef.getName());
+    if (VM.TraceClassLoading) {
+      VM.sysWriteln("RVMClass (ClassFileReader): (begin) load file " + typeRef.getName());
     }
 
-    int[] constantPool = ClassFileReader.readConstantPool(typeRef, input);
+    int[] constantPool = readConstantPool(typeRef, input);
     short modifiers = input.readShort();
     short originalModifiers = modifiers;
     int myTypeIndex = readTypeRef(typeRef, input, constantPool);
@@ -515,6 +540,7 @@ public class ClassFileReader {
     TypeReference declaringClass = null;
     Atom signature = null;
     RVMAnnotation[] annotations = null;
+    byte[] rawAnnotations = null;
     TypeReference enclosingClass = null;
     MethodReference enclosingMethod = null;
     // Read attributes.
@@ -578,7 +604,11 @@ public class ClassFileReader {
       } else if (attName == RVMClassLoader.signatureAttributeName) {
         signature = ConstantPool.getUtf(constantPool, input.readUnsignedShort());
       } else if (attName == RVMClassLoader.runtimeVisibleAnnotationsAttributeName) {
+        loggingStream.startLogging();
         annotations = AnnotatedElement.readAnnotations(constantPool, input, typeRef.getClassLoader());
+        loggingStream.stopLogging();
+        rawAnnotations = loggingStream.getLoggedBytes();
+        loggingStream.clearLoggedBytes();
       } else {
         int skippedAmount = input.skipBytes(attLength);
         if (skippedAmount != attLength) {
@@ -587,6 +617,8 @@ public class ClassFileReader {
       }
     }
 
+    Annotations encapsulatedAnnotations = new Annotations(annotations);
+    encapsulatedAnnotations.setRawAnnotations(rawAnnotations);
     return new RVMClass(typeRef,
                         constantPool,
                         modifiers,
@@ -602,11 +634,11 @@ public class ClassFileReader {
                         sourceName,
                         classInitializerMethod,
                         signature,
-                        annotations);
+                        encapsulatedAnnotations);
   }
 
   // Shamelessly cloned & owned from ClassFileReader.readClass constructor....
-  static TypeReference getClassTypeRef(DataInputStream input, ClassLoader cl)
+  private TypeReference getClassTypeRef(DataInputStream input, ClassLoader cl)
       throws IOException, ClassFormatError {
     int magic = input.readInt();
     if (magic != 0xCAFEBABE) {
@@ -689,6 +721,45 @@ public class ClassFileReader {
 
     int myTypeIndex = input.readUnsignedShort();
     return TypeReference.getTypeRef(constantPool[myTypeIndex]);
+  }
+
+  public RVMType readClass(String className, ClassLoader classloader) throws ClassFormatError {
+    TypeReference tRef;
+    if (className == null) {
+      // NUTS: Our caller hasn't bothered to tell us what this class is supposed
+      //       to be called, so we must read the input stream and discover it ourselves
+      //       before we actually can create the RVMClass instance.
+      try {
+        inputStream.mark(inputStream.available());
+        tRef = getClassTypeRef(new DataInputStream(inputStream), classloader);
+        inputStream.reset();
+      } catch (IOException e) {
+        ClassFormatError cfe = new ClassFormatError(e.getMessage());
+        cfe.initCause(e);
+        throw cfe;
+      }
+    } else {
+      Atom classDescriptor = Atom.findOrCreateAsciiAtom(className).descriptorFromClassName();
+      tRef = TypeReference.findOrCreate(classloader, classDescriptor);
+    }
+
+    try {
+      if (VM.VerifyAssertions) VM._assert(tRef.isClassType());
+      if (VM.TraceClassLoading) {
+        VM.sysWriteln("(defineClassInternal) loading \"" + tRef.getName() + "\" with " + classloader);
+      }
+
+      loggingStream = new LoggingInputStream(inputStream);
+      DataInputStream stream = new DataInputStream(loggingStream);
+      RVMClass ans = readClass(tRef, stream);
+      tRef.setType(ans);
+      return ans;
+    } catch (IOException e) {
+      ClassFormatError cfe = new ClassFormatError(e.getMessage());
+      cfe.initCause(e);
+      throw cfe;
+    }
+
   }
 
 }

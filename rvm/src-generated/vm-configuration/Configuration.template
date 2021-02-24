@@ -41,7 +41,7 @@ public abstract class Configuration {
   public static final boolean BuildForOsx = @_RVM_FOR_OSX_@;
 
   public static final boolean BuildForGnuClasspath = @_RVM_WITH_GNU_CLASSPATH_@;
-  public static final boolean BuildForHarmony = @_RVM_WITH_HARMONY_@;
+  public static final boolean BuildForOpenJDK = @_RVM_WITH_OPENJDK_@;
 
   public static final boolean LittleEndian = @_RVM_FOR_LITTLE_ENDIAN_@;
 
@@ -109,9 +109,11 @@ public abstract class Configuration {
 
   public static final boolean BuildWithGCTrace = @_RVM_WITH_GCTRACE_@;
   public static final boolean BuildWithGCSpy = @_RVM_WITH_GCSPY_@;
-  
+
   public static final String RVM_VERSION_STRING = "@_RVM_VERSION_@";
   public static final String RVM_CONFIGURATION = "@_RVM_CONFIGURATION_@";
+
+  public static final String OPENJDK_LIB_ARCH = "@_OPENJDK_LIB_ARCH_@";
 
   /**
    * Alignment checking (for IA32 only; for debugging purposes only).

@@ -14,25 +14,29 @@ package org.jikesrvm.classlibrary;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
+import java.lang.reflect.Modifier;
 import java.util.Properties;
 
 import org.jikesrvm.Configuration;
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.StackFrameLayout;
-import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.Atom;
+import org.jikesrvm.classloader.RVMArray;
 import org.jikesrvm.classloader.BootstrapClassLoader;
 import org.jikesrvm.classloader.RVMClass;
 import org.jikesrvm.classloader.RVMClassLoader;
 import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMember;
+import org.jikesrvm.classloader.RVMType;
 import org.jikesrvm.mm.mminterface.MemoryManager;
+import org.jikesrvm.objectmodel.ObjectModel;
 import org.jikesrvm.runtime.RuntimeEntrypoints;
 import org.jikesrvm.runtime.CommandLineArgs;
 import org.jikesrvm.runtime.Entrypoints;
 import org.jikesrvm.scheduler.Synchronization;
 import org.vmmagic.pragma.Entrypoint;
 import org.vmmagic.pragma.NoInline;
+import org.vmmagic.pragma.Pure;
 import org.vmmagic.unboxed.Offset;
 
 /**
@@ -134,6 +138,10 @@ public final class JavaLangSupport {
     } else {
       RuntimeEntrypoints.raiseArrayStoreException();
     }
+  }
+
+  public static int identityHashCode(Object obj) {
+    return obj == null ? 0 : ObjectModel.getObjectHashCode(obj);
   }
 
   /**
@@ -355,4 +363,63 @@ public final class JavaLangSupport {
     if (jlp == null) jlp = ".";
     p.put("java.library.path", snp + p.get("path.separator") + jlp);
   }
+
+  /* ---- java.lang.Class Support ---- */
+
+  @Pure
+  public static int getModifiersFromRvmType(RVMType type) {
+    if (type.isClassType()) {
+      return type.asClass().getOriginalModifiers();
+    } else if (type.isArrayType()) {
+      RVMType innermostElementType = type.asArray().getInnermostElementType();
+      int result = Modifier.FINAL;
+      if (innermostElementType.isClassType()) {
+        int component = innermostElementType.asClass().getOriginalModifiers();
+        result |= (component & (Modifier.PUBLIC | Modifier.PROTECTED | Modifier.PRIVATE));
+      } else {
+        result |= Modifier.PUBLIC; // primitive
+      }
+      return result;
+    } else {
+      return Modifier.PUBLIC | Modifier.FINAL;
+    }
+  }
+
+  @Pure
+  public static boolean validArrayDescriptor(String name) {
+    int i;
+    int length = name.length();
+
+    for (i = 0; i < length; i++)
+      if (name.charAt(i) != '[') break;
+    if (i == length) return false;      // string of only ['s
+
+    if (i == length - 1) {
+      switch (name.charAt(i)) {
+      case 'B': return true;    // byte
+      case 'C': return true;    // char
+      case 'D': return true;    // double
+      case 'F': return true;    // float
+      case 'I': return true;    // integer
+      case 'J': return true;    // long
+      case 'S': return true;    // short
+      case 'Z': return true;    // boolean
+      default:  return false;
+      }
+    } else if (name.charAt(i) != 'L') {
+      return false;    // not a class descriptor
+    } else if (name.charAt(length - 1) != ';') {
+      return false;     // ditto
+    }
+    return true;                        // a valid class descriptor
+  }
+
+  // TODO OPENJDK/ICEDTEA use this for GNU Classpath
+  @Pure
+  public static boolean isInstanceOf(Class<?> c, Object o) {
+    if (o == null) return false;
+    if (c.isPrimitive())  return false;
+    return c.isAssignableFrom(o.getClass());
+  }
+
 }
