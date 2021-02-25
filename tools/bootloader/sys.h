@@ -305,6 +305,8 @@ EXTERNAL void add_phantom_candidate(void* ref, void* referent);
 EXTERNAL void harness_begin(void *tls);
 EXTERNAL void harness_end();
 EXTERNAL void release_buffer(void* buffer);
+EXTERNAL void add_finalizer(void* obj);
+EXTERNAL void* get_finalized_object();
 #endif
 
 // sysMisc
