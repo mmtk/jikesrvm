@@ -8,7 +8,7 @@ a = os.path.abspath(os.path.join(__file__, "..", ".."))
 os.chdir(a)  # change to base directory
 
 # any arguments after -- will be passed directly to buildit
-extra_buildit_args = ""
+extra_buildit_args = "--m32"
 if "--" in sys.argv:
     index = sys.argv.index("--")
     extra_buildit_args = " ".join(sys.argv[index + 1:])
