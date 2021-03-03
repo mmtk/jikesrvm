@@ -194,7 +194,7 @@ public class Entrypoints {
   public static final RVMField mmtkHandleField =
           getField(org.jikesrvm.mm.mminterface.Selected.Mutator.class, "mmtkHandle",
                   org.vmmagic.unboxed.Address.class);
-  
+
   public static final RVMField isClassTypeField =
           getField(org.jikesrvm.classloader.RVMType.class, "isClassType", boolean.class);
   public static final RVMField isArrayTypeField =
@@ -210,7 +210,7 @@ public class Entrypoints {
           getField(org.jikesrvm.classloader.RVMClass.class, "alignment", int.class);
   public static final RVMField rvmArrayAlignment =
           getField(org.jikesrvm.classloader.RVMArray.class, "alignment", int.class);
-  
+
   public static final NormalMethod lockMethod =
       getMethod(org.jikesrvm.objectmodel.ObjectModel.class, "genericLock", "(Ljava/lang/Object;)V");
   public static final NormalMethod unlockMethod =

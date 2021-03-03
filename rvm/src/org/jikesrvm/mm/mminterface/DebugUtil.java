@@ -102,7 +102,7 @@ public class DebugUtil {
         VM._assert(sysCall.sysIsMappedObject(ref));
       return sysCall.sysIsMappedObject(ref);
     } else
-      return Space.isMappedObject(ref); 
+      return Space.isMappedObject(ref);
   }
 
   @Uninterruptible
