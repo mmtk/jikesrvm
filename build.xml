@@ -20,13 +20,12 @@
   <import file="build/tasks.xml"/>
   <import file="build/checkstyle-plugins.xml"/>
 
-  <property name="config.file" location="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
-  <property name="config.file" location="${config.third-party-build-configs}/${config.name}.properties"/>
   <property name="helpers.dir" location="${build.dir}/build-helpers"/>
   <property name="helpers.classes" location="${helpers.dir}/classes"/>
   <property name="helpers.java.version" value="1.6"/>
 
-  
+  <available property="config.file" value="${jikesrvm.dir}/build/configs/${config.name}.properties" file="${jikesrvm.dir}/build/configs/${config.name}.properties"/>
+  <available property="config.file" value="${config.third-party-build-configs}/${config.name}.properties" file="${config.third-party-build-configs}/${config.name}.properties"/>
 
   <!-- configuration data -->
   <property file="${config.file}"/>
@@ -48,6 +47,7 @@
   <property name="mmtk-harness-vmmagic.java" location="MMTk/harness/vmmagic"/>
   <property name="mmtk-vm-rvm.java" location="MMTk/ext/vm/jikesrvm"/>
   <property name="mmtk-vm-harness.java" location="MMTk/ext/vm/harness"/>
+  
   <condition property="external.java" value="${config.external_source}" else="">
     <isset property="config.external_source"/>
   </condition>
@@ -1471,8 +1471,7 @@ Check to make sure all required properties are specified. This includes properti
                debugLevel="${debugLevel}"
                source="${rvm.java.version}"
                target="${rvm.java.version}"
-               srcdir="${main.java}:${classlib.library-interface.common.java}:${classlib.library-interface.cpl.java}:${classlib.library-interface.non-cpl.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
-               sourcepath="${mmtk.java}:${options.java}:${generated.java}:${generated.config.java}:${main.java}:${mmtk-vm-rvm.java}:${tuningforklib.java}"
+               srcdir="${temp-source}"
                includeantruntime="false">
           <bootclasspath>
             <pathelement location="${openjdk.lib.dir}/rt.jar"/>
