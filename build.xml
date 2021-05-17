@@ -1394,10 +1394,17 @@ Check to make sure all required properties are specified. This includes properti
           <fileset dir="${generated.java}"/>
           <fileset dir="${generated.config.java}"/>
         </copy>
-        <copy todir="${temp-source}" overwrite="true">
-          <!--External files may overwrite files in the JikesRVM-->
-          <fileset dir="${external.java}"/>
-        </copy>
+        <if>
+          <conditions>
+            <not><equals arg1="${external.java}" arg2=""/></not>
+          </conditions>
+          <sequential>
+            <copy todir="${temp-source}" overwrite="true">
+              <!--External files may overwrite files in the JikesRVM-->
+              <fileset dir="${external.java}"/>
+            </copy>
+          </sequential>
+        </if>
         <javac destdir="${build.classes}"
                debug="true"
                fork="true"
@@ -1446,10 +1453,17 @@ Check to make sure all required properties are specified. This includes properti
           <fileset dir="${generated.java}"/>
           <fileset dir="${generated.config.java}"/>
         </copy>
-        <copy todir="${temp-source}" overwrite="true">
-          <!--External files may overwrite files in the JikesRVM-->
-          <fileset dir="${external.java}"/>
-        </copy>
+        <if>
+          <conditions>
+            <not><equals arg1="${external.java}" arg2=""/></not>
+          </conditions>
+          <sequential>
+            <copy todir="${temp-source}" overwrite="true">
+              <!--External files may overwrite files in the JikesRVM-->
+              <fileset dir="${external.java}"/>
+            </copy>
+          </sequential>
+        </if>
         <javac destdir="${build.classes}"
                debug="true"
                fork="true"

@@ -17,6 +17,8 @@ import org.jikesrvm.mm.mminterface.MemoryManager;
 import org.jikesrvm.runtime.Magic;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.NonMoving;
+import static org.jikesrvm.runtime.SysCall.sysCall;
+import org.vmmagic.pragma.Entrypoint;
 
 /**
  * Finalizer thread.
@@ -47,6 +49,7 @@ public class FinalizerThread extends SystemThread {
   }
 
   @Uninterruptible
+  @Entrypoint
   public static void schedule() {
     schedLock.lockNoHandshake();
     shouldRun = true;
@@ -85,7 +88,12 @@ public class FinalizerThread extends SystemThread {
         }
 
         while (true) {
-          Object o = MemoryManager.getFinalizedObject();
+          Object o = null;
+          if (VM.BuildWithRustMMTk) {
+            o = sysCall.sysGetFinalizedObject();
+          } else {
+            o = MemoryManager.getFinalizedObject();
+          }
           if (o == null) break;
           if (verbose >= 2) {
             VM.sysWrite("FinalizerThread finalizing object at ", Magic.objectAsAddress(o));

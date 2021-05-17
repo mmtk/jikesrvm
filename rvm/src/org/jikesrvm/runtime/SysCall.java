@@ -384,6 +384,22 @@ public abstract class SysCall {
   public abstract void add_phantom_candidate(Address ref, Address referent);
 
   @Inline
+  public void sysAddFinalizer(Object object) {
+    add_finalizer(ObjectReference.fromObject(object));
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void add_finalizer(ObjectReference object);
+
+  @Inline
+  public Object sysGetFinalizedObject() {
+    return get_finalized_object().toObject();
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract ObjectReference get_finalized_object();
+
+  @Inline
   public void sysModifyCheck(ObjectReference object) {
     modify_check(object);
   }
