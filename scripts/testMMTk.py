@@ -99,9 +99,8 @@ for _ in range(0, args.tests):
         # If it corrupts, rerun at most 3 times
         # All other build errors return errors as usual
         for _ in range(0, 3):
-            command = "bin/buildit localhost -j " + args.java_home + " --answer-yes " + args.build_args + args.collector + args.test + args.test_run + " --nuke " + extra_buildit_args
-            print ("RUNNING: " + command)
-            rc = exe(command.split())
+            rc = exe(("bin/buildit localhost -j " + args.java_home + " --answer-yes " +
+                      args.build_args + args.collector + args.test + args.test_run + " --nuke " + extra_buildit_args).split())
             if rc != 3:
                 build = rc == 0
                 break
