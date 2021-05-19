@@ -3339,7 +3339,6 @@ public abstract class BURS_Helpers extends BURS_MemOp_Helpers {
    */
   protected final void SYSCALL(Instruction s, Operand address) {
     burs.ir.setHasSysCall(true);
-    //VM.sysFail("entered syscall");
     if (VM.BuildFor32Addr) {
       // Step 1: Find out how many parameters we're going to have.
       int numParams = Call.getNumberOfParams(s);

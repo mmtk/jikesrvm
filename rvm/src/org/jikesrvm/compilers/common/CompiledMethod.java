@@ -220,6 +220,9 @@ public abstract class CompiledMethod {
         VM.sysWriteln("In thread ",RVMThread.getCurrentThreadSlot()," getInstructionOffset: ip is not within compiled code for method: ",ip);
         VM.sysWrite("\tsupposed method is ");
         VM.sysWrite(method);
+        VM.sysWrite(" (");
+        VM.sysWrite(CompiledMethod.compilerTypeToString(getCompilerType()));
+        VM.sysWrite(")");
         VM.sysWriteln();
         VM.sysWriteln("\tcode for this method starts at ", instructionStart);
         VM.sysWriteln("\t and has last valid return address of ", instructionStart.plus(max));
@@ -494,8 +497,7 @@ public abstract class CompiledMethod {
    *
    * @param instructionOffset of machine instruction from start of this method, in bytes
    * @return source line number
-   * (0 == no line info available, 1 == first line of source file, -2 == native method))
-   *
+   * (0 == no line info available, 1 == first line of source file, -2 == native method)
    */
   @Uninterruptible
   public int findLineNumberForInstruction(Offset instructionOffset) {

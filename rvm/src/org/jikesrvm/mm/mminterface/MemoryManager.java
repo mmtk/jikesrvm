@@ -153,12 +153,7 @@ public final class MemoryManager {
   }
 
   @Entrypoint
-  public static int test2(int a, int b) {
-    return a + b;
-  }
-
-  @Entrypoint
-  public static int test3(int a, int b, int c, int d) {
+  public static int mmEntrypointTest(int a, int b, int c, int d) {
     if (VM.verboseBoot != 0) {
       VM.sysWriteln(a);
       VM.sysWriteln(b);
@@ -166,18 +161,6 @@ public final class MemoryManager {
       VM.sysWriteln(d);
     }
     return a * b + c + d;
-  }
-
-  @Entrypoint
-  public static void test1() {
-    if (VM.verboseBoot != 0) {
-      VM.sysWriteln("testprint");
-    }
-  }
-
-  @Entrypoint
-  public static int test(int a) {
-    return a + 10;
   }
 
   public static void harnessBegin() {
@@ -376,7 +359,6 @@ public final class MemoryManager {
    * @return The maximum amount of memory VM will attempt to use.
    */
   public static Extent maxMemory() {
-    //FIXME RUST
     return HeapGrowthManager.getMaxHeapSize();
   }
 
@@ -1254,7 +1236,7 @@ public final class MemoryManager {
    * @return The max heap size in bytes (as set by -Xmx).
    */
   public static Extent getMaxHeapSize() {
-    //FIXME RUST
+    //FIXME add support for RustMMTk
     return HeapGrowthManager.getMaxHeapSize();
   }
 

@@ -114,7 +114,7 @@ public final class StackBrowser {
   /**
    * Example: for a stack trace of
    * <pre>
-  A1 <- frame with call to countFrames()
+  A1 &lt;- frame with call to countFrames()
   A2
   A3
   A4
@@ -216,5 +216,26 @@ public final class StackBrowser {
 
   public boolean currentMethodIs_Java_Lang_Reflect_Method_InvokeMethod() {
     return currentMethod == Entrypoints.java_lang_reflect_Method_invokeMethod;
+  }
+
+  public boolean currentMethodIs_Java_Lang_Reflect_Method_GetCallerClass() {
+    if (VM.VerifyAssertions) VM._assert(VM.BuildForOpenJDK);
+    return currentMethod == Entrypoints.java_lang_reflect_Method_getCallerClass;
+  }
+
+  public boolean currentMethodIs_Java_Lang_Reflect_Constructor_NewInstance() {
+    return currentMethod == Entrypoints.java_lang_reflect_Constructor_newInstance;
+  }
+
+  public boolean currentMethodIsJikesRVMInternal() {
+    return currentMethod.getDeclaringClass().getDescriptor().isRVMDescriptor();
+  }
+
+  public boolean currentMethodIsInClassLibrary() {
+    return currentMethod.getDeclaringClass().getDescriptor().isClassLibraryDescriptor();
+  }
+
+  public boolean currentMethodIsPartOfJikesRVMJNIImplementation() {
+    return currentMethod.getDeclaringClass().getDescriptor().isJNIImplementationClassDescriptor();
   }
 }

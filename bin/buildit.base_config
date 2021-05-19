@@ -43,7 +43,8 @@
 # =================================================
 
 # Benchmarks directory
-global.ext.lib.dir=../../../benchmarks/
+# global.ext.lib.dir=../../../benchmarks/
+global.ext.lib.dir=/usr/share/benchmarks
 
 # Components cache directory. Relative to home directory
 global.components.cache.dir=.buildit_components_cache

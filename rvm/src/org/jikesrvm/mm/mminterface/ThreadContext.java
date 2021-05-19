@@ -22,10 +22,10 @@ import org.vmmagic.pragma.Uninterruptible;
 @Uninterruptible
 public abstract class ThreadContext extends Selected.Mutator {
   @Entrypoint
-  private boolean isCollector = false;
+  private boolean isRustMMTkCollector = false;
 
-  public void assertIsCollector() {
-    isCollector = true;
+  public void assertIsRustMMTkCollector() {
+    isRustMMTkCollector = true;
   }
 
   protected CollectorContext collectorContext;
@@ -35,7 +35,7 @@ public abstract class ThreadContext extends Selected.Mutator {
   }
 
   public final boolean isCollectorThread() {
-    return collectorContext != null || isCollector;
+    return collectorContext != null || isRustMMTkCollector;
   }
 }
 

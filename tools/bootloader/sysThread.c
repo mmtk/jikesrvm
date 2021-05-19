@@ -43,18 +43,12 @@ static const Address MAIN_THREAD_ALLOW_TERMINATE = 1;
 static const Address MAIN_THREAD_DONT_TERMINATE = 2;
 
 
-#ifdef RVM_FOR_HARMONY
-#include "hythread.h"
-#else
 #include <pthread.h>
-#endif
 
-#ifndef RVM_FOR_HARMONY
 typedef struct {
   pthread_mutex_t mutex;
   pthread_cond_t cond;
 } vmmonitor_t;
-#endif
 
 EXTERNAL void VMI_Initialize();
 
@@ -67,11 +61,7 @@ static const int debugging = 0;
 // #define DEBUG_SYS
 // #define DEBUG_THREAD
 
-#ifdef RVM_FOR_HARMONY
-EXTERNAL int sysThreadStartup(void *args);
-#else
 EXTERNAL void *sysThreadStartup(void *args);
-#endif
 
 EXTERNAL void hardwareTrapHandler(int signo, siginfo_t *si, void *context);
 
@@ -82,11 +72,7 @@ static TLS_KEY_TYPE sigStackKey;
 
 void createThreadLocal(TLS_KEY_TYPE *key) {
   int rc;
-#ifdef RVM_FOR_HARMONY
-  rc = hythread_tls_alloc(key);
-#else
   rc = pthread_key_create(key, 0);
-#endif
   if (rc != 0) {
     ERROR_PRINTF("%s: alloc tls key failed (err=%d)\n", Me, rc);
     sysExit(EXIT_STATUS_SYSCALL_TROUBLE);
@@ -136,9 +122,6 @@ EXTERNAL void * getVmThread()
 EXTERNAL void sysInitialize()
 {
   TRACE_PRINTF("%s: sysInitialize\n", Me);
-#ifdef RVM_FOR_HARMONY
-  VMI_Initialize();
-#endif
   DeathLock = sysMonitorCreate();
 }
 
@@ -685,62 +668,39 @@ EXTERNAL int sysSetThreadPriority(Word thread, Word handle, int priority)
 
 EXTERNAL Word sysMonitorCreate()
 {
-#ifdef RVM_FOR_HARMONY
-  hythread_monitor_t monitor;
-  hythread_monitor_init_with_name(&monitor, 0, NULL);
-#else
   vmmonitor_t *monitor = (vmmonitor_t*) checkMalloc(sizeof(vmmonitor_t));
   pthread_mutex_init(&monitor->mutex, NULL);
   pthread_cond_init(&monitor->cond, NULL);
-#endif
   TRACE_PRINTF("%s: sysMonitorCreate %p\n", Me, (void*)monitor);
   return (Word)monitor;
 }
 
 EXTERNAL void sysMonitorDestroy(Word _monitor)
 {
-#ifdef RVM_FOR_HARMONY
-  hythread_monitor_destroy((hythread_monitor_t)_monitor);
-#else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
   pthread_mutex_destroy(&monitor->mutex);
   pthread_cond_destroy(&monitor->cond);
   checkFree(monitor);
-#endif
   TRACE_PRINTF("%s: sysMonitorDestroy %p\n", Me, (void*)_monitor);
 }
 
-EXTERNAL void sysMonitorEnter(Word _monitor)
+EXTERNAL int sysMonitorEnter(Word _monitor)
 {
   TRACE_PRINTF("%s: sysMonitorEnter %p\n", Me, (void*)_monitor);
-#ifdef RVM_FOR_HARMONY
-  hythread_monitor_enter((hythread_monitor_t)_monitor);
-#else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-  pthread_mutex_lock(&monitor->mutex);
-#endif
+  return pthread_mutex_lock(&monitor->mutex);
 }
 
-EXTERNAL void sysMonitorExit(Word _monitor)
+EXTERNAL int sysMonitorExit(Word _monitor)
 {
   TRACE_PRINTF("%s: sysMonitorExit %p\n", Me, (void*)_monitor);
-#ifdef RVM_FOR_HARMONY
-  hythread_monitor_exit((hythread_monitor_t)_monitor);
-#else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
-  pthread_mutex_unlock(&monitor->mutex);
-#endif
+  return pthread_mutex_unlock(&monitor->mutex);
 }
 
 EXTERNAL void sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNanos)
 {
   TRACE_PRINTF("%s: sysMonitorTimedWaitAbsolute\n", Me);
-#ifdef RVM_FOR_HARMONY
-  // syscall wait is absolute, but harmony monitor wait is relative.
-  whenWakeupNanos -= sysNanoTime();
-  if (whenWakeupNanos <= 0) return;
-  hythread_monitor_wait_timed((hythread_monitor_t)_monitor, (I_64)(whenWakeupNanos / 1000000LL), (IDATA)(whenWakeupNanos % 1000000LL));
-#else
   struct timespec ts = {0};
   ts.tv_sec = (time_t)(whenWakeupNanos/1000000000LL);
   ts.tv_nsec = (long)(whenWakeupNanos%1000000000LL);
@@ -756,29 +716,20 @@ EXTERNAL void sysMonitorTimedWaitAbsolute(Word _monitor, long long whenWakeupNan
                sysNanoTime(),whenWakeupNanos,rc);
   fflush(NULL);
 #endif
-#endif
 }
 
 EXTERNAL void sysMonitorWait(Word _monitor)
 {
   TRACE_PRINTF("%s: sysMonitorWait\n", Me);
-#ifdef RVM_FOR_HARMONY
-  hythread_monitor_wait((hythread_monitor_t)_monitor);
-#else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
   pthread_cond_wait(&monitor->cond, &monitor->mutex);
-#endif
 }
 
 EXTERNAL void sysMonitorBroadcast(Word _monitor)
 {
   TRACE_PRINTF("%s: sysMonitorBroadcast\n", Me);
-#ifdef RVM_FOR_HARMONY
-  hythread_monitor_notify_all((hythread_monitor_t)_monitor);
-#else
   vmmonitor_t *monitor = (vmmonitor_t*)_monitor;
   pthread_cond_broadcast(&monitor->cond);
-#endif
 }
 
 EXTERNAL void sysThreadTerminate()
@@ -786,9 +737,6 @@ EXTERNAL void sysThreadTerminate()
   TRACE_PRINTF("%s: sysThreadTerminate\n", Me);
 #ifdef RVM_FOR_POWERPC
   asm("sync");
-#endif
-#ifdef RVM_FOR_HARMONY
-  hythread_detach(NULL);
 #endif
   Address tr = (Address) GET_THREAD_LOCAL(trKey);
   *(int*)(tr + RVMThread_execStatus_offset) = RVMThread_TERMINATED;

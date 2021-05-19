@@ -167,7 +167,7 @@ public class CommandLineArgs {
 
                                             new Prefix("-enableassertions:", PrefixType.ENABLE_ASSERTION_ARG),
                                             new Prefix("-ea:", PrefixType.ENABLE_ASSERTION_ARG),
-                                            new Prefix("-enableassertions:", PrefixType.ENABLE_ASSERTION_ARG),
+                                            new Prefix("-enableassertions", PrefixType.ENABLE_ASSERTION_ARG),
                                             new Prefix("-ea", PrefixType.ENABLE_ASSERTION_ARG),
 
                                             new Prefix("-enableassertions", PrefixType.ENABLE_ASSERTION_ARG),
@@ -436,8 +436,9 @@ public class CommandLineArgs {
   }
 
   /**
-   * @return the original arguments specified on the command line, without the
-   *  ones for the main class
+   * @return the arguments specified on the command line, without the
+   *  ones for the main class and without arguments that are handled
+   *  exclusively by the bootloader
    */
   public static String[] getInputArgs() {
     String[] inputArgs = new String[args.length];
@@ -769,8 +770,7 @@ public class CommandLineArgs {
           } else {
             jarPath = arg;
           }
-          String newClassPath = RVMClassLoader.getApplicationRepositories() + File.pathSeparator + jarPath;
-          RVMClassLoader.setApplicationRepositories(newClassPath);
+          RVMClassLoader.addAgentRepositories(jarPath);
           break;
       }
     }

@@ -104,7 +104,6 @@ public abstract class CallingConvention extends IRTools {
 
     // expand the prologue instruction
     expandPrologue(ir);
-    // TODO do something about this
     if ((VM.BuildFor64Addr && ir.stackManager.hasSysCall()) || ir.stackManager.isAligned()) {
       // Recompute def-use data structures due to added blocks
       // for syscall expansion.

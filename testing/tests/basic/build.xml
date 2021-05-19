@@ -55,6 +55,13 @@
         <attribute name="Premain-Class" value="test.org.jikesrvm.basic.util.IdentityClassFileTransformer"/>
       </manifest>
     </jar>
+    <jar file="${build.tests.dir}/TestAgent.jar"
+         basedir="${build.classes}"
+         includes="**/TestAgent.class">
+      <manifest>
+        <attribute name="Main-Class" value="test.org.jikesrvm.basic.core.instrument.TestAgent"/>
+      </manifest>
+    </jar>
   </target>
 
   <!-- **************************************************************************** -->
@@ -153,11 +160,13 @@
     <runCompareTest tag="TestLoadingWithoutName" class="test.org.jikesrvm.basic.core.classloading.TestLoadingWithoutName"/>
 
     <runCompareTest tag="TestMath" class="test.org.jikesrvm.basic.java.lang.TestMath"/>
+    <runCompareTest tag="TestFloatingPointPrintouts" class="test.org.jikesrvm.basic.java.lang.TestFloatingPointPrintouts"/>
     <runCompareTest tag="TestSystem" class="test.org.jikesrvm.basic.java.lang.TestSystem"/>
     <runCompareTest tag="TestFileChannel" class="test.org.jikesrvm.basic.java.nio.TestFileChannel"/>
 
     <runCompareTest tag="TestAgent" class="test.org.jikesrvm.basic.core.instrument.TestAgent"
                     rvmArgs='-javaagent:${build.tests.dir}/AgentX.jar="Option1"'/>
+    <runCompareTest tag="TestAgent-WithJar" expectedfile="TestAgent-WithJar" args="-javaagent:${build.tests.dir}/IdentityAgent.jar -jar TestAgent.jar"/>
 
     <rvm tag="ImageSizes" class="test.org.jikesrvm.basic.stats.JikesImageSizes"
          args="${test.rvm.dir}/RVM.code.image ${test.rvm.dir}/RVM.data.image ${test.rvm.dir}/RVM.rmap.image"/>
@@ -183,7 +192,7 @@
     <runCompareTest tag="RVM_868" class="test.org.jikesrvm.basic.bugs.RVM_868"/>
     <runCompareTest tag="RVM_914" class="test.org.jikesrvm.basic.bugs.RVM_914"/>
     <runCompareTest tag="RVM_915" class="test.org.jikesrvm.basic.bugs.RVM_915"/>
-    <runCompareTest tag="RVM_966" class="test.org.jikesrvm.basic.bugs.RVM_966" exitCode="113"/>
+    <runCompareStackTraces tag="RVM_966" class="test.org.jikesrvm.basic.bugs.RVM_966" exitCode="113"/>
     <finishResults/>
   </target>
 

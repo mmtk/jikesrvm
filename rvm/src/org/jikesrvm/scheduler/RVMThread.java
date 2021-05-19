@@ -31,6 +31,7 @@ import org.jikesrvm.architecture.ArchitectureFactory;
 import org.jikesrvm.architecture.StackFrameLayout;
 import org.jikesrvm.classloader.MemberReference;
 import org.jikesrvm.classloader.NormalMethod;
+import org.jikesrvm.classloader.RVMField;
 import org.jikesrvm.classloader.RVMMethod;
 import org.jikesrvm.compilers.baseline.BaselineCompiledMethod;
 import org.jikesrvm.compilers.common.CodeArray;
@@ -1716,6 +1717,9 @@ public final class RVMThread extends ThreadContext {
 
       initializeJNIEnv();
 
+      if (traceAcct)
+        VM.sysWriteln("Finishing initializeJniEnv() for the thread");
+
       if (VM.BuildForAdaptiveSystem) {
         onStackReplacementEvent = new OnStackReplacementEvent();
       } else {
@@ -2647,8 +2651,23 @@ public final class RVMThread extends ThreadContext {
    */
   @Interruptible
   public void setupBootJavaThread() {
-    thread = java.lang.JikesRVMSupport.createThread(this,
-        "Jikes_RVM_Boot_Thread");
+    if (VM.BuildForOpenJDK) {
+      // Use a fake thread to get through the constructor calls
+      Thread fakeThread = (Thread) RuntimeEntrypoints.resolvedNewScalar(JikesRVMSupport.getTypeForClass(Thread.class).asClass());
+      // Need to set a valid priority, 10 is maximum
+      RVMField[] instanceFields = JikesRVMSupport.getTypeForClass(Thread.class).getInstanceFields();
+      RVMField priorityField = null;
+      for (RVMField f : instanceFields) {
+        if (f.getName().toString().equals("priority")) {
+          priorityField = f;
+          break;
+        }
+      }
+      priorityField.setIntValueUnchecked(fakeThread, 10);
+      thread = fakeThread;
+    }
+    // Create the real thread
+    thread = java.lang.JikesRVMSupport.createThread(this, "Jikes_RVM_Boot_Thread");
   }
 
   /**
@@ -4576,6 +4595,17 @@ public final class RVMThread extends ThreadContext {
     Memory.memcopy(newFP, myFP, myDepth.toWord().toExtent());
 
     return newFP.diff(myFP);
+  }
+
+  private static ThreadGroup systemThreadGroup;
+
+  public static void setThreadGroupForSystemThreads(
+      ThreadGroup systemThreadGroup) {
+        RVMThread.systemThreadGroup = systemThreadGroup;
+  }
+
+  public static ThreadGroup getThreadGroupForSystemThreads() {
+    return RVMThread.systemThreadGroup;
   }
 
   /**

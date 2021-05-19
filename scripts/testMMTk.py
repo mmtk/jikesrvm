@@ -109,7 +109,7 @@ for _ in range(0, args.tests):
             exit(1)
     # Test if not build only
     if not args.build_only and args.collector != "":
-        if exe(("dist/" + args.collector + "_x86_64-linux/rvm "
+        if exe(("dist/" + args.collector + "_x86_64_m32-linux/rvm "
                     + args.args + " -jar benchmarks/dacapo-2006-10-MR2.jar fop").split()) != 0:
             if passes != 0:
                 print ("Test failed. Succeeded previously " + str(passes) + " times.")
