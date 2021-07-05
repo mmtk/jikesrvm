@@ -14,7 +14,7 @@
 <project name="tph_test_lib" default="build" basedir=".">
 
     <condition property="tph.target" value="i686-unknown-linux-gnu" else="x86_64-unknown-linux-gnu">
-        <equals arg1="${target.arch}" arg2="ia32"/>
+        <equals arg1="${target.address.size}" arg2="32"/>
     </condition>
     <!-- **************************************************************************** -->
     <!-- *                                                                          * -->
@@ -22,7 +22,7 @@
     <!-- *                            and copy to build base dir                    * -->
     <!-- **************************************************************************** -->
     <target name="build-tph-test-lib">
-        <echo message="Creating TPH test SysCalls library"/>
+        <echo message="Creating TPH test SysCalls library for target: ${target.address.size}-Bits"/>
         <exec executable="cargo" dir="${jikesrvm.dir}/testing/tests/tph/src/rust_sys_calls/" failonerror="true">
             <arg value="+nightly"/>
             <arg value="rustc"/>

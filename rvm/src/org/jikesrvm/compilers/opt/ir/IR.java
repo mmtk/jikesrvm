@@ -303,6 +303,21 @@ public final class IR {
     hasSysCall = b;
   }
 
+  /**
+   * Does this IR include an aligned syscall?
+   * Initialized during lir to mir conversion;
+   */
+  private boolean hasAlignedSysCall = false;
+
+  public boolean hasAlignedSysCall() {
+    return hasAlignedSysCall;
+  }
+
+  public void setHasAlignedSysCall(boolean b) {
+    hasAlignedSysCall = b;
+    hasSysCall = b;
+  }
+
   /** id of the current phase. Used for printout options */
   private int phaseId;
 

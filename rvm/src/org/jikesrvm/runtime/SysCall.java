@@ -12,7 +12,6 @@
  */
 package org.jikesrvm.runtime;
 
-import org.jikesrvm.VM;
 import org.jikesrvm.annotations.GenerateImplementation;
 import org.jikesrvm.annotations.AlignedSysCallTemplate;
 import org.jikesrvm.annotations.SysCallTemplate;
@@ -488,9 +487,7 @@ public abstract class SysCall {
 
   @Inline
   public void sysTestStackAlignment0() {
-    if (VM.BuildWithTPH) {
-      test_stack_alignment_0();
-    }
+    test_stack_alignment_0();
   }
 
   @TPHSysCall
@@ -499,10 +496,7 @@ public abstract class SysCall {
 
   @Inline
   public int sysTestStackAlignment5(int a, int b, int c, int d, int e) {
-    if (VM.BuildWithTPH) {
-      return test_stack_alignment_5(a, b, c, d, e);
-    }
-    return 0;
+    return test_stack_alignment_5(a, b, c, d, e);
   }
 
   @TPHSysCall

@@ -314,18 +314,14 @@ public class GenerateInterfaceDeclarations {
       if (suffixIndex > 0) {
         // java field "xxxIP" corresponds to C function "xxx"
         String functionName;
-        if (VM.BuildWithTPH && fieldName.indexOf("RIP") > -1) {
+        if (fieldName.indexOf("RIP") > -1) {
           functionName = fieldName.substring(0,suffixIndex - 1);
         } else {
           functionName = fieldName.substring(0, suffixIndex);
         }
         // e. g.,
         //sysFOOIP = (int) sysFOO;
-        if (!VM.BuildWithTPH && fieldName.indexOf("RIP") > -1) {
-          pln("  br->" + fieldName + " = (Address) 0;");
-        } else {
-          pln("  br->" + fieldName + " = (Address)" + functionName + ";");
-        }
+        pln("  br->" + fieldName + " = (Address)" + functionName + ";");
       } else if (fieldName.equals("sysJavaVM")) {
         pln("  br->" + fieldName + " = (Address)&" + fieldName + ";");
       }
