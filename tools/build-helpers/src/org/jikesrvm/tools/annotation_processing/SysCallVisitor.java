@@ -220,12 +220,18 @@ class SysCallVisitor extends SimpleElementVisitor6<Void, Void> {
 
     AnnotationMirror sysCallAnnotation = getMatchingAnnotationsFromElement(
         e, SysCallProcessor.SYSCALL_TEMPLATE_ANNOTATION);
-    if (sysCallAnnotation == null) {
+    AnnotationMirror tphSysCallAnnotation = getMatchingAnnotationsFromElement(
+        e, SysCallProcessor.TPH_SYSCALL_ANNOTATION);
+    AnnotationMirror alignedSysCallAnnotation = getMatchingAnnotationsFromElement(
+        e, SysCallProcessor.ALIGNED_SYSCALL_TEMPLATE_ANNOTATION);
+    if (sysCallAnnotation == null && alignedSysCallAnnotation == null) {
       return null;
     }
 
     try {
-      generatedFileWriter.processMethod(e);
+      boolean aligned = alignedSysCallAnnotation != null;
+      boolean isTPH = tphSysCallAnnotation != null;
+      generatedFileWriter.processMethod(e, aligned, isTPH);
     } catch (IOException ioException) {
       Name methodName = e.getSimpleName();
       messager.printMessage(Kind.ERROR,

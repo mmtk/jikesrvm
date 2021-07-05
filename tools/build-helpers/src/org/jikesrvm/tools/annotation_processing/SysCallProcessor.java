@@ -37,6 +37,8 @@ public final class SysCallProcessor extends AbstractProcessor {
 
   static final String GEN_IMPL_ANNOTATION = "org.jikesrvm.annotations.GenerateImplementation";
   static final String SYSCALL_TEMPLATE_ANNOTATION = "org.jikesrvm.annotations.SysCallTemplate";
+  static final String ALIGNED_SYSCALL_TEMPLATE_ANNOTATION = "org.jikesrvm.annotations.AlignedSysCallTemplate";
+  static final String TPH_SYSCALL_ANNOTATION = "org.jikesrvm.annotations.TPHSysCall";
 
   private Elements elementUtils;
 
@@ -90,6 +92,8 @@ public final class SysCallProcessor extends AbstractProcessor {
     Set<String> supportedAnnotationTypes = new HashSet<String>();
     supportedAnnotationTypes.add(GEN_IMPL_ANNOTATION);
     supportedAnnotationTypes.add(SYSCALL_TEMPLATE_ANNOTATION);
+    supportedAnnotationTypes.add(TPH_SYSCALL_ANNOTATION);
+    supportedAnnotationTypes.add(ALIGNED_SYSCALL_TEMPLATE_ANNOTATION);
     return Collections.unmodifiableSet(supportedAnnotationTypes);
   }
 

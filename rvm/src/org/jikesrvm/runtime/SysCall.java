@@ -12,9 +12,13 @@
  */
 package org.jikesrvm.runtime;
 
+import org.jikesrvm.VM;
 import org.jikesrvm.annotations.GenerateImplementation;
+import org.jikesrvm.annotations.AlignedSysCallTemplate;
 import org.jikesrvm.annotations.SysCallTemplate;
+import org.jikesrvm.annotations.TPHSysCall;
 import org.jikesrvm.scheduler.RVMThread;
+import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.Word;
@@ -481,6 +485,29 @@ public abstract class SysCall {
 
   @SysCallTemplate
   public abstract void sysStackAlignmentTest();
+
+  @Inline
+  public void sysTestStackAlignment0() {
+    if (VM.BuildWithTPH) {
+      test_stack_alignment_0();
+    }
+  }
+
+  @TPHSysCall
+  @AlignedSysCallTemplate
+  public abstract void test_stack_alignment_0();
+
+  @Inline
+  public int sysTestStackAlignment5(int a, int b, int c, int d, int e) {
+    if (VM.BuildWithTPH) {
+      return test_stack_alignment_5(a, b, c, d, e);
+    }
+    return 0;
+  }
+
+  @TPHSysCall
+  @AlignedSysCallTemplate
+  public abstract int test_stack_alignment_5(int a, int b, int c, int d, int e);
 
   @SysCallTemplate
   public abstract void sysArgumentPassingTest(long firstLong, long secondLong, long thirdLong, long fourthLong,
