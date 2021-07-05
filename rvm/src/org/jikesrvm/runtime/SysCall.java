@@ -17,6 +17,7 @@ import org.jikesrvm.annotations.AlignedSysCallTemplate;
 import org.jikesrvm.annotations.SysCallTemplate;
 import org.jikesrvm.annotations.TPHSysCall;
 import org.jikesrvm.scheduler.RVMThread;
+import org.jikesrvm.VM;
 import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
@@ -487,7 +488,8 @@ public abstract class SysCall {
 
   @Inline
   public void sysTestStackAlignment0() {
-    test_stack_alignment_0();
+    if ((VM.BuildForIA32) && (VM.BuildFor32Addr))
+      test_stack_alignment_0();
   }
 
   @TPHSysCall
@@ -496,7 +498,11 @@ public abstract class SysCall {
 
   @Inline
   public int sysTestStackAlignment5(int a, int b, int c, int d, int e) {
-    return test_stack_alignment_5(a, b, c, d, e);
+    // Only supported for 32-bits IA32
+    if ((VM.BuildForIA32) && (VM.BuildFor32Addr))
+      return test_stack_alignment_5(a, b, c, d, e);
+    else
+      return a + 2 * b + 3 * c + 4 * d + 5 * e;
   }
 
   @TPHSysCall
