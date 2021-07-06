@@ -237,6 +237,26 @@ public class BootRecord {
   public Address test_stack_alignment_0RIP;
   public Address test_stack_alignment_5RIP;
 
+  public Address tph_start_control_collectorRIP;
+  public Address tph_gc_initRIP;
+  public Address tph_bind_mutatorRIP;
+  public Address tph_processRIP;
+  public Address tph_start_workerRIP;
+  public Address tph_enable_collectionRIP;
+  public Address tph_will_never_moveRIP;
+  public Address tph_free_bytesRIP;
+  public Address tph_total_bytesRIP;
+  public Address tph_is_mapped_objectRIP;
+  public Address tph_add_weak_candidateRIP;
+  public Address tph_add_soft_candidateRIP;
+  public Address tph_add_phantom_candidateRIP;
+  public Address tph_add_finalizerRIP;
+  public Address tph_get_finalized_objectRIP;
+  public Address tph_modify_checkRIP;
+  public Address tph_handle_user_collection_requestRIP;
+  public Address tph_harness_beginRIP;
+  public Address tph_harness_endRIP;
+
   // startup/shutdown
   public Address sysExitIP;
   public Address sysArgIP;

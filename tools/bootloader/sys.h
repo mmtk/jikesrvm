@@ -232,6 +232,28 @@ EXTERNAL void sysSyncCache(void *address, size_t size);
 EXTERNAL void test_stack_alignment_0();
 EXTERNAL void test_stack_alignment_5(int a, int b, int c, int d, int e);
 
+#ifdef TPH_BUILD
+EXTERNAL  void   tph_gc_init(void* jtoc, size_t heap_size);
+EXTERNAL  void*  tph_bind_mutator(void *tls);
+EXTERNAL  bool   tph_process(char* name, char* value);
+EXTERNAL  void   tph_start_worker(void *tls, void* worker);
+EXTERNAL  void   tph_enable_collection(void *tls);
+EXTERNAL  void   tph_start_control_collector(void *tls);
+EXTERNAL  bool   tph_will_never_move(void* object);
+EXTERNAL  size_t tph_free_bytes();
+EXTERNAL  size_t tph_total_bytes();
+EXTERNAL  bool   tph_is_mapped_object(void* ref);
+EXTERNAL  void   tph_add_weak_candidate(void* ref, void* referent);
+EXTERNAL  void   tph_add_soft_candidate(void* ref, void* referent);
+EXTERNAL  void   tph_add_phantom_candidate(void* ref, void* referent);
+EXTERNAL  void   tph_add_finalizer(void* obj);
+EXTERNAL  void*  tph_get_finalized_object();
+EXTERNAL  void   tph_modify_check(void* ref);
+EXTERNAL  void   tph_handle_user_collection_request(void *tls);
+EXTERNAL  void   tph_harness_begin(void *tls);
+EXTERNAL  void   tph_harness_end();
+#endif
+
 // sysMisc
 EXTERNAL int sysArg(int argno, char *buf, int buflen);
 EXTERNAL int sysGetenv(const char *varName, char *buf, int limit);

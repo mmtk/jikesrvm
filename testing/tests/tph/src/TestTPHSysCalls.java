@@ -18,7 +18,7 @@ class TestTPHSysCalls {
     public static void main(String[] args) {
 
         // Test the stack alignment with 0 arguments passed
-        SysCall.sysCall.sysTestStackAlignment0();
+        SysCall.sysCall.tphTestStackAlignment0();
 
         // Test the stack alignment with 5 arguments passed
         // This returns the addition of each argument multiplied by a value
@@ -29,7 +29,7 @@ class TestTPHSysCalls {
             int c = (int) (Math.random() * 50);
             int d = (int) (Math.random() * 50);
             int e = (int) (Math.random() * 50);
-            int result = SysCall.sysCall.sysTestStackAlignment5(a, b, c, d, e);
+            int result = SysCall.sysCall.tphTestStackAlignment5(a, b, c, d, e);
             if (result != a + 2 * b + 3 * c + 4 * d + 5 * e) {
                 System.out.println("Result: " + result);
                 VM.sysFail("Returned incorrect result");
