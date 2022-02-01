@@ -185,13 +185,13 @@ public abstract class SysCall {
    * @param tls thread local storage of the control collector
    */
   @Inline
-  public void sysStartControlCollector(Address tls) {
-    start_control_collector(tls);
+  public void sysStartControlCollector(Address tls, Address controllerInstance) {
+    start_control_collector(tls, controllerInstance);
   }
 
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract void start_control_collector(Address tls);
+  public abstract void start_control_collector(Address tls, Address controllerInstance);
 
   /**
    * Initiates the GC
