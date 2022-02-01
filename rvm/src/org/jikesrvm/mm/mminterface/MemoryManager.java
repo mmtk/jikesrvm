@@ -247,10 +247,10 @@ public final class MemoryManager {
 
   @Interruptible
   @Entrypoint
-  public static void spawnCollectorThread(Address workerInstance) {
+  public static void spawnCollectorThread(Address workerInstance, boolean isController) {
     byte[] stack = MemoryManager.newStack(StackFrameLayout.getStackSizeCollector());
     CollectorThread t = new CollectorThread(stack, null);
-    t.setWorker(workerInstance);
+    t.setWorker(workerInstance, isController);
     t.start();
   }
 
