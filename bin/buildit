@@ -610,7 +610,9 @@ if ($#gcs == -1) {
 }
 
 if (defined $use_third_party_build_configs) {
-  $use_third_party_build_configs = abs_path($localRoot."/".$use_third_party_build_configs);
+  if (! $use_third_party_build_configs =~ /^\//) {
+    $use_third_party_build_configs = abs_path($localRoot."/".$use_third_party_build_configs);
+  }
   if (!-e $use_third_party_build_configs || !-d $use_third_party_build_configs) {
     bad_usage("Could not find folder for third party build configs '$use_third_party_build_configs'");
   }
