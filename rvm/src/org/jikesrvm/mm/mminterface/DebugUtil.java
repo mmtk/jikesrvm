@@ -99,8 +99,8 @@ public class DebugUtil {
   private static boolean isMapped(ObjectReference ref) {
     if (VM.BuildWithRustMMTk) {
       if (VM.VerifyAssertions && addrInBootImage(ref.toAddress()))
-        VM._assert(sysCall.sysIsMappedObject(ref));
-      return sysCall.sysIsMappedObject(ref);
+        VM._assert(sysCall.sysIsInMMTkSpaces(ref));
+      return sysCall.sysIsInMMTkSpaces(ref);
     } else
       return Space.isMappedObject(ref);
   }
@@ -176,8 +176,8 @@ public class DebugUtil {
   public static boolean mappedVMRef(ObjectReference ref) {
     if (VM.BuildWithRustMMTk) {
       if (VM.VerifyAssertions && addrInBootImage(ref.toAddress()))
-        VM._assert(sysCall.sysIsMappedObject(ref));
-      return sysCall.sysIsMappedObject(ref);
+        VM._assert(sysCall.sysIsInMMTkSpaces(ref));
+      return sysCall.sysIsInMMTkSpaces(ref);
     } else {
       return Space.isMappedObject(ref) && HeapLayout.mmapper.objectIsMapped(ref);
     }

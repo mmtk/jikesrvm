@@ -279,7 +279,7 @@ public class BootRecord {
   public Address starting_heap_addressRIP;
   public Address last_heap_addressRIP;
   public Address is_live_objectRIP;
-  public Address is_mapped_objectRIP;
+  public Address is_in_mmtk_spacesRIP;
   public Address is_mapped_addressRIP;
   public Address modify_checkRIP;
   public Address add_weak_candidateRIP;

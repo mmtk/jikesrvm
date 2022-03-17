@@ -261,7 +261,7 @@ EXTERNAL void* alloc_slow_largeobject(void* mutator, size_t size,
     size_t align, size_t offset, int allocator);
 EXTERNAL void post_alloc(void* mutator, void* refer, void* type_refer,
     int bytes, int allocator);
-EXTERNAL bool is_mapped_object(void* ref);
+EXTERNAL bool is_in_mmtk_spaces(void* ref);
 EXTERNAL bool is_mapped_address(void* addr);
 EXTERNAL bool is_live_object(void* obj);
 EXTERNAL void modify_check(void* ref);

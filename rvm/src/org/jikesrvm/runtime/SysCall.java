@@ -356,12 +356,12 @@ public abstract class SysCall {
   public abstract boolean is_live_object(ObjectReference object);
 
   @Inline
-  public boolean sysIsMappedObject(ObjectReference object) {
-    return is_mapped_object(object);
+  public boolean sysIsInMMTkSpaces(ObjectReference object) {
+    return is_in_mmtk_spaces(object);
   }
   @RustSysCall
   @SysCallAlignedTemplate
-  public abstract boolean is_mapped_object(ObjectReference object);
+  public abstract boolean is_in_mmtk_spaces(ObjectReference object);
 
   @Inline
   public boolean sysIsMappedAddress(Address address) {

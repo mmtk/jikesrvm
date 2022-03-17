@@ -432,7 +432,7 @@ public final class MemoryManager {
   @Inline
   public static boolean objectInVM(ObjectReference object) {
     if (VM.BuildWithRustMMTk) {
-      return sysCall.is_mapped_object(object);
+      return sysCall.is_in_mmtk_spaces(object);
     } else {
       return Space.isMappedObject(object);
     }
@@ -1267,8 +1267,8 @@ public final class MemoryManager {
   public static boolean mightBeTIB(ObjectReference obj) {
     if (VM.BuildWithRustMMTk) {
       return !obj.isNull() &&
-             sysCall.sysIsMappedObject(obj) &&
-             sysCall.sysIsMappedObject(ObjectReference.fromObject(ObjectModel.getTIB(obj)));
+             sysCall.sysIsInMMTkSpaces(obj) &&
+             sysCall.sysIsInMMTkSpaces(ObjectReference.fromObject(ObjectModel.getTIB(obj)));
     }
     return !obj.isNull() &&
            Space.isMappedObject(obj) &&
