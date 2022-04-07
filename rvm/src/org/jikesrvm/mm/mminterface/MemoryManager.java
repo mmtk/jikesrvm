@@ -220,7 +220,7 @@ public final class MemoryManager {
       VM.sysFail("postBoot() unimplemented");
     } else {
       Selected.Plan.get().processOptions();
-      if (Options.noReferenceTypes.getValue()) {
+      if (Options.noReferenceTypes.getValue() || (VM.BuildWithRustMMTk && sysCall.sysGetBooleanOption(Options.noReferenceTypes.getKey().getBytes()))) {
         RVMType.JavaLangRefReferenceReferenceField.makeTraced();
       }
 

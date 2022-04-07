@@ -399,6 +399,14 @@ public abstract class SysCall {
   public abstract void add_phantom_candidate(ObjectReference ref, ObjectReference referent);
 
   @Inline
+  public boolean sysGetBooleanOption(byte[] option) {
+    return get_boolean_option(option);
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract boolean get_boolean_option(byte[] option);
+
+  @Inline
   public void sysAddFinalizer(Object object) {
     add_finalizer(ObjectReference.fromObject(object));
   }
