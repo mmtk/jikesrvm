@@ -220,7 +220,7 @@ public final class MemoryManager {
       VM.sysFail("postBoot() unimplemented");
     } else {
       Selected.Plan.get().processOptions();
-      if (Options.noReferenceTypes.getValue()) {
+      if (Options.noReferenceTypes.getValue() || (VM.BuildWithRustMMTk && sysCall.sysGetBooleanOption(Options.noReferenceTypes.getKey().getBytes()))) {
         RVMType.JavaLangRefReferenceReferenceField.makeTraced();
       }
 
@@ -1176,8 +1176,7 @@ public final class MemoryManager {
   @Interruptible
   public static void addSoftReference(SoftReference<?> obj, Object referent) {
     if (VM.BuildWithRustMMTk) {
-      sysCall.add_soft_candidate(Magic.objectAsAddress(obj),
-              Magic.objectAsAddress(referent));
+      sysCall.sysAddSoftCandidate(obj, ObjectReference.fromObject(referent));
     } else {
       ReferenceProcessor.addSoftCandidate(obj, ObjectReference.fromObject(referent));
     }
@@ -1192,8 +1191,7 @@ public final class MemoryManager {
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj, Object referent) {
     if (VM.BuildWithRustMMTk) {
-      sysCall.add_weak_candidate(Magic.objectAsAddress(obj),
-              Magic.objectAsAddress(referent));
+      sysCall.sysAddWeakCandidate(obj, ObjectReference.fromObject(referent));
     } else {
       ReferenceProcessor.addWeakCandidate(obj, ObjectReference.fromObject(referent));
     }
@@ -1208,8 +1206,7 @@ public final class MemoryManager {
   @Interruptible
   public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
     if (VM.BuildWithRustMMTk) {
-      sysCall.add_phantom_candidate(Magic.objectAsAddress(obj),
-              Magic.objectAsAddress(referent));
+      sysCall.sysAddPhantomCandidate(obj, ObjectReference.fromObject(referent));
     } else {
       ReferenceProcessor.addPhantomCandidate(obj, ObjectReference.fromObject(referent));
     }
