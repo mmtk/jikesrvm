@@ -75,11 +75,27 @@ EXTERNAL void* alignedGetFinalizedObject() {
     return get_finalized_object();
 }
 
-EXTERNAL void sysDynamicCall1(void* (*func_ptr)(void*), void* arg0){
+EXTERNAL void* sysDynamicCall1(void* (*func_ptr)(void*), void* arg0) {
     return func_ptr(arg0);
 }
 
-EXTERNAL void sysDynamicCall2(void* (*func_ptr)(void*, void*), void* arg0, void* arg1) {
+EXTERNAL void* sysDynamicCall2(void* (*func_ptr)(void*, void*), void* arg0, void* arg1) {
     return func_ptr(arg0, arg1);
+}
+
+EXTERNAL void* sysDynamicCall3(void* (*func_ptr)(void*, void*, void*), void* arg0, void* arg1, void* arg2) {
+    return func_ptr(arg0, arg1, arg2);
+}
+
+EXTERNAL void* sysDynamicCall4(void* (*func_ptr)(void*, void*, void*, void*), void* arg0, void* arg1, void* arg2, void* arg3) {
+    return func_ptr(arg0, arg1, arg2, arg3);
+}
+
+EXTERNAL void* sysDynamicCall5(void* (*func_ptr)(void*, void*, void*, void*, void*), void* arg0, void* arg1, void* arg2, void* arg3, void* arg4) {
+    return func_ptr(arg0, arg1, arg2, arg3, arg4);
+}
+
+EXTERNAL void* sysDynamicCall6(void* (*func_ptr)(void*, void*, void*, void*, void*, void*), void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5) {
+    return func_ptr(arg0, arg1, arg2, arg3, arg4, arg5);
 }
 #endif

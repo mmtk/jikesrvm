@@ -246,8 +246,12 @@ EXTERNAL void alignedEnableCollection(size_t thread_id) __attribute__((force_ali
 EXTERNAL bool alignedProcess(char* name, char* value) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedPostAlloc(void* mutator, void* refer, void* type_refer, int bytes, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedHandleUserCollectionRequest(size_t thread_id) __attribute__((force_align_arg_pointer));
-EXTERNAL void sysDynamicCall1(void* (*func_ptr)(void*), void* arg0) __attribute__((force_align_arg_pointer));
-EXTERNAL void sysDynamicCall2(void* (*func_ptr)(void*, void*), void* arg0, void* arg1) __attribute__((force_align_arg_pointer));
+EXTERNAL void* sysDynamicCall1(void* (*func_ptr)(void*), void* arg0) __attribute__((force_align_arg_pointer));
+EXTERNAL void* sysDynamicCall2(void* (*func_ptr)(void*, void*), void* arg0, void* arg1) __attribute__((force_align_arg_pointer));
+EXTERNAL void* sysDynamicCall3(void* (*func_ptr)(void*, void*, void*), void* arg0, void* arg1, void* arg2) __attribute__((force_align_arg_pointer));
+EXTERNAL void* sysDynamicCall4(void* (*func_ptr)(void*, void*, void*, void*), void* arg0, void* arg1, void* arg2, void* arg3) __attribute__((force_align_arg_pointer));
+EXTERNAL void* sysDynamicCall5(void* (*func_ptr)(void*, void*, void*, void*, void*), void* arg0, void* arg1, void* arg2, void* arg3, void* arg4) __attribute__((force_align_arg_pointer));
+EXTERNAL void* sysDynamicCall6(void* (*func_ptr)(void*, void*, void*, void*, void*, void*), void* arg0, void* arg1, void* arg2, void* arg3, void* arg4, void* arg5) __attribute__((force_align_arg_pointer));
 
 EXTERNAL void* bind_mutator(void *tls);
 EXTERNAL void destroy_mutator(void* mutator);
