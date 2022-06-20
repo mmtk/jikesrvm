@@ -174,6 +174,18 @@ public abstract class SysCall {
   @RustSysCall
   @SysCallTemplate
   public abstract Address sysDynamicCall2(Address funcPtr, Word arg0, Word arg1);
+  @RustSysCall
+  @SysCallTemplate
+  public abstract Address sysDynamicCall3(Address funcPtr, Word arg0, Word arg1, Word arg2);
+  @RustSysCall
+  @SysCallTemplate
+  public abstract Address sysDynamicCall4(Address funcPtr, Word arg0, Word arg1, Word arg2, Word arg3);
+  @RustSysCall
+  @SysCallTemplate
+  public abstract Address sysDynamicCall5(Address funcPtr, Word arg0, Word arg1, Word arg2, Word arg3, Word arg4);
+  @RustSysCall
+  @SysCallTemplate
+  public abstract Address sysDynamicCall6(Address funcPtr, Word arg0, Word arg1, Word arg2, Word arg3, Word arg4, Word arg5);
 
   @RustSysCall
   @SysCallAlignedTemplate

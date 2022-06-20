@@ -253,6 +253,10 @@ public class BootRecord {
   public Address alignedHandleUserCollectionRequestRIP;
   public Address sysDynamicCall1RIP;
   public Address sysDynamicCall2RIP;
+  public Address sysDynamicCall3RIP;
+  public Address sysDynamicCall4RIP;
+  public Address sysDynamicCall5RIP;
+  public Address sysDynamicCall6RIP;
 
   //mmtk.h - Rust Functions
   public Address release_bufferRIP;
