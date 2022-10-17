@@ -75,6 +75,7 @@ import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 import org.vmmagic.unboxed.WordArray;
+import org.jikesrvm.util.StringUtilities;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
@@ -220,7 +221,7 @@ public final class MemoryManager {
       VM.sysFail("postBoot() unimplemented");
     } else {
       Selected.Plan.get().processOptions();
-      if (Options.noReferenceTypes.getValue() || (VM.BuildWithRustMMTk && sysCall.sysGetBooleanOption(Options.noReferenceTypes.getKey().getBytes()))) {
+      if (Options.noReferenceTypes.getValue() || (VM.BuildWithRustMMTk && sysCall.sysGetBooleanOption(StringUtilities.stringToBytesNullTerminated(Options.noReferenceTypes.getKey())))) {
         RVMType.JavaLangRefReferenceReferenceField.makeTraced();
       }
 
