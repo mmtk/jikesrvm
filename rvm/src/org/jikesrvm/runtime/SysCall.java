@@ -233,6 +233,14 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract Address bind_mutator(Address tls);
 
+  @Inline
+  public void sysDestroyMutator(Address mutator) {
+    destroy_mutator(mutator);
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void destroy_mutator(Address mutator);
+
   /**
    * Allocation slow path
    * @param mutator The mutator instance to be used for this allocation

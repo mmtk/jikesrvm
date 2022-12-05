@@ -24,6 +24,10 @@ EXTERNAL void* alignedSysBindMutator(size_t thread_id){
     return bind_mutator(thread_id);
 }
 
+EXTERNAL void alignedSysDestroyMutator(void* mutator) {
+    destroy_mutator(mutator);
+}
+
 EXTERNAL void* alignedSysAllocSlowBumpMonotoneImmortal(void* mutator, int size,
     int align, int offset, int allocator) {
     return jikesrvm_alloc_slow_bump_monotone_immortal(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);

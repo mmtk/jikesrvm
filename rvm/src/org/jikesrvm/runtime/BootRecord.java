@@ -266,6 +266,7 @@ public class BootRecord {
   public Address allocRIP;
   public Address jikesrvm_allocRIP;
   public Address bind_mutatorRIP;
+  public Address destroy_mutatorRIP;
   public Address alloc_slow_bump_monotone_immortalRIP;
   public Address jikesrvm_alloc_slow_bump_monotone_immortalRIP;
   public Address alloc_slow_bump_monotone_copyRIP;
