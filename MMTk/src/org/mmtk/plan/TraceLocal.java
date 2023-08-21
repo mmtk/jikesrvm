@@ -289,6 +289,7 @@ public abstract class TraceLocal extends TransitiveClosure {
       VM.assertions._assert(false, "No special case for space in traceObject");
     }
     return ObjectReference.nullReference();
+  // fixme: reinsert enqueue -> workpucket -> gc -rescan
   }
 
   /**
@@ -418,6 +419,7 @@ public abstract class TraceLocal extends TransitiveClosure {
    */
   public ObjectReference retainForFinalize(ObjectReference object) {
     return traceObject(object);
+    // fixme: forward rust side traceobject which is supported by context
   }
 
   /**

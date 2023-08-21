@@ -90,6 +90,8 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    *
    * @param object the object to add to the table of candidates
    */
+
+   // fixme: api.rs java-> call rust === > skip finalize / reference
   @NoInline
   @UnpreemptibleNoWarn("Non-preemptible but yield when table needs to be grown")
   public void add(Object object) {
@@ -168,6 +170,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
     for (int i = 0 ; i < maxIndex; i++) {
       ObjectReference ref = table.get(i).toObjectReference();
       table.set(i, trace.getForwardedFinalizable(ref).toAddress());
+      // fixme: rust side utils/address.rs get_forwarded_object
     }
   }
 
@@ -186,6 +189,53 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   @Override
   @UninterruptibleNoWarn
   public void scan(TraceLocal trace, boolean nursery) {
+    int toIndex = nursery ? nurseryIndex : 0;
+
+    for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {
+      ObjectReference ref = table.get(fromIndex).toObjectReference();
+
+      /* Determine liveness (and forward if necessary) */
+      if (trace.isLive(ref)) {
+         // trace_local either internally call rust side object trace is reachable or we modify here.
+        // tracelocal::islive -> syscall to rust side api.rs
+        table.set(toIndex++, trace.getForwardedFinalizable(ref).toAddress());
+        // tracelocal::getForwardedFinalizable -> syscall to rust side api.rs
+
+        continue;
+      }
+
+      /* Make ready for finalize */
+      ref = trace.retainForFinalize(ref);
+      // objectTracer, ref
+      // 
+
+      /* Add to object table */
+       // enqueue
+      Offset offset = Word.fromIntZeroExtend(lastReadyIndex).lsh(LOG_BYTES_IN_ADDRESS).toOffset();
+      Selected.Plan.get().storeObjectReference(Magic.objectAsAddress(readyForFinalize).plus(offset), ref);
+      lastReadyIndex = (lastReadyIndex + 1) % readyForFinalize.length;
+    }
+    nurseryIndex = maxIndex = toIndex;
+
+    /* Possible schedule finalizers to run */
+    Collection.scheduleFinalizerThread();
+  }
+
+  /**
+   * {@inheritDoc} Calls ReferenceProcessor's
+   * processReference method for each reference and builds a new
+   * list of those references still active.
+   * <p>
+   * Depending on the value of <code>nursery</code>, we will either
+   * scan all references, or just those created since the last scan.
+   * <p>
+   * TODO parallelise this code
+   *
+   * @param nursery Scan only the newly created references
+   */
+  @Override
+  @UninterruptibleNoWarn
+  public void scan(RustTraceLocal trace, boolean nursery) {
     int toIndex = nursery ? nurseryIndex : 0;
 
     for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {

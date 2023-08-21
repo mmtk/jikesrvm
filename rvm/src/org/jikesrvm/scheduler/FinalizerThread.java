@@ -88,12 +88,7 @@ public class FinalizerThread extends SystemThread {
         }
 
         while (true) {
-          Object o = null;
-          if (VM.BuildWithRustMMTk) {
-            o = sysCall.sysGetFinalizedObject();
-          } else {
-            o = MemoryManager.getFinalizedObject();
-          }
+          Object o = MemoryManager.getFinalizedObject();
           if (o == null) break;
           if (verbose >= 2) {
             VM.sysWrite("FinalizerThread finalizing object at ", Magic.objectAsAddress(o));

@@ -295,6 +295,8 @@ EXTERNAL size_t total_bytes();
 EXTERNAL size_t used_bytes();
 EXTERNAL void* starting_heap_address();
 EXTERNAL void* last_heap_address();
+EXTERNAL void hell_world();
+EXTERNAL void trans_trace_local(void * trace_local, bool nursery);
 EXTERNAL void add_weak_candidate(void* ref, void* referent);
 EXTERNAL void add_soft_candidate(void* ref, void* referent);
 EXTERNAL void add_phantom_candidate(void* ref, void* referent);

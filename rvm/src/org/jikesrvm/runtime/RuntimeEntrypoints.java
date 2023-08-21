@@ -330,13 +330,7 @@ public class RuntimeEntrypoints {
     Object newObj = MemoryManager.allocateScalar(size, tib, allocator, align, offset, site);
 
     // Deal with finalization
-    if (hasFinalizer) {
-      if (VM.BuildWithRustMMTk) {
-        sysCall.sysAddFinalizer(newObj);
-      } else {
-        MemoryManager.addFinalizer(newObj);
-      }
-    }
+    if (hasFinalizer) MemoryManager.addFinalizer(newObj);
 
     return newObj;
   }

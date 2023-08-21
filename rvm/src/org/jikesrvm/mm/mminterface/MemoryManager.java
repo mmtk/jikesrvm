@@ -78,7 +78,7 @@ import org.vmmagic.unboxed.WordArray;
 import org.jikesrvm.util.StringUtilities;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
-
+import static org.mmtk.vm.VM.finalizableProcessor;
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
@@ -1192,6 +1192,8 @@ public final class MemoryManager {
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj, Object referent) {
     if (VM.BuildWithRustMMTk) {
+      // sysCall.sysHellWorld();
+      // sysCall.sysHelloWorld();
       sysCall.sysAddWeakCandidate(obj, ObjectReference.fromObject(referent));
     } else {
       ReferenceProcessor.addWeakCandidate(obj, ObjectReference.fromObject(referent));
@@ -1211,6 +1213,18 @@ public final class MemoryManager {
     } else {
       ReferenceProcessor.addPhantomCandidate(obj, ObjectReference.fromObject(referent));
     }
+  }
+
+  @Entrypoint
+  public static void swift() {
+    VM.sysWriteln("[java] repos/j/rvm/src/org/j/mm/mminter/memorymanager.java:swift");
+  }
+
+  @Entrypoint
+  public static void doFinalizableProcessorScan(Address traceAddress, boolean isNursery) {
+    // @pub class mytracelocal extends tracelocal --> single static instance
+    sysCall.sysHellWorld();
+    org.mmtk.vm.VM.finalizableProcessor.scan(traceAddress, isNursery);
   }
 
   @Entrypoint

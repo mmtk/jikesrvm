@@ -22,7 +22,7 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
-
+import org.mmtk.plan.TraceLocal;
 /**
  * Support for lowlevel (i.e. non-JNI) invocation of C functions with
  * static addresses.
@@ -390,6 +390,24 @@ public abstract class SysCall {
   @RustSysCall
   @SysCallAlignedTemplate
   public abstract boolean is_mapped_address(Address address);
+
+  @Inline
+  public void sysHellWorld() {
+    hell_world();
+  }
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void hell_world();
+
+  @Inline
+  public void sysTranceTraceLocal(TraceLocal tracelocal, boolean nursery) {
+    trans_trace_local(tracelocal, nursery);
+  }
+
+  @RustSysCall
+  @SysCallTemplate
+  public abstract void trans_trace_local(TraceLocal tracelocal, boolean nursery);
 
   @Inline
   public void sysAddWeakCandidate(Object ref, ObjectReference referent) {
