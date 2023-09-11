@@ -1,36 +1,46 @@
-package org.mmtk.mmtk;
+/*
+ *  This file is part of the Jikes RVM project (http://jikesrvm.org).
+ *
+ *  This file is licensed to You under the Eclipse Public License (EPL);
+ *  You may not use this file except in compliance with the License. You
+ *  may obtain a copy of the License at
+ *
+ *      http://www.opensource.org/licenses/eclipse-1.0.php
+ *
+ *  See the COPYRIGHT.txt file distributed with this work for information
+ *  regarding copyright ownership.
+ */
+package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.plan.TraceLocal;
-
+import org.mmtk.plan.FinalizableProcessorTracer;
 import org.vmmagic.unboxed.Address;
+import org.vmmagic.unboxed.ObjectReference;
 
-public final class RustTraceLocal /* extends TraceLocal */ {
-    public Address addr;
+import static org.jikesrvm.runtime.SysCall.sysCall;
 
-    public RustTraceLocal(Address traceAddress) {
-        this.addr = addr;
+public final class RustTraceLocal implements FinalizableProcessorTracer {
+    private Address tracer;
+    private Address traceObjectCallback;
+
+    public RustTraceLocal(Address traceObjectCallback, Address tracer) {
+        this.tracer = tracer;
+        this.traceObjectCallback = traceObjectCallback;
     }
 
-    @Inline
     public boolean isLive(ObjectReference object) {
-        return sysIsLiveObject(object); // sysislive
+        return sysCall.is_reachable(object);
     }
 
     public ObjectReference getForwardedFinalizable(ObjectReference object) {
         return getForwardedReference(object);
     }
 
-    @Inline
     public ObjectReference getForwardedReference(ObjectReference object) {
-        return traceObject(object);
-    }
-
-    @Inline
-    public ObjectReference traceObject(ObjectReference object) {
-        return ObjectReference.nullReference();
+        return sysCall.get_forwarded_object(object);
     }
 
     public ObjectReference retainForFinalize(ObjectReference object) {
-        return traceObject(object);
+        Address obj = sysCall.sysDynamicCall2(traceObjectCallback, tracer.toWord(), object.toAddress().toWord());
+        return obj.toObjectReference();
     }
 }

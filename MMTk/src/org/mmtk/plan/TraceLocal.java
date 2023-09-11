@@ -16,6 +16,7 @@ import org.mmtk.policy.Space;
 import org.mmtk.utility.Log;
 import org.mmtk.utility.deque.*;
 import org.mmtk.utility.options.Options;
+import org.mmtk.plan.FinalizableProcessorTracer;
 
 import org.mmtk.vm.VM;
 
@@ -32,7 +33,7 @@ import org.vmmagic.unboxed.*;
  * @see org.mmtk.plan.Trace
  */
 @Uninterruptible
-public abstract class TraceLocal extends TransitiveClosure {
+public abstract class TraceLocal extends TransitiveClosure implements FinalizableProcessorTracer {
   /****************************************************************************
    *
    * Instance variables
@@ -289,7 +290,6 @@ public abstract class TraceLocal extends TransitiveClosure {
       VM.assertions._assert(false, "No special case for space in traceObject");
     }
     return ObjectReference.nullReference();
-  // fixme: reinsert enqueue -> workpucket -> gc -rescan
   }
 
   /**
@@ -419,7 +419,6 @@ public abstract class TraceLocal extends TransitiveClosure {
    */
   public ObjectReference retainForFinalize(ObjectReference object) {
     return traceObject(object);
-    // fixme: forward rust side traceobject which is supported by context
   }
 
   /**

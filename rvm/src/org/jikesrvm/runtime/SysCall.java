@@ -401,15 +401,6 @@ public abstract class SysCall {
   public abstract void hell_world();
 
   @Inline
-  public void sysTranceTraceLocal(TraceLocal tracelocal, boolean nursery) {
-    trans_trace_local(tracelocal, nursery);
-  }
-
-  @RustSysCall
-  @SysCallTemplate
-  public abstract void trans_trace_local(TraceLocal tracelocal, boolean nursery);
-
-  @Inline
   public void sysAddWeakCandidate(Object ref, ObjectReference referent) {
     add_weak_candidate(ObjectReference.fromObject(ref), referent);
   }
@@ -459,6 +450,24 @@ public abstract class SysCall {
   @RustSysCall
   @SysCallAlignedTemplate
   public abstract ObjectReference get_finalized_object();
+
+  @Inline
+  public boolean sysIsReachable(ObjectReference object) {
+    return is_reachable(object);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract boolean is_reachable(ObjectReference object);
+
+  @Inline
+  public ObjectReference sysGetForwarded(ObjectReference object) {
+    return get_forwarded_object(object);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract ObjectReference get_forwarded_object(ObjectReference object);
 
   @Inline
   public void sysModifyCheck(ObjectReference object) {

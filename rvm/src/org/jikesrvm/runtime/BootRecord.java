@@ -288,7 +288,6 @@ public class BootRecord {
   public Address is_mapped_addressRIP;
   public Address modify_checkRIP;
   public Address hell_worldRIP;
-  public Address trans_trace_localRIP;
   public Address add_weak_candidateRIP;
   public Address add_soft_candidateRIP;
   public Address add_phantom_candidateRIP;
@@ -298,6 +297,8 @@ public class BootRecord {
   public Address harness_endRIP;
   public Address add_finalizerRIP;
   public Address get_finalized_objectRIP;
+  public Address get_forwarded_objectRIP;
+  public Address is_reachableRIP;
 
   // startup/shutdown
   public Address sysExitIP;

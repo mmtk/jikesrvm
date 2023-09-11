@@ -37,6 +37,7 @@ import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
+import org.jikesrvm.mm.mmtk.RustTraceLocal;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import org.jikesrvm.objectmodel.BootImageInterface;
@@ -1192,8 +1193,6 @@ public final class MemoryManager {
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj, Object referent) {
     if (VM.BuildWithRustMMTk) {
-      // sysCall.sysHellWorld();
-      // sysCall.sysHelloWorld();
       sysCall.sysAddWeakCandidate(obj, ObjectReference.fromObject(referent));
     } else {
       ReferenceProcessor.addWeakCandidate(obj, ObjectReference.fromObject(referent));
@@ -1221,10 +1220,8 @@ public final class MemoryManager {
   }
 
   @Entrypoint
-  public static void doFinalizableProcessorScan(Address traceAddress, boolean isNursery) {
-    // @pub class mytracelocal extends tracelocal --> single static instance
-    sysCall.sysHellWorld();
-    org.mmtk.vm.VM.finalizableProcessor.scan(traceAddress, isNursery);
+  public static void doFinalizableProcessorScan(Address traceObjectCallback, Address tracer, boolean isNursery) {
+    org.mmtk.vm.VM.finalizableProcessor.scan(new RustTraceLocal(traceObjectCallback, tracer), isNursery);
   }
 
   @Entrypoint
