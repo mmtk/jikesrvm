@@ -12,13 +12,13 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.plan.FinalizableProcessorTracer;
+import org.mmtk.plan.ReferenceProcessorDelegatorTracer;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
-public final class RustTraceLocal implements FinalizableProcessorTracer {
+public final class RustTraceLocal implements ReferenceProcessorDelegatorTracer {
     private Address tracer;
     private Address traceObjectCallback;
 
@@ -32,11 +32,20 @@ public final class RustTraceLocal implements FinalizableProcessorTracer {
     }
 
     public ObjectReference getForwardedFinalizable(ObjectReference object) {
-        return getForwardedReference(object);
+        return sysCall.get_forwarded_object(object);
+    }
+
+    public ObjectReference getForwardedReferent(ObjectReference object) {
+        return sysCall.get_forwarded_object(object);
     }
 
     public ObjectReference getForwardedReference(ObjectReference object) {
         return sysCall.get_forwarded_object(object);
+    }
+
+    public ObjectReference retainReferent(ObjectReference object) {
+        Address obj = sysCall.sysDynamicCall2(traceObjectCallback, tracer.toWord(), object.toAddress().toWord());
+        return obj.toObjectReference();
     }
 
     public ObjectReference retainForFinalize(ObjectReference object) {

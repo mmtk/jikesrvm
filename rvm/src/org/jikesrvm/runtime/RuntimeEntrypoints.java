@@ -18,7 +18,6 @@ import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_CHAR;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_INT;
 import static org.jikesrvm.runtime.JavaSizeConstants.BYTES_IN_LONG;
 import static org.jikesrvm.runtime.UnboxedSizeConstants.LOG_BYTES_IN_ADDRESS;
-import static org.jikesrvm.runtime.SysCall.sysCall;
 
 import org.jikesrvm.VM;
 import org.jikesrvm.architecture.AbstractRegisters;

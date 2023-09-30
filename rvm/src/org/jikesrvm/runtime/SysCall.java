@@ -22,7 +22,6 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
-import org.mmtk.plan.TraceLocal;
 /**
  * Support for lowlevel (i.e. non-JNI) invocation of C functions with
  * static addresses.
@@ -392,64 +391,12 @@ public abstract class SysCall {
   public abstract boolean is_mapped_address(Address address);
 
   @Inline
-  public void sysHellWorld() {
-    hell_world();
-  }
-
-  @RustSysCall
-  @SysCallTemplate
-  public abstract void hell_world();
-
-  @Inline
-  public void sysAddWeakCandidate(Object ref, ObjectReference referent) {
-    add_weak_candidate(ObjectReference.fromObject(ref), referent);
-  }
-
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract void add_weak_candidate(ObjectReference ref, ObjectReference referent);
-
-  @Inline
-  public void sysAddSoftCandidate(Object ref, ObjectReference referent) {
-    add_soft_candidate(ObjectReference.fromObject(ref), referent);
-  }
-
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract void add_soft_candidate(ObjectReference ref, ObjectReference referent);
-
-  @Inline
-  public void sysAddPhantomCandidate(Object ref, ObjectReference referent) {
-    add_phantom_candidate(ObjectReference.fromObject(ref), referent);
-  }
-
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract void add_phantom_candidate(ObjectReference ref, ObjectReference referent);
-
-  @Inline
   public boolean sysGetBooleanOption(byte[] option) {
     return get_boolean_option(option);
   }
   @RustSysCall
   @SysCallAlignedTemplate
   public abstract boolean get_boolean_option(byte[] option);
-
-  @Inline
-  public void sysAddFinalizer(Object object) {
-    add_finalizer(ObjectReference.fromObject(object));
-  }
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract void add_finalizer(ObjectReference object);
-
-  @Inline
-  public Object sysGetFinalizedObject() {
-    return get_finalized_object().toObject();
-  }
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract ObjectReference get_finalized_object();
 
   @Inline
   public boolean sysIsReachable(ObjectReference object) {

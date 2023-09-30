@@ -80,6 +80,9 @@ import org.jikesrvm.util.StringUtilities;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 import static org.mmtk.vm.VM.finalizableProcessor;
+import static org.mmtk.vm.VM.weakReferences;
+import static org.mmtk.vm.VM.softReferences;
+import static org.mmtk.vm.VM.phantomReferences;
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
@@ -1177,11 +1180,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addSoftReference(SoftReference<?> obj, Object referent) {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysAddSoftCandidate(obj, ObjectReference.fromObject(referent));
-    } else {
       ReferenceProcessor.addSoftCandidate(obj, ObjectReference.fromObject(referent));
-    }
   }
 
   /**
@@ -1192,11 +1191,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj, Object referent) {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysAddWeakCandidate(obj, ObjectReference.fromObject(referent));
-    } else {
       ReferenceProcessor.addWeakCandidate(obj, ObjectReference.fromObject(referent));
-    }
   }
 
   /**
@@ -1207,21 +1202,17 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
-    if (VM.BuildWithRustMMTk) {
-      sysCall.sysAddPhantomCandidate(obj, ObjectReference.fromObject(referent));
-    } else {
       ReferenceProcessor.addPhantomCandidate(obj, ObjectReference.fromObject(referent));
-    }
   }
 
   @Entrypoint
-  public static void swift() {
-    VM.sysWriteln("[java] repos/j/rvm/src/org/j/mm/mminter/memorymanager.java:swift");
+  public static boolean doReferenceProcessorDelegatorScan(Address traceObjectCallback, Address tracer, boolean isNursery, boolean needRetain) {
+    return org.mmtk.vm.VM.referenceProcessorDelegator.scan(new RustTraceLocal(traceObjectCallback, tracer), isNursery, needRetain);
   }
 
   @Entrypoint
-  public static void doFinalizableProcessorScan(Address traceObjectCallback, Address tracer, boolean isNursery) {
-    org.mmtk.vm.VM.finalizableProcessor.scan(new RustTraceLocal(traceObjectCallback, tracer), isNursery);
+  public static void doReferenceProcessorDelegatorForward(Address traceObjectCallback, Address tracer, boolean isNursery) {
+    org.mmtk.vm.VM.referenceProcessorDelegator.forward(new RustTraceLocal(traceObjectCallback, tracer), isNursery);
   }
 
   @Entrypoint

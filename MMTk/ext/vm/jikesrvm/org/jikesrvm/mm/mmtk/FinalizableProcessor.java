@@ -18,8 +18,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.util.Services;
-import org.mmtk.plan.TraceLocal;
-import org.mmtk.plan.FinalizableProcessorTracer;
+import org.mmtk.plan.ReferenceProcessorDelegatorTracer;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
@@ -91,7 +90,6 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    *
    * @param object the object to add to the table of candidates
    */
-
   @NoInline
   @UnpreemptibleNoWarn("Non-preemptible but yield when table needs to be grown")
   public void add(Object object) {
@@ -166,7 +164,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    * @param nursery Is this a nursery collection ?
    */
   @Override
-  public void forward(FinalizableProcessorTracer trace, boolean nursery) {
+  public void forward(ReferenceProcessorDelegatorTracer trace, boolean nursery) {
     for (int i = 0 ; i < maxIndex; i++) {
       ObjectReference ref = table.get(i).toObjectReference();
       table.set(i, trace.getForwardedFinalizable(ref).toAddress());
@@ -187,7 +185,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    */
   @Override
   @UninterruptibleNoWarn
-  public void scan(FinalizableProcessorTracer trace, boolean nursery) {
+  public void scan(ReferenceProcessorDelegatorTracer trace, boolean nursery) {
     int toIndex = nursery ? nurseryIndex : 0;
 
     for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {

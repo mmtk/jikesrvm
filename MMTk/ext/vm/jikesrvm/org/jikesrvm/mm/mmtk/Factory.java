@@ -146,6 +146,17 @@ public final class Factory extends org.mmtk.vm.Factory {
   }
 
   @Override
+  public org.mmtk.vm.ReferenceProcessorDelegator newReferenceProcessorDelegator() {
+    try {
+      return ReferenceProcessorDelegator.getProcessor();
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new ReferenceProcessorDelegator!");
+      return null; // never get here
+    }
+  }
+
+
+  @Override
   public org.mmtk.vm.Scanning newScanning() {
     try {
       return new Scanning();

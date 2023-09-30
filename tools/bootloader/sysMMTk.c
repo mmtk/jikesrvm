@@ -71,10 +71,6 @@ EXTERNAL void alignedHandleUserCollectionRequest(size_t thread_id) {
     return handle_user_collection_request(thread_id);
 }
 
-EXTERNAL void alignedAddFinalizer(void* obj) {
-    add_finalizer(obj);
-}
-
 EXTERNAL void* alignedGetFinalizedObject() {
     return get_finalized_object();
 }

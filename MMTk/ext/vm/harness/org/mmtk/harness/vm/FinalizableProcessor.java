@@ -12,7 +12,7 @@
  */
 package org.mmtk.harness.vm;
 
-import org.mmtk.plan.FinalizableProcessorTracer;
+import org.mmtk.plan.TraceLocal;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -26,12 +26,12 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
   }
 
   @Override
-  public void scan(FinalizableProcessorTracer trace, boolean nursery) {
+  public void scan(TraceLocal trace, boolean nursery) {
     Assert.notImplemented();
   }
 
   @Override
-  public void forward(FinalizableProcessorTracer trace, boolean nursery) {
+  public void forward(TraceLocal trace, boolean nursery) {
     Assert.notImplemented();
   }
 }
