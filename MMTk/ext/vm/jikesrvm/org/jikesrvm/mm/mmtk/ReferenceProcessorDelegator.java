@@ -24,13 +24,15 @@ import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.UnpreemptibleNoWarn;
+import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.AddressArray;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.unboxed.Offset;
 import org.vmmagic.unboxed.Word;
 
 /**
- * ReferenceProcessorDelegator manages scanning and processing of different reference
+ * ReferenceProcessorDelegator manages scanning and processing of different
+ * reference
  * types during garbage collection. It acts as a router to delegate
  * scanning to internal reference processors based on the current phase.
  */
@@ -43,14 +45,6 @@ public final class ReferenceProcessorDelegator extends org.mmtk.vm.ReferenceProc
 
   /** The ReferenceProcessorDelegator singleton */
   private static final ReferenceProcessorDelegator referenceProcessorDelegator = new ReferenceProcessorDelegator();
-
-  public enum Phase {
-    PREPARE,
-    SOFT_REFS,
-    WEAK_REFS,
-    FINALIZABLE,
-    PHANTOM_REFS
-  }
 
   /**
    * The current scanning phase.
@@ -72,9 +66,9 @@ public final class ReferenceProcessorDelegator extends org.mmtk.vm.ReferenceProc
    */
   @Override
   @UninterruptibleNoWarn
-  public void forward(ReferenceProcessorDelegatorTracer trace, boolean isNursery) {
+  public void forward(Address traceObjectCallback, Address tracer, boolean isNursery) {
     if (phaseId == Phase.PREPARE) {
-      org.mmtk.vm.VM.finalizableProcessor.forward(trace, isNursery);
+      org.mmtk.vm.VM.finalizableProcessor.forward(new RustTraceLocal(traceObjectCallback, tracer), isNursery);
     }
   }
 
@@ -90,7 +84,9 @@ public final class ReferenceProcessorDelegator extends org.mmtk.vm.ReferenceProc
    */
   @Override
   @UninterruptibleNoWarn
-  public boolean scan(ReferenceProcessorDelegatorTracer trace, boolean isNursery, boolean needRetain) {
+  public boolean scan(Address traceObjectCallback, Address tracer, boolean isNursery, boolean needRetain) {
+    RustTraceLocal trace = new RustTraceLocal(traceObjectCallback, tracer);
+
     if (phaseId == Phase.PREPARE) {
       phaseId = Phase.SOFT_REFS;
     }

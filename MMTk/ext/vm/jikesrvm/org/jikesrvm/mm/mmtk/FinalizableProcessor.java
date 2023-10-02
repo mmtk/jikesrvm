@@ -164,6 +164,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    * @param nursery Is this a nursery collection ?
    */
   @Override
+  @UninterruptibleNoWarn
   public void forward(ReferenceProcessorDelegatorTracer trace, boolean nursery) {
     for (int i = 0 ; i < maxIndex; i++) {
       ObjectReference ref = table.get(i).toObjectReference();

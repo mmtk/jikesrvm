@@ -279,6 +279,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    *
    */
   @Override
+  @UninterruptibleNoWarn
   public void forward(ReferenceProcessorDelegatorTracer trace, boolean nursery) {
     if (VM.VerifyAssertions) VM._assert(unforwardedReferences != null);
     if (TRACE) VM.sysWriteln("Starting ReferenceGlue.forward(",semanticsStr,")");
@@ -318,6 +319,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param nursery Scan only the newly created references
    */
   @Override
+  @UninterruptibleNoWarn
   public void scan(ReferenceProcessorDelegatorTracer trace, boolean nursery, boolean retain) {
     unforwardedReferences = references;
 
@@ -366,6 +368,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * be the address of a heap object, depending on the VM.
    * @param trace the thread local trace element.
    */
+  @UninterruptibleNoWarn
   protected void retainReferent(ReferenceProcessorDelegatorTracer trace, ObjectReference reference) {
     if (VM.VerifyAssertions) VM._assert(!reference.isNull());
     if (VM.VerifyAssertions) VM._assert(semantics == Semantics.SOFT);
@@ -464,7 +467,8 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @return an updated reference (e.g. with a new address) if the reference
    *  is still live, {@code ObjectReference.nullReference()} otherwise
    */
-  public ObjectReference processReference(ReferenceProcessorDelegatorTracer trace, ObjectReference reference) {
+   @UninterruptibleNoWarn
+   public ObjectReference processReference(ReferenceProcessorDelegatorTracer trace, ObjectReference reference) {
     if (VM.VerifyAssertions) VM._assert(!reference.isNull());
 
     if (TRACE_DETAIL) {

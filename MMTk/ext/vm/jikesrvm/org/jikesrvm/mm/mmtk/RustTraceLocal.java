@@ -15,6 +15,9 @@ package org.jikesrvm.mm.mmtk;
 import org.mmtk.plan.ReferenceProcessorDelegatorTracer;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
+import org.vmmagic.pragma.Inline;
+import org.vmmagic.pragma.UninterruptibleNoWarn;
+
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
@@ -27,27 +30,39 @@ public final class RustTraceLocal implements ReferenceProcessorDelegatorTracer {
         this.traceObjectCallback = traceObjectCallback;
     }
 
+    @Inline
+    @UninterruptibleNoWarn
     public boolean isLive(ObjectReference object) {
         return sysCall.is_reachable(object);
     }
 
+    @Inline
+    @UninterruptibleNoWarn
     public ObjectReference getForwardedFinalizable(ObjectReference object) {
         return sysCall.get_forwarded_object(object);
     }
 
+    @Inline
+    @UninterruptibleNoWarn
     public ObjectReference getForwardedReferent(ObjectReference object) {
         return sysCall.get_forwarded_object(object);
     }
 
+    @Inline
+    @UninterruptibleNoWarn
     public ObjectReference getForwardedReference(ObjectReference object) {
         return sysCall.get_forwarded_object(object);
     }
 
+    @Inline
+    @UninterruptibleNoWarn
     public ObjectReference retainReferent(ObjectReference object) {
         Address obj = sysCall.sysDynamicCall2(traceObjectCallback, tracer.toWord(), object.toAddress().toWord());
         return obj.toObjectReference();
     }
 
+    @Inline
+    @UninterruptibleNoWarn
     public ObjectReference retainForFinalize(ObjectReference object) {
         Address obj = sysCall.sysDynamicCall2(traceObjectCallback, tracer.toWord(), object.toAddress().toWord());
         return obj.toObjectReference();

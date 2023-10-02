@@ -1207,12 +1207,12 @@ public final class MemoryManager {
 
   @Entrypoint
   public static boolean doReferenceProcessorDelegatorScan(Address traceObjectCallback, Address tracer, boolean isNursery, boolean needRetain) {
-    return org.mmtk.vm.VM.referenceProcessorDelegator.scan(new RustTraceLocal(traceObjectCallback, tracer), isNursery, needRetain);
+    return org.mmtk.vm.VM.referenceProcessorDelegator.scan(traceObjectCallback, tracer, isNursery, needRetain);
   }
 
   @Entrypoint
   public static void doReferenceProcessorDelegatorForward(Address traceObjectCallback, Address tracer, boolean isNursery) {
-    org.mmtk.vm.VM.referenceProcessorDelegator.forward(new RustTraceLocal(traceObjectCallback, tracer), isNursery);
+    org.mmtk.vm.VM.referenceProcessorDelegator.forward(traceObjectCallback, tracer, isNursery);
   }
 
   @Entrypoint
