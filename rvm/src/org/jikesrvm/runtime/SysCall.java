@@ -22,6 +22,7 @@ import org.vmmagic.pragma.Inline;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.*;
+
 /**
  * Support for lowlevel (i.e. non-JNI) invocation of C functions with
  * static addresses.
@@ -390,6 +391,35 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract boolean is_mapped_address(Address address);
 
+
+  /* Deprecated reference API for JikesRVM; to be removed when `UseBindingSideRefProc` is enabled. */
+  @Inline
+  public void sysAddWeakCandidate(Object ref, ObjectReference referent) {
+    add_weak_candidate(ObjectReference.fromObject(ref), referent);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void add_weak_candidate(ObjectReference ref, ObjectReference referent);
+
+  @Inline
+  public void sysAddSoftCandidate(Object ref, ObjectReference referent) {
+    add_soft_candidate(ObjectReference.fromObject(ref), referent);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void add_soft_candidate(ObjectReference ref, ObjectReference referent);
+
+  @Inline
+  public void sysAddPhantomCandidate(Object ref, ObjectReference referent) {
+    add_phantom_candidate(ObjectReference.fromObject(ref), referent);
+  }
+
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void add_phantom_candidate(ObjectReference ref, ObjectReference referent);
+
   @Inline
   public boolean sysGetBooleanOption(byte[] option) {
     return get_boolean_option(option);
@@ -398,6 +428,24 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract boolean get_boolean_option(byte[] option);
 
+  /* Deprecated reference API for JikesRVM; to be removed when `UseBindingSideRefProc` is enabled. */
+  @Inline
+  public void sysAddFinalizer(Object object) {
+    add_finalizer(ObjectReference.fromObject(object));
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract void add_finalizer(ObjectReference object);
+
+  @Inline
+  public Object sysGetFinalizedObject() {
+    return get_finalized_object().toObject();
+  }
+  @RustSysCall
+  @SysCallAlignedTemplate
+  public abstract ObjectReference get_finalized_object();
+
+  /* If the `UseBindingSideRefProc` flag is activated, JikesRVM will utilize the following binding side reference processing API. */
   @Inline
   public boolean sysIsReachable(ObjectReference object) {
     return is_reachable(object);

@@ -18,7 +18,7 @@ import org.jikesrvm.VM;
 import org.jikesrvm.mm.mminterface.Selected;
 import org.jikesrvm.runtime.Magic;
 import org.jikesrvm.util.Services;
-import org.mmtk.plan.ReferenceProcessorDelegatorTracer;
+import org.mmtk.plan.RefLifecycleTracer;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.pragma.UninterruptibleNoWarn;
@@ -165,7 +165,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    */
   @Override
   @UninterruptibleNoWarn
-  public void forward(ReferenceProcessorDelegatorTracer trace, boolean nursery) {
+  public void forward(RefLifecycleTracer trace, boolean nursery) {
     for (int i = 0 ; i < maxIndex; i++) {
       ObjectReference ref = table.get(i).toObjectReference();
       table.set(i, trace.getForwardedFinalizable(ref).toAddress());
@@ -186,7 +186,7 @@ public final class FinalizableProcessor extends org.mmtk.vm.FinalizableProcessor
    */
   @Override
   @UninterruptibleNoWarn
-  public void scan(ReferenceProcessorDelegatorTracer trace, boolean nursery) {
+  public void scan(RefLifecycleTracer trace, boolean nursery) {
     int toIndex = nursery ? nurseryIndex : 0;
 
     for (int fromIndex = toIndex; fromIndex < maxIndex; fromIndex++) {

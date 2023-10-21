@@ -140,7 +140,7 @@ public abstract class Factory {
    */
   public abstract FinalizableProcessor newFinalizableProcessor();
 
-  public abstract ReferenceProcessorDelegator newReferenceProcessorDelegator();
+  public abstract ReferenceProcessingHelper newReferenceProcessingHelper();
 
   /**
    * Create a new Scanning instance using the appropriate VM-specific

@@ -31,6 +31,7 @@
   <property file="${config.file}"/>
   <property file="${target.file}"/>
   <property name="rust.build" value="false"/>
+  <property name="rust.binding_side_ref_proc" value="false"/>
 
   <!-- default configuration values. May have already been set by above tasks -->
   <property file="${jikesrvm.dir}/build/configs/config.properties.defaults"/>
@@ -1141,6 +1142,7 @@ Check to make sure all required properties are specified. This includes properti
         <filter token="_RVM_FOR_SSE2_FULL_" value="${pp_RVM_FOR_SSE2_FULL}"/>
         <filter token="_RVM_FOR_HW_FSQRT_" value="${target.arch.hw_fsqrt}"/>
         <filter token="_RVM_WITH_RUST_MMTK_" value="${rust.build}"/>
+        <filter token="_RVM_WITH_BINDING_SIDE_REF_PROC_" value="${rust.binding_side_ref_proc}"/>
         <filter token="_RVM_WITH_ASSERTIONS_" value="${pp_RVM_WITH_ASSERTIONS}"/>
         <filter token="_RVM_WITH_EXTREME_ASSERTIONS_" value="${pp_RVM_WITH_EXTREME_ASSERTIONS}"/>
         <filter token="_RVM_WITH_ADAPTIVE_SYSTEM_" value="${config.include.aos}"/>
@@ -2073,6 +2075,10 @@ const char *rvm_target_configuration = "${target.file}";
     </condition>
     <condition property="rvm.c.args" value="${c.args} ${rvm.includes} ${rvm.defines} -DRUST_BUILD">
       <equals arg1="${rust.build}" arg2="true"/>
+    </condition>
+
+    <condition property="rvm.c.args" value="${rvm.c.args} -DBINDING_SIDE_REF_PROC">
+      <equals arg1="${rust.binding_side_ref_proc}" arg2="true"/>
     </condition>
 
   </target>

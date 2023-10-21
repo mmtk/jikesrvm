@@ -12,7 +12,7 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.plan.ReferenceProcessorDelegatorTracer;
+import org.mmtk.plan.RefLifecycleTracer;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -38,7 +38,7 @@ public abstract class ReferenceProcessor {
    * @param retain whether to retain those references whose referents are not
    *  reachable
    */
-  public abstract void scan(ReferenceProcessorDelegatorTracer trace, boolean nursery, boolean retain);
+  public abstract void scan(RefLifecycleTracer trace, boolean nursery, boolean retain);
 
   /**
    * Iterate over all references and forward.
@@ -46,7 +46,7 @@ public abstract class ReferenceProcessor {
    * @param trace The MMTk trace to forward to
    * @param nursery The nursery collection hint
    */
-  public abstract void forward(ReferenceProcessorDelegatorTracer trace, boolean nursery);
+  public abstract void forward(RefLifecycleTracer trace, boolean nursery);
 
   /**
    * @return the number of references objects on the queue

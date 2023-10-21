@@ -12,7 +12,7 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.plan.ReferenceProcessorDelegatorTracer;
+import org.mmtk.plan.RefLifecycleTracer;
 import org.vmmagic.pragma.Uninterruptible;
 import org.vmmagic.unboxed.Address;
 
@@ -24,10 +24,10 @@ import org.vmmagic.unboxed.Address;
  * different reference types.
  */
 @Uninterruptible
-public abstract class ReferenceProcessorDelegator {
+public abstract class ReferenceProcessingHelper {
 
-  public enum Phase {
-    PREPARE,
+  public enum State {
+    INITIAL,
     SOFT_REFS,
     WEAK_REFS,
     FINALIZABLE,

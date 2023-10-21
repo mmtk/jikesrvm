@@ -14,7 +14,7 @@ package org.mmtk.plan;
 
 import org.vmmagic.unboxed.ObjectReference;
 
-public interface ReferenceProcessorDelegatorTracer {
+public interface RefLifecycleTracer {
   boolean isLive(ObjectReference object);
   ObjectReference getForwardedFinalizable(ObjectReference object);
   ObjectReference getForwardedReferent(ObjectReference object);
