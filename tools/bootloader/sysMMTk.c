@@ -71,12 +71,22 @@ EXTERNAL void alignedHandleUserCollectionRequest(size_t thread_id) {
     return handle_user_collection_request(thread_id);
 }
 
+#ifndef BINDING_SIDE_REF_PROC
 EXTERNAL void alignedAddFinalizer(void* obj) {
     add_finalizer(obj);
 }
+#endif
 
 EXTERNAL void* alignedGetFinalizedObject() {
     return get_finalized_object();
+}
+
+EXTERNAL bool alignedIsReachable(void* object_reference) {
+    return is_reachable(object_reference);
+}
+
+EXTERNAL void* alignedGetForwardedObject(void * object_reference) {
+    return get_forwarded_object(object_reference);
 }
 
 EXTERNAL void* sysDynamicCall1(void* (*func_ptr)(void*), void* arg0) {

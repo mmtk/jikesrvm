@@ -89,7 +89,7 @@ public class FinalizerThread extends SystemThread {
 
         while (true) {
           Object o = null;
-          if (VM.BuildWithRustMMTk) {
+          if (VM.BuildWithRustMMTk && !VM.UseBindingSideRefProc) {
             o = sysCall.sysGetFinalizedObject();
           } else {
             o = MemoryManager.getFinalizedObject();

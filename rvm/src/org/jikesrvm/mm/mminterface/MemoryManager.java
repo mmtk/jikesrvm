@@ -37,6 +37,7 @@ import org.jikesrvm.classloader.SpecializedMethod;
 import org.jikesrvm.classloader.TypeReference;
 import org.jikesrvm.compilers.common.CodeArray;
 import org.jikesrvm.mm.mmtk.FinalizableProcessor;
+import org.jikesrvm.mm.mmtk.RustTraceLocal;
 import org.jikesrvm.mm.mmtk.ReferenceProcessor;
 import org.jikesrvm.mm.mmtk.SynchronizedCounter;
 import org.jikesrvm.objectmodel.BootImageInterface;
@@ -79,6 +80,10 @@ import org.jikesrvm.util.StringUtilities;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
+import static org.mmtk.vm.VM.finalizableProcessor;
+import static org.mmtk.vm.VM.weakReferences;
+import static org.mmtk.vm.VM.softReferences;
+import static org.mmtk.vm.VM.phantomReferences;
 /**
  * The interface that the MMTk memory manager presents to Jikes RVM
  */
@@ -1176,7 +1181,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addSoftReference(SoftReference<?> obj, Object referent) {
-    if (VM.BuildWithRustMMTk) {
+    if (VM.BuildWithRustMMTk && !VM.UseBindingSideRefProc) {
       sysCall.sysAddSoftCandidate(obj, ObjectReference.fromObject(referent));
     } else {
       ReferenceProcessor.addSoftCandidate(obj, ObjectReference.fromObject(referent));
@@ -1191,7 +1196,7 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addWeakReference(WeakReference<?> obj, Object referent) {
-    if (VM.BuildWithRustMMTk) {
+    if (VM.BuildWithRustMMTk && !VM.UseBindingSideRefProc) {
       sysCall.sysAddWeakCandidate(obj, ObjectReference.fromObject(referent));
     } else {
       ReferenceProcessor.addWeakCandidate(obj, ObjectReference.fromObject(referent));
@@ -1206,11 +1211,21 @@ public final class MemoryManager {
    */
   @Interruptible
   public static void addPhantomReference(PhantomReference<?> obj, Object referent) {
-    if (VM.BuildWithRustMMTk) {
+    if (VM.BuildWithRustMMTk && !VM.UseBindingSideRefProc) {
       sysCall.sysAddPhantomCandidate(obj, ObjectReference.fromObject(referent));
     } else {
       ReferenceProcessor.addPhantomCandidate(obj, ObjectReference.fromObject(referent));
     }
+  }
+
+  @Entrypoint
+  public static boolean doReferenceProcessingHelperScan(Address traceObjectCallback, Address tracer, boolean isNursery, boolean needRetain) {
+    return org.mmtk.vm.VM.referenceProcessingHelper.scan(traceObjectCallback, tracer, isNursery, needRetain);
+  }
+
+  @Entrypoint
+  public static void doReferenceProcessingHelperForward(Address traceObjectCallback, Address tracer, boolean isNursery) {
+    org.mmtk.vm.VM.referenceProcessingHelper.forward(traceObjectCallback, tracer, isNursery);
   }
 
   @Entrypoint

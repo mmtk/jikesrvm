@@ -12,7 +12,7 @@
  */
 package org.jikesrvm.mm.mmtk;
 
-import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.RefLifecycleTracer;
 import org.mmtk.utility.options.Options;
 
 import org.vmmagic.pragma.*;
@@ -279,7 +279,8 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    *
    */
   @Override
-  public void forward(TraceLocal trace, boolean nursery) {
+  @UninterruptibleNoWarn
+  public void forward(RefLifecycleTracer trace, boolean nursery) {
     if (VM.VerifyAssertions) VM._assert(unforwardedReferences != null);
     if (TRACE) VM.sysWriteln("Starting ReferenceGlue.forward(",semanticsStr,")");
     if (TRACE_DETAIL) {
@@ -318,7 +319,8 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @param nursery Scan only the newly created references
    */
   @Override
-  public void scan(TraceLocal trace, boolean nursery, boolean retain) {
+  @UninterruptibleNoWarn
+  public void scan(RefLifecycleTracer trace, boolean nursery, boolean retain) {
     unforwardedReferences = references;
 
     if (TRACE) VM.sysWriteln("Starting ReferenceGlue.scan(",semanticsStr,")");
@@ -366,7 +368,8 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * be the address of a heap object, depending on the VM.
    * @param trace the thread local trace element.
    */
-  protected void retainReferent(TraceLocal trace, ObjectReference reference) {
+  @UninterruptibleNoWarn
+  protected void retainReferent(RefLifecycleTracer trace, ObjectReference reference) {
     if (VM.VerifyAssertions) VM._assert(!reference.isNull());
     if (VM.VerifyAssertions) VM._assert(semantics == Semantics.SOFT);
 
@@ -455,7 +458,7 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * <p>
    * This method deals with a soft reference as if it were a weak reference, i.e.
    * it does not retain the referent. To retain the referent, use
-   * {@link #retainReferent(TraceLocal, ObjectReference)} followed by a transitive
+   * {@link #retainReferent(RefLifecycleTracer, ObjectReference)} followed by a transitive
    * closure phase.
    *
    * @param reference the address of the reference. This may or may not
@@ -464,7 +467,8 @@ public final class ReferenceProcessor extends org.mmtk.vm.ReferenceProcessor {
    * @return an updated reference (e.g. with a new address) if the reference
    *  is still live, {@code ObjectReference.nullReference()} otherwise
    */
-  public ObjectReference processReference(TraceLocal trace, ObjectReference reference) {
+   @UninterruptibleNoWarn
+   public ObjectReference processReference(RefLifecycleTracer trace, ObjectReference reference) {
     if (VM.VerifyAssertions) VM._assert(!reference.isNull());
 
     if (TRACE_DETAIL) {

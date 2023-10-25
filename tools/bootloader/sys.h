@@ -295,15 +295,22 @@ EXTERNAL size_t total_bytes();
 EXTERNAL size_t used_bytes();
 EXTERNAL void* starting_heap_address();
 EXTERNAL void* last_heap_address();
+#ifndef BINDING_SIDE_REF_PROC
 EXTERNAL void add_weak_candidate(void* ref, void* referent);
 EXTERNAL void add_soft_candidate(void* ref, void* referent);
 EXTERNAL void add_phantom_candidate(void* ref, void* referent);
+#endif
 EXTERNAL bool get_boolean_option(char* option);
 EXTERNAL void harness_begin(void *tls);
 EXTERNAL void harness_end();
 EXTERNAL void release_buffer(void* buffer);
-EXTERNAL void add_finalizer(void* obj);
 EXTERNAL void* get_finalized_object();
+#ifndef BINDING_SIDE_REF_PROC
+EXTERNAL void add_finalizer(void* obj);
+#endif
+EXTERNAL void* get_forwarded_object(void * object_reference);
+EXTERNAL bool is_reachable(void * object_reference);
+
 #endif
 
 // sysMisc

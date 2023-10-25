@@ -146,6 +146,17 @@ public final class Factory extends org.mmtk.vm.Factory {
   }
 
   @Override
+  public org.mmtk.vm.ReferenceProcessingHelper newReferenceProcessingHelper() {
+    try {
+      return ReferenceProcessingHelper.getProcessor();
+    } catch (Exception e) {
+      VM.sysFail("Failed to allocate new ReferenceProcessingHelper!");
+      return null; // never get here
+    }
+  }
+
+
+  @Override
   public org.mmtk.vm.Scanning newScanning() {
     try {
       return new Scanning();

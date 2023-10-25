@@ -331,7 +331,7 @@ public class RuntimeEntrypoints {
 
     // Deal with finalization
     if (hasFinalizer) {
-      if (VM.BuildWithRustMMTk) {
+      if (VM.BuildWithRustMMTk && !VM.UseBindingSideRefProc) {
         sysCall.sysAddFinalizer(newObj);
       } else {
         MemoryManager.addFinalizer(newObj);

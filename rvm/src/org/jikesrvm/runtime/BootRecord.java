@@ -296,6 +296,9 @@ public class BootRecord {
   public Address harness_endRIP;
   public Address add_finalizerRIP;
   public Address get_finalized_objectRIP;
+  /* If the `UseBindingSideRefProc` flag is activated, JikesRVM will utilize the following binding side reference processing API. */  
+  public Address get_forwarded_objectRIP;
+  public Address is_reachableRIP;
 
   // startup/shutdown
   public Address sysExitIP;

@@ -12,7 +12,7 @@
  */
 package org.mmtk.vm;
 
-import org.mmtk.plan.TraceLocal;
+import org.mmtk.plan.RefLifecycleTracer;
 import org.vmmagic.pragma.Uninterruptible;
 
 /**
@@ -33,7 +33,7 @@ public abstract class FinalizableProcessor {
    * @param trace the thread local trace element.
    * @param nursery {@code true} if it is safe to only scan new references.
    */
-  public abstract void scan(TraceLocal trace, boolean nursery);
+  public abstract void scan(RefLifecycleTracer trace, boolean nursery);
 
   /**
    * Iterates over and forward entries in the table.
@@ -42,5 +42,5 @@ public abstract class FinalizableProcessor {
    * @param nursery if {@code true}, scan only references generated since
    *  last scan. Otherwise, scan all references.
    */
-  public abstract void forward(TraceLocal trace, boolean nursery);
+  public abstract void forward(RefLifecycleTracer trace, boolean nursery);
 }

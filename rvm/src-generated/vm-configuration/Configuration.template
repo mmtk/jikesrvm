@@ -79,6 +79,9 @@ public abstract class Configuration {
   /** Is this using the default MMTk or the rust MMTk? **/
   public static final boolean BuildWithRustMMTk = @_RVM_WITH_RUST_MMTK_@;
 
+  /** Is this using the new rust MMTK reference processor API? **/
+  public static final boolean UseBindingSideRefProc = @_RVM_WITH_BINDING_SIDE_REF_PROC_@;
+
   /** Is this an adaptive build? */
   public static final boolean BuildForAdaptiveSystem = @_RVM_WITH_ADAPTIVE_SYSTEM_@;
 
