@@ -244,7 +244,6 @@ public class BootRecord {
   public Address alignedSysAllocSlowBumpMonotoneImmortalRIP;
   public Address alignedSysAllocSlowBumpMonotoneCopyRIP;
   public Address alignedSysAllocSlowLargeobjectRIP;
-  public Address alignedStartControlCollectorRIP;
   public Address alignedWillNeverMoveRIP;
   public Address alignedStartWorkerRIP;
   public Address alignedEnableCollectionRIP;
@@ -273,7 +272,6 @@ public class BootRecord {
   public Address jikesrvm_alloc_slow_bump_monotone_copyRIP;
   public Address alloc_slow_largeobjectRIP;
   public Address jikesrvm_alloc_slow_largeobjectRIP;
-  public Address start_control_collectorRIP;
   public Address will_never_moveRIP;
   public Address start_workerRIP;
   public Address enable_collectionRIP;
