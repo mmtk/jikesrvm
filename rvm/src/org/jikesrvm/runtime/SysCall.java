@@ -142,10 +142,6 @@ public abstract class SysCall {
 
   @RustSysCall
   @SysCallTemplate
-  public abstract void alignedStartControlCollector(Address tls);
-
-  @RustSysCall
-  @SysCallTemplate
   public abstract void alignedWillNeverMove(ObjectReference obj);
 
   @RustSysCall
@@ -191,19 +187,6 @@ public abstract class SysCall {
   @SysCallAlignedTemplate
   public abstract void release_buffer(Address buffer);
 
-
-   /**
-   * Initialises information about the control collector
-   * @param tls thread local storage of the control collector
-   */
-  @Inline
-  public void sysStartControlCollector(Address tls, Address controllerInstance) {
-    start_control_collector(tls, controllerInstance);
-  }
-
-  @RustSysCall
-  @SysCallAlignedTemplate
-  public abstract void start_control_collector(Address tls, Address controllerInstance);
 
   /**
    * Initiates the GC

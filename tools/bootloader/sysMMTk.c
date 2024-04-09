@@ -43,10 +43,6 @@ EXTERNAL void* alignedSysAllocSlowLargeobject(void* mutator, int size,
     return jikesrvm_alloc_slow_largeobject(mutator, (size_t) size, (size_t) align, (ssize_t) offset, allocator);
 }
 
-EXTERNAL void alignedStartControlCollector(size_t thread_id){
-    start_control_collector(thread_id);
-}
-
 EXTERNAL bool alignedWillNeverMove(void* object){
     return will_never_move(object);
 }

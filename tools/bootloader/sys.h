@@ -239,7 +239,6 @@ EXTERNAL void* alignedSysBindMutator(size_t thread_id) __attribute__((force_alig
 EXTERNAL void* alignedSysAllocSlowBumpMonotoneImmortal(void* mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void* alignedSysAllocSlowBumpMonotoneCopy(void* mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
 EXTERNAL void* alignedSysAllocSlowLargeobject(void* mutator, int size, int align, int offset, int allocator) __attribute__((force_align_arg_pointer));
-EXTERNAL void alignedStartControlCollector(size_t thread_id) __attribute__((force_align_arg_pointer));
 EXTERNAL bool alignedWillNeverMove(void* object) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedStartWorker(size_t thread_id, void* worker) __attribute__((force_align_arg_pointer));
 EXTERNAL void alignedEnableCollection(size_t thread_id) __attribute__((force_align_arg_pointer));
@@ -276,7 +275,6 @@ EXTERNAL bool will_never_move(void* object);
 EXTERNAL bool process(char* name, char* value);
 EXTERNAL void scan_region();
 EXTERNAL void handle_user_collection_request(void *tls);
-EXTERNAL void start_control_collector(void *tls);
 EXTERNAL void start_worker(void *tls, void* worker);
 EXTERNAL void jikesrvm_gc_init(void* jtoc, size_t heap_size);
 EXTERNAL void enable_collection(void *tls);
