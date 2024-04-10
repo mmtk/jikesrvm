@@ -18,7 +18,7 @@ import org.mmtk.utility.deque.ObjectReferenceBuffer;
 import org.vmmagic.unboxed.Address;
 import org.vmmagic.unboxed.ObjectReference;
 import org.vmmagic.pragma.Inline;
-import org.vmmagic.pragma.UninterruptibleNoWarn;
+import org.vmmagic.pragma.Uninterruptible;
 
 import static org.jikesrvm.runtime.SysCall.sysCall;
 
@@ -26,13 +26,20 @@ public final class RustTraceLocal implements RefLifecycleTracer {
     private Address tracer;
     private Address traceObjectCallback;
 
-    public RustTraceLocal(Address traceObjectCallback, Address tracer) {
+    public RustTraceLocal() {
+        this.tracer = Address.zero();
+        this.traceObjectCallback = Address.zero();
+    }
+
+    @Inline
+    @Uninterruptible
+    public void setContext(Address traceObjectCallback, Address tracer) {
         this.tracer = tracer;
         this.traceObjectCallback = traceObjectCallback;
     }
 
     @Inline
-    @UninterruptibleNoWarn
+    @Uninterruptible
     public boolean isLive(ObjectReference object) {
         if (VM.BuildWithRustMMTk && !VM.UseBindingSideRefProc) {
             return false;
@@ -42,7 +49,7 @@ public final class RustTraceLocal implements RefLifecycleTracer {
     }
 
     @Inline
-    @UninterruptibleNoWarn
+    @Uninterruptible
     public ObjectReference getForwardedFinalizable(ObjectReference object) {
         if (VM.BuildWithRustMMTk && !VM.UseBindingSideRefProc) {
             return Address.zero().toObjectReference();
@@ -52,7 +59,7 @@ public final class RustTraceLocal implements RefLifecycleTracer {
     }
 
     @Inline
-    @UninterruptibleNoWarn
+    @Uninterruptible
     public ObjectReference getForwardedReferent(ObjectReference object) {
         if (VM.BuildWithRustMMTk && !VM.UseBindingSideRefProc) {
             return Address.zero().toObjectReference();
@@ -62,7 +69,7 @@ public final class RustTraceLocal implements RefLifecycleTracer {
     }
 
     @Inline
-    @UninterruptibleNoWarn
+    @Uninterruptible
     public ObjectReference getForwardedReference(ObjectReference object) {
         if (VM.BuildWithRustMMTk && !VM.UseBindingSideRefProc) {
             return Address.zero().toObjectReference();
@@ -72,7 +79,7 @@ public final class RustTraceLocal implements RefLifecycleTracer {
     }
 
     @Inline
-    @UninterruptibleNoWarn
+    @Uninterruptible
     public ObjectReference retainReferent(ObjectReference object) {
         if (VM.BuildWithRustMMTk && !VM.UseBindingSideRefProc) {
             return Address.zero().toObjectReference();
@@ -83,7 +90,7 @@ public final class RustTraceLocal implements RefLifecycleTracer {
     }
 
     @Inline
-    @UninterruptibleNoWarn
+    @Uninterruptible
     public ObjectReference retainForFinalize(ObjectReference object) {
         if (VM.BuildWithRustMMTk && !VM.UseBindingSideRefProc) {
             return Address.zero().toObjectReference();
