@@ -21,7 +21,6 @@ import org.jikesrvm.util.Services;
 import org.mmtk.plan.RefLifecycleTracer;
 import org.vmmagic.pragma.NoInline;
 import org.vmmagic.pragma.Uninterruptible;
-import org.vmmagic.pragma.UninterruptibleNoWarn;
 import org.vmmagic.pragma.Unpreemptible;
 import org.vmmagic.pragma.UnpreemptibleNoWarn;
 import org.vmmagic.unboxed.Address;
@@ -51,11 +50,14 @@ public final class ReferenceProcessingHelper extends org.mmtk.vm.ReferenceProces
    */
   private static State stateId;
 
+  private RustTraceLocal traceLocal;
+
   /**
    * Create a new table.
    */
   protected ReferenceProcessingHelper() {
     stateId = State.INITIAL;
+    traceLocal = new RustTraceLocal();
   }
 
   /**
@@ -65,10 +67,11 @@ public final class ReferenceProcessingHelper extends org.mmtk.vm.ReferenceProces
    * @param isNursery True if scanning the nursery
    */
   @Override
-  @UninterruptibleNoWarn
+  @Uninterruptible
   public void forward(Address traceObjectCallback, Address tracer, boolean isNursery) {
     if (stateId == State.INITIAL) {
-      org.mmtk.vm.VM.finalizableProcessor.forward(new RustTraceLocal(traceObjectCallback, tracer), isNursery);
+      traceLocal.setContext(traceObjectCallback, tracer);
+      org.mmtk.vm.VM.finalizableProcessor.forward(traceLocal, isNursery);
     }
   }
 
@@ -83,28 +86,28 @@ public final class ReferenceProcessingHelper extends org.mmtk.vm.ReferenceProces
    * @return True to continue scanning or false if finished
    */
   @Override
-  @UninterruptibleNoWarn
+  @Uninterruptible
   public boolean scan(Address traceObjectCallback, Address tracer, boolean isNursery, boolean needRetain) {
-    RustTraceLocal trace = new RustTraceLocal(traceObjectCallback, tracer);
+    traceLocal.setContext(traceObjectCallback, tracer);
 
     if (stateId == State.INITIAL) {
       stateId = State.SOFT_REFS;
     }
 
     if (stateId == State.SOFT_REFS) {
-      org.mmtk.vm.VM.softReferences.scan(trace, isNursery, needRetain);
+      org.mmtk.vm.VM.softReferences.scan(traceLocal, isNursery, needRetain);
       stateId = State.WEAK_REFS;
       return true;
     } else if (stateId == State.WEAK_REFS) {
-      org.mmtk.vm.VM.weakReferences.scan(trace, isNursery, needRetain);
+      org.mmtk.vm.VM.weakReferences.scan(traceLocal, isNursery, needRetain);
       stateId = State.FINALIZABLE;
       return true;
     } else if (stateId == State.FINALIZABLE) {
-      org.mmtk.vm.VM.finalizableProcessor.scan(trace, isNursery);
+      org.mmtk.vm.VM.finalizableProcessor.scan(traceLocal, isNursery);
       stateId = State.PHANTOM_REFS;
       return true;
     } else if (stateId == State.PHANTOM_REFS) {
-      org.mmtk.vm.VM.phantomReferences.scan(trace, isNursery, needRetain);
+      org.mmtk.vm.VM.phantomReferences.scan(traceLocal, isNursery, needRetain);
       stateId = State.INITIAL;
       return false;
     } else {
