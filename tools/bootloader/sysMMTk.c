@@ -21,7 +21,7 @@ EXTERNAL void* alignedSysAlloc(void* mutator, int size, int align, int offset, i
 }
 
 EXTERNAL void* alignedSysBindMutator(size_t thread_id){
-    return bind_mutator(thread_id);
+    return bind_mutator((void*)thread_id);
 }
 
 EXTERNAL void alignedSysDestroyMutator(void* mutator) {
@@ -48,11 +48,11 @@ EXTERNAL bool alignedWillNeverMove(void* object){
 }
 
 EXTERNAL void alignedStartWorker(size_t thread_id, void* worker){
-    start_worker(thread_id, worker);
+    start_worker((void*)thread_id, worker);
 }
 
 EXTERNAL void alignedEnableCollection(size_t thread_id){
-    enable_collection(thread_id);
+    enable_collection((void*)thread_id);
 }
 
 EXTERNAL bool alignedProcess(char* name, char* value){
@@ -64,7 +64,7 @@ EXTERNAL void alignedPostAlloc(void* mutator, void* refer, void* type_refer, int
 }
 
 EXTERNAL void alignedHandleUserCollectionRequest(size_t thread_id) {
-    return handle_user_collection_request(thread_id);
+    return handle_user_collection_request((void*)thread_id);
 }
 
 #ifndef BINDING_SIDE_REF_PROC
